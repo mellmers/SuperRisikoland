@@ -5,7 +5,7 @@ public class Mission {
 	public Mission () {
 		mission[0] = "Befreien Sie Europa, Australien und einen dritten Kontinent Ihrer Wahl!";
 		mission[1] = "Hallo";
-		mission[2] = "Befreien Sie Europa, Australien und einen dritten Kontinent Ihrer Wahl!";
+		mission[2] = "Hallo";
 		mission[3] = "Befreien Sie Europa, Australien und einen dritten Kontinent Ihrer Wahl!";
 		mission[4] = "Befreien Sie Europa, Australien und einen dritten Kontinent Ihrer Wahl!";
 		mission[5] = "Befreien Sie Europa, Australien und einen dritten Kontinent Ihrer Wahl";
