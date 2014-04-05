@@ -1,7 +1,19 @@
+import java.util.Vector;
+
 public class Mission {
+
+	//private String[] mission = new String[14];
+	private String aufgabeText;
+	Vector<Land> zielLaender;
 	
-	private String[] mission = new String[14];
+	public Mission(String aufgabe, Vector<Land> ziel){
+		this.aufgabeText = aufgabe;
+		this.zielLaender = ziel;
+	}
 	
+	
+
+	/*
 	public Mission () {
 		mission[0] = "Befreien Sie Europa, Australien und einen dritten Kontinent Ihrer Wahl!";
 		mission[1] = "Hallo";
@@ -17,10 +29,9 @@ public class Mission {
 		mission[11] = "Befreien Sie Europa, Australien und einen dritten Kontinent Ihrer Wahl";
 		mission[12] = "Befreien Sie Europa, Australien und einen dritten Kontinent Ihrer Wahl";
 		mission[13] = "Befreien Sie Europa, Australien und einen dritten Kontinent Ihrer Wahl";
-	}
+	}*/
 	
-	public String getMission() {
-		int i = (int) (Math.random()*13+1);
-		return mission[i];
-	}
+ 
+
+	
 }
