@@ -174,11 +174,12 @@ public class Spielfeld {
 		laender[22].nachbarLand[0] = laender[20];
 		laender[22].nachbarLand[1] = laender[23];
 		laender[22].nachbarLand[2] = laender[24];
-		laender[23].nachbarLand[3] = laender[20];
-		laender[23].nachbarLand[4] = laender[21];
-		laender[23].nachbarLand[5] = laender[22];
-		laender[23].nachbarLand[6] = laender[24];
-		laender[23].nachbarLand[7] = laender[25];
+		
+		laender[23].nachbarLand[0] = laender[20];
+		laender[23].nachbarLand[1] = laender[21];
+		laender[23].nachbarLand[2] = laender[22];
+		laender[23].nachbarLand[3] = laender[24];
+		laender[23].nachbarLand[4] = laender[25];
 
 		laender[24].nachbarLand[0] = laender[22];
 		laender[24].nachbarLand[1] = laender[23];
@@ -249,9 +250,10 @@ public class Spielfeld {
 		laender[37].nachbarLand[0] = laender[34];
 		laender[37].nachbarLand[1] = laender[36];
 		laender[37].nachbarLand[2] = laender[38];
-		laender[38].nachbarLand[3] = laender[37];
-		laender[38].nachbarLand[4] = laender[39];
-		laender[38].nachbarLand[5] = laender[40];
+		
+		laender[38].nachbarLand[0] = laender[37];
+		laender[38].nachbarLand[1] = laender[39];
+		laender[38].nachbarLand[2] = laender[40];
 
 		laender[39].nachbarLand[0] = laender[38];
 		laender[39].nachbarLand[1] = laender[40];
@@ -263,20 +265,13 @@ public class Spielfeld {
 
 		laender[41].nachbarLand[0] = laender[39];
 		laender[41].nachbarLand[1] = laender[40];
-
-
-
-
-
-
-
 	}
 
 	public boolean spielerErstellen(String name){
 		if(this.spieler.size() < this.maxSpieler){
 			this.spieler.add(new Spieler(name));
 			this.spielerZahl ++;
-			return true;	
+			return true;
 		}
 		return false;
 	}
@@ -304,28 +299,26 @@ public class Spielfeld {
 	public void getStartKarte(Spieler s) {
 		int i;
 		do{
-			i = (int) (Math.random()*41+1);
+			i = (int) (Math.random()*42);
 		}while(this.ausgeteilteKarten.contains(laender[i]));
 		this.ausgeteilteKarten.add(laender[i]);
 		this.laender[i].setBesitzer(s);
-		this.laender[i].setTruppe(1);
+		this.laender[i].setTruppenstaerke(1);
 	}
 	
 	public Land getKarte(Spieler s) {
 		int i;
 		do{
-			i = (int) (Math.random()*43+1);
+			i = (int) (Math.random()*44);
 		}while(this.ausgeteilteKarten.contains(laender[i]));
 		this.ausgeteilteKarten.add(laender[i]);
 		s.handKarten.add(laender[i]);
 		return laender[i];
-
 	}
 
 	public void karteZurueck(Land l, Spieler s) {
 		s.handKarten.remove(l);
 		this.ausgeteilteKarten.remove(l);
-
 	}
 
 
@@ -336,25 +329,29 @@ public class Spielfeld {
 		return false;
 	}
 	public boolean einheitenZiehen(Spieler s,int menge, int start, int ziel){
-		if(istNachbarn(start, ziel) && start != ziel && s.meinLand(this.laender[start]) && s.meinLand(this.laender[ziel]) && (laender[start].getTruppe() > menge)){
-			laender[start].setTruppe(-1*menge);
-			laender[ziel].setTruppe(menge);
+		if(istNachbarn(start, ziel) && start != ziel && s.meinLand(this.laender[start]) && s.meinLand(this.laender[ziel]) && (laender[start].getTruppenstaerke() > menge)){
+			laender[start].setTruppenstaerke(-1*menge);
+			laender[ziel].setTruppenstaerke(menge);
 			return true;
 		}
 		return false;
-
 	}
 
 
 	public static void main(String[] args) { 
 		Spielfeld feld1 = new Spielfeld();
-		Spieler s1 = new Spieler("Horst");
+		feld1.spielerErstellen("Horst");
+		feld1.spielerErstellen("Uschi");
+		Spieler s1 = (Spieler) feld1.spieler.elementAt(0);
+		Spieler s2 = (Spieler) feld1.spieler.elementAt(1);
 		System.out.println("Einheit: "+feld1.getKarte(s1));
 		System.out.println("Auftrag: "+s1.getAuftrag());
 
 		feld1.nachbarnVerteilen();
 		if(feld1.istNachbarn(41, 39)){
-			System.out.println(" sind Nachbarn.");
+			System.out.println("sind Nachbarn.");
 		}
+		Spiel s = new Spiel();
+		s.befreien(s1, s2, feld1.laender[0], feld1.laender[1], 3, 2);
 	}
 }

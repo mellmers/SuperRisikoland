@@ -10,13 +10,13 @@ public class Spieler {
 	Vector handKarten = new Vector();
 
 	public Spieler (String n) {
-		Mission mission = new Mission();
-		auftrag = mission.getMission();
+		//Mission mission = new Mission();
+		//auftrag = mission.getMission();
 		this.name = n;
 	}
 	public boolean einheitenVerteilen(Land land){
 		if(this.laender.contains(land)){	
-			land.setTruppe(1);
+			land.setTruppenstaerke(1);
 			return true;
 		}
 		return false;
@@ -34,4 +34,7 @@ public class Spieler {
 		return false;
 	}
 	
+	public String getName() {
+		return this.name;
+	}
 }
