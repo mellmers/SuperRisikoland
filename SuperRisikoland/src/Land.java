@@ -1,17 +1,17 @@
 public class Land {
 	
-	private String kontinent;
+	private Kontinent kontinent;
 	private String name;
 	private String einheit;
 	private int truppenStaerke;
 	private Spieler besitzer;
-	Land[] nachbarLand;
+	Land[] nachbarLaender;
 	
-	public Land(String k, String n, String e, int anzahlNl){
-		this.kontinent = k;
-		this.name = n;
-		this.einheit = e;
-		this.nachbarLand = new Land[anzahlNl];
+	public Land(Kontinent kontinent, String name, String einheit, int anzahlNachbarLaender){
+		this.kontinent = kontinent;
+		this.name = name;
+		this.einheit = einheit;
+		this.nachbarLaender = new Land[anzahlNachbarLaender];
 	}
 	
 	// Getter
@@ -27,7 +27,7 @@ public class Land {
 		return this.einheit;
 	}
 
-	public String getKontinent() {
+	public Kontinent getKontinent() {
 		return kontinent;
 	}
 	
@@ -39,16 +39,11 @@ public class Land {
 	public void setBesitzer(Spieler s) {
 		this.besitzer = s;
 	}
-
-	public void setKontinent(String kontinent) {
-		this.kontinent = kontinent;
-	}
-	
 	
 	// Funktionen
 	public boolean istNachbar(Land n){
-		for(int i = 0; i < this.nachbarLand.length; i++){
-			if(n.equals(this.nachbarLand[i])){
+		for(int i = 0; i < this.nachbarLaender.length; i++){
+			if(n.equals(this.nachbarLaender[i])){
 				return true;
 			}
 		}

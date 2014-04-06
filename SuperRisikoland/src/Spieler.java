@@ -9,10 +9,10 @@ public class Spieler {
 	Vector laender = new Vector();
 	Vector handKarten = new Vector();
 
-	public Spieler (String n) {
+	public Spieler (String name) {
 		//Mission mission = new Mission();
 		//auftrag = mission.getMission();
-		this.name = n;
+		this.name = name;
 	}
 	public boolean einheitenVerteilen(Land land){
 		if(this.laender.contains(land)){	
