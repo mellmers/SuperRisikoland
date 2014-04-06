@@ -14,6 +14,14 @@ public class Spieler {
 		auftrag = mission.getMission();
 		this.name = n;
 	}
+	public boolean einheitenVerteilen(Land land){
+		if(this.laender.contains(land)){	
+			land.setTruppe(1);
+			return true;
+		}
+		return false;
+	}
+
 	
 	public String getAuftrag() {
 		return auftrag;
