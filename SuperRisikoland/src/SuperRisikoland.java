@@ -8,9 +8,9 @@ public class SuperRisikoland {
         int spielVariante;
 		
         // lasse Benutzer Anzahl der Spieler eingeben
-		System.out.println("Anzahl der Spieler?");
+		IO.println("Anzahl der Spieler?");
 		//KP was dahin kommt statt IO.readInt
-		anzahlSpieler = System.in.read();
+		anzahlSpieler = IO.readInt();
 
         // erzeuge Array von Spielernamen
         spielerNamen = new String[anzahlSpieler];
@@ -18,14 +18,19 @@ public class SuperRisikoland {
         // lasse Benutzer den Namen jedes Spielers eingeben
         for(int i = 0; i < anzahlSpieler; i++) 
         {
-        System.out.println("Name des " + (i + 1) + ". Spielers?");
-        spielerNamen[i] = new String(System.in.toString());
+        IO.println("Name des " + (i + 1) + ". Spielers?");
+        spielerNamen[i] = new String(IO.readString());
         }
-                
-        // lasse Bentzer Spielvariante (Aufgaben oder Welteroberung) auswaehlen
-                
+     
+        // lasse Bentzer Spielvariante (Mission oder Welteroberung) auswaehlen
+        IO.println("Welche Spielvariante?");
+        IO.println("Spielvariante 1: Mit Mission   --> Gebe ein: 1");
+        IO.println("Spielvariante 2: Welteroberung --> Gebe ein: 2");    
+        spielVariante = IO.readInt();
+        
         // erzeuge neues Spiel
-		//Spielfeld spiel = new Spielfeld(anzahlSpieler, spielerNamen, spielVariante);
+		spiel = new Spielfeld(anzahlSpieler, spielerNamen, spielVariante);
+		
 		
 		
         
