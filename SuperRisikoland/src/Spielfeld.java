@@ -77,6 +77,7 @@ public class Spielfeld
 		
 	public void gesamtLaenderListeAusgeben()
 	{
+		// Kervins Funktion
 	}
 
 	public void nachbarnVerteilen()
