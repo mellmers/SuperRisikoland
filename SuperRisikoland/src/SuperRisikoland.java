@@ -1,44 +1,36 @@
-public class SuperRisikoland {
+public class SuperRisikoland 
+{
 
-	public static void main(String[] args) { 
-
-		Spielfeld spiel;
+	public static void main(String[] args) 
+	{ 
 		int anzahlSpieler;
-		String[] spielerNamen;
         int spielVariante;
 		
-        // lasse Benutzer Anzahl der Spieler eingeben
-		IO.println("Anzahl der Spieler?");
-		//KP was dahin kommt statt IO.readInt
+        // Benutzereingabe: Anzahl der Spieler
+		IO.println("Anzahl der Spieler? (2-6 Spieler sind moeglich)");
 		anzahlSpieler = IO.readInt();
-
-        // erzeuge Array von Spielernamen
-        spielerNamen = new String[anzahlSpieler];
-                
-        // lasse Benutzer den Namen jedes Spielers eingeben
+		while (anzahlSpieler < 2 || anzahlSpieler > 6)
+		{
+			IO.println("Anzahl der Spieler?");
+			anzahlSpieler = IO.readInt();
+		}
+		
+		// Bentzereingabe: Spielvariante (Mission oder Welteroberung)
+        IO.println("Welche Spielvariante moechten Sie spielen?");
+        IO.println("Spielvariante 1: Mit Mission   --> Geben Sie ein: 1");
+        IO.println("Spielvariante 2: Welteroberung --> Geben Sie ein: 2");    
+        spielVariante = IO.readInt();
+ 
+		// erzeuge neues Spiel
+		Spielfeld spiel = new Spielfeld(anzahlSpieler, spielVariante);
+		
+        // Benutzereingabe: Namen jedes Spielers
         for(int i = 0; i < anzahlSpieler; i++) 
         {
-        IO.println("Name des " + (i + 1) + ". Spielers?");
-        spielerNamen[i] = new String(IO.readString());
+	       	spiel.spielerErstellen();
         }
-     
-        // lasse Bentzer Spielvariante (Mission oder Welteroberung) auswaehlen
-        IO.println("Welche Spielvariante?");
-        IO.println("Spielvariante 1: Mit Mission   --> Gebe ein: 1");
-        IO.println("Spielvariante 2: Welteroberung --> Gebe ein: 2");    
-        spielVariante = IO.readInt();
         
-        // erzeuge neues Spiel
-		spiel = new Spielfeld(anzahlSpieler, spielerNamen, spielVariante);
-		
-		
-		
-        
-        
-        
-        
-        
-        
+        // Liste aller Laender ausgeben (mit oder ohne Besitzer)
         
         
         

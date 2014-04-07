@@ -1,19 +1,21 @@
 import java.util.Vector;
 
-public class Spielfeld {
+public class Spielfeld 
+{
     public final int SPIELVARIANTE_AUFGABEN      = 0;
     public final int SPIELVARIANTE_WELTEROBERUNG = 1;
 	
 	private Kontinent[] kontinente = new Kontinent[7];
 	private Land[] laender = new Land[44];
-	private Vector ausgeteilteKarten = new Vector();
+	private Vector<Land> ausgeteilteKarten = new Vector<Land>();
 	private int spielerZahl;
-	private Vector spieler = new Vector();
+	private Vector<Spieler> spieler = new Vector<Spieler>();
 	private int maxSpieler = 7;
+	private int spielerID = 1;
 
-	//Kommentare bitte
-		public Spielfeld(int anzahlSpieler, String[] spielerNamen, int spielVariante) {
-
+	
+	public Spielfeld(int anzahlSpieler, int spielVariante) 
+	{
 			kontinente[0] = new Kontinent ("Nord-Amerika");
 			kontinente[1] = new Kontinent ("Sued-Amerika");
 			kontinente[2] = new Kontinent ("Europa");
@@ -67,11 +69,19 @@ public class Spielfeld {
 			laender[42] = new Land(kontinente[6], "Joker", "Joker", 0);
 			laender[43] = new Land(kontinente[6], "Joker", "Joker", 0);
 			
-
-		// 14x Soldat, 14x Pferd, 14x Kanone  + 2 "Joker" (Pferd, Soldat oder Kanone)
+			nachbarnVerteilen();
+			
+			IO.println("Spielfeld mit " + anzahlSpieler + " Spielern und Spielvariante " + spielVariante + " erstellt.");
+		// 14x Soldat, 14x Pferd, 14x Kanone  + 2 "Joker" (Pferd, Soldat oder Kanone)1
+	}
+		
+	public void gesamtLaenderListeAusgeben()
+	{
+		// Kervins Funktion hallo
 	}
 
-	public void nachbarnVerteilen(){
+	public void nachbarnVerteilen()
+	{
 		laender[0].nachbarLaender[0] = laender[1];
 		laender[0].nachbarLaender[1] = laender[3];
 		laender[0].nachbarLaender[2] = laender[29];
@@ -279,36 +289,46 @@ public class Spielfeld {
 		laender[41].nachbarLaender[1] = laender[40];
 	}
 
-	public boolean spielerErstellen(String name){
-		if(this.spieler.size() < this.maxSpieler){
-			this.spieler.add(new Spieler(name));
+	public boolean spielerErstellen()
+	{
+		if(this.spieler.size() < this.maxSpieler)
+		{
+			// Im Spielerobjekt Konstruktor wird die Aufforderung fuer den Namen verlangt
+			this.spieler.add(new Spieler(this.spielerID));
+			this.spielerID++;
 			this.spielerZahl ++;
 			return true;
 		}
 		return false;
 	}
 
-	public void startLaenderVerteilen(){
+	public void startLaenderVerteilen()
+	{
 		int aufteilen = 42/this.spielerZahl;
 		int rest = 42/this.spielerZahl;
-		for(int i = 0; i < this.spieler.size() ; i++){
-			for(int j = 0; j < aufteilen ; j++){
-				getStartKarte((Spieler) this.spieler.elementAt(i));		
+		for(int i = 0; i < this.spieler.size() ; i++)
+		{
+			for(int j = 0; j < aufteilen ; j++)
+			{
+				getStartKarte(this.spieler.elementAt(i));		
 			}
 		}
-		if(rest > 0){
+		if(rest > 0)
+		{
 			int zahl = this.spielerZahl - 1;
 			int a;
-			for(int k = 0; k < rest ; k++){
+			for(int k = 0; k < rest ; k++)
+			{
 				a = (int) (Math.random()*zahl+1);
-				getStartKarte((Spieler) this.spieler.elementAt(k));
+				getStartKarte(this.spieler.elementAt(k));
 			}
 		}
 		this.ausgeteilteKarten.clear();
 		
 	}
 	
-	public void getStartKarte(Spieler s) {
+	public void getStartKarte(Spieler s) 
+	{
 		int i;
 		do{
 			i = (int) (Math.random()*42);
@@ -318,9 +338,11 @@ public class Spielfeld {
 		this.laender[i].setTruppenstaerke(1);
 	}
 	
-	public Land getKarte(Spieler s) {
+	public Land getKarte(Spieler s) 
+	{
 		int i;
-		do{
+		do
+		{
 			i = (int) (Math.random()*44);
 		}while(this.ausgeteilteKarten.contains(laender[i]));
 		this.ausgeteilteKarten.add(laender[i]);
@@ -328,24 +350,30 @@ public class Spielfeld {
 		return laender[i];
 	}
 
-	public void karteZurueck(Land l, Spieler s) {
+	public void karteZurueck(Land l, Spieler s) 
+	{
 		s.handKarten.remove(l);
 		this.ausgeteilteKarten.remove(l);
 	}
 
-
-	public boolean sindNachbarn(int landIndex1, int landIndex2){
-		if(this.laender[landIndex1].istNachbar(this.laender[landIndex2])){
+	public boolean sindNachbarn(int landIndex1, int landIndex2)
+	{
+		if(this.laender[landIndex1].istNachbar(this.laender[landIndex2]))
+		{
 			return true;
 		}
 		return false;
 	}
-	public boolean einheitenZiehen(Spieler s,int menge, int start, int ziel){
-		if(sindNachbarn(start, ziel) && start != ziel && s.meinLand(this.laender[start]) && s.meinLand(this.laender[ziel]) && (laender[start].getTruppenstaerke() > menge)){
+	
+	public boolean einheitenZiehen(Spieler s,int menge, int start, int ziel)
+	{
+		if(sindNachbarn(start, ziel) && start != ziel && s.meinLand(this.laender[start]) && s.meinLand(this.laender[ziel]) && (laender[start].getTruppenstaerke() > menge))
+		{
 			laender[start].setTruppenstaerke(-1*menge);
 			laender[ziel].setTruppenstaerke(menge);
 			return true;
 		}
 		return false;
 	}
+	
 }
