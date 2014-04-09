@@ -26,7 +26,6 @@ public class Spieler
 		}
 		return false;
 	}
-
 	
 	public String getAuftrag() 
 	{
@@ -39,6 +38,7 @@ public class Spieler
 		{
 			return true;
 		}
+		IO.println("Dieses Land gehoert dir nicht");
 		return false;
 	}
 	

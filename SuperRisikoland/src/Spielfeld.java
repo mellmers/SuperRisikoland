@@ -6,13 +6,12 @@ public class Spielfeld
     public final int SPIELVARIANTE_WELTEROBERUNG = 1;
 	
 	private Kontinent[] kontinente = new Kontinent[7];
-	private Land[] laender = new Land[44];
+	Land[] laender = new Land[44];
 	private Vector<Land> ausgeteilteKarten = new Vector<Land>();
 	private int spielerZahl;
-	private Vector<Spieler> spieler = new Vector<Spieler>();
+	Vector<Spieler> spieler = new Vector<Spieler>();
 	private int maxSpieler = 7;
-	private int spielerID = 1;
-
+	private int landerId;
 	
 	public Spielfeld(int anzahlSpieler, int spielVariante) 
 	{
@@ -77,7 +76,7 @@ public class Spielfeld
 		
 	public void gesamtLaenderListeAusgeben()
 	{
-		// Kervins Funktion
+		// Bitte landerId verwenden!! jedes Land soll eine eindeutige landId bekommen!
 	}
 
 	public void nachbarnVerteilen()
@@ -289,13 +288,12 @@ public class Spielfeld
 		laender[41].nachbarLaender[1] = laender[40];
 	}
 
-	public boolean spielerErstellen()
+	public boolean spielerErstellen(int spielerID)
 	{
 		if(this.spieler.size() < this.maxSpieler)
 		{
 			// Im Spielerobjekt Konstruktor wird die Aufforderung fuer den Namen verlangt
-			this.spieler.add(new Spieler(this.spielerID));
-			this.spielerID++;
+			this.spieler.add(new Spieler(spielerID));
 			this.spielerZahl ++;
 			return true;
 		}
@@ -305,26 +303,24 @@ public class Spielfeld
 	public void startLaenderVerteilen()
 	{
 		int aufteilen = 42/this.spielerZahl;
-		int rest = 42/this.spielerZahl;
+		int rest = 42%this.spielerZahl;
 		for(int i = 0; i < this.spieler.size() ; i++)
 		{
 			for(int j = 0; j < aufteilen ; j++)
 			{
-				getStartKarte(this.spieler.elementAt(i));		
+				getStartKarte(this.spieler.elementAt(i));
 			}
 		}
 		if(rest > 0)
 		{
-			int zahl = this.spielerZahl - 1;
-			int a;
 			for(int k = 0; k < rest ; k++)
 			{
-				a = (int) (Math.random()*zahl+1);
-				getStartKarte(this.spieler.elementAt(k));
+				// TODO Verbesserung -> Ein Spieler kann mehrere Karten bekommen
+				int a = (int) (Math.random()*this.spielerZahl);
+				getStartKarte(this.spieler.elementAt(a));
 			}
 		}
 		this.ausgeteilteKarten.clear();
-		
 	}
 	
 	public void getStartKarte(Spieler s) 
@@ -336,6 +332,7 @@ public class Spielfeld
 		this.ausgeteilteKarten.add(laender[i]);
 		this.laender[i].setBesitzer(s);
 		this.laender[i].setTruppenstaerke(1);
+		IO.println(this.laender[i].getName() + " gehoert " + s.getName());
 	}
 	
 	public Land getKarte(Spieler s) 
@@ -376,4 +373,27 @@ public class Spielfeld
 		return false;
 	}
 	
+	public int laenderZaehlen(Spieler s)
+	{
+		int anzLaender = 0;
+		for(int i = 0; i < 43; i++)
+		{
+			if(this.laender[i].getBesitzer() == s)
+			{
+				anzLaender++;
+			}
+		}
+		//IO.println(s.getName() + " besitzt " + anzLaender + " Laender.");
+		anzLaender = anzLaender/3;
+		if (anzLaender < 3)
+		{
+			return 3;
+		}
+		return anzLaender;
+	}
+	
+	public void einheitenVerteilen(Spieler s) 
+	{
+		
+	}
 }

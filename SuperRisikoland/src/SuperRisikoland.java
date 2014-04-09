@@ -1,10 +1,11 @@
-public class SuperRisikoland 
+public class SuperRisikoland
 {
 
-	public static void main(String[] args) 
+	public static void main(String[] args)
 	{ 
 		int anzahlSpieler;
         int spielVariante;
+        Spieler aktuellerSpieler;
 		
         // Benutzereingabe: Anzahl der Spieler
 		IO.println("Anzahl der Spieler? (2-6 Spieler sind moeglich)");
@@ -27,29 +28,76 @@ public class SuperRisikoland
         // Benutzereingabe: Namen jedes Spielers
         for(int i = 0; i < anzahlSpieler; i++) 
         {
-	       	spiel.spielerErstellen();
+	       	spiel.spielerErstellen(i+1);
         }
         
         // Liste aller Laender ausgeben (mit oder ohne Besitzer)
         
+        spiel.startLaenderVerteilen();
         
+        aktuellerSpieler = spiel.spieler.elementAt(0);
+        IO.println(aktuellerSpieler.getName() + " beginnt das Spiel!");
         
-        
-		/*Spielfeld feld1 = new Spielfeld();
-		feld1.spielerErstellen("Horst");
-		feld1.spielerErstellen("Uschi");
-		Spieler s1 = (Spieler) feld1.spieler.elementAt(0);
-		Spieler s2 = (Spieler) feld1.spieler.elementAt(1);
-		System.out.println("Einheit: "+feld1.getKarte(s1));
-		System.out.println("Auftrag: "+s1.getAuftrag());
-
-		feld1.nachbarnVerteilen();
-		if(feld1.istNachbarn(41, 39)){
-			System.out.println("sind Nachbarn.");
-		}
-		Spiel s = new Spiel();
-		s.befreien(s1, s2, feld1.laender[0], feld1.laender[1], 3, 2);
-	*/
+        while(aktuellerSpieler == spiel.spieler.elementAt(0)) 
+        {
+        	// Spielablauf
+        	
+        	// Schritt 1: Einheiten verteilen/Neue Armeen
+        	//Variablen
+        	int einheiten = 0;
+        	int zuVerteilendeEinheiten = 0;
+        	int landId = 0;
+        	
+        	IO.println(aktuellerSpieler.getName() + " muss nun " + spiel.laenderZaehlen(aktuellerSpieler) + " Einheiten verteilen.\n"
+        			+ "Geben Sie die ID Ihres Landes ein, in dem Einheiten stationiert werden sollen.");
+        	landId = IO.readInt();
+        	while (landId < 0 || landId > 41)
+        	{
+        		IO.println("Falsche Eingabe!");
+        		landId = IO.readInt();
+        	}
+	       	IO.println("Wie viele Einheiten sollen stationiert werden?");
+	       	einheiten = IO.readInt();
+	       	zuVerteilendeEinheiten = spiel.laenderZaehlen(aktuellerSpieler);
+	       	while (einheiten < 0 || einheiten > spiel.laenderZaehlen(aktuellerSpieler))
+	       	{
+	       		IO.println("Falsche Eingabe! Es koennen maximal " + spiel.laenderZaehlen(aktuellerSpieler) + " Einheiten stationiert werden");
+	       		einheiten = IO.readInt();
+	        }
+	        if(aktuellerSpieler.meinLand(spiel.laender[landId])) // else-Zweig ist in der Funktion definiert, falls false zurück kommt
+	        {
+	        	spiel.laender[landId].setTruppenstaerke(einheiten);
+		       	zuVerteilendeEinheiten -= einheiten;
+		       	IO.println(spiel.laender[landId].getTruppenstaerke() + " Einheiten auf " + spiel.laender[landId].getName());
+        	}
+        	while (zuVerteilendeEinheiten > 0)
+        	{
+        		IO.println(aktuellerSpieler.getName() + " muss noch " + zuVerteilendeEinheiten + " Einheiten verteilen.\n"
+            			+ "Geben Sie die ID Ihres Landes ein, in dem Einheiten stationiert werden sollen.");
+	        	landId = IO.readInt();
+	        	while (landId < 0 || einheiten > 41)
+	        	{
+	        		IO.println("Falsche Eingabe!");
+	        		landId = IO.readInt();
+	        	}
+	        	IO.println("Wie viele Einheiten sollen stationiert werden?");
+	        	einheiten = IO.readInt();
+	        	while (einheiten < 0 || einheiten > zuVerteilendeEinheiten)
+	        	{
+	        		IO.println("Falsche Eingabe! Es koennen maximal " + zuVerteilendeEinheiten + " Einheiten stationiert werden");
+	        		einheiten = IO.readInt();
+	        	}
+	        	spiel.laender[landId].setTruppenstaerke(einheiten);
+	        	zuVerteilendeEinheiten -= einheiten;
+	        	IO.println(spiel.laender[landId].getTruppenstaerke() + " Einheiten auf " + spiel.laender[landId].getName());
+        	}
+        	// Serie einsetzen
+        	
+        	// Ende Schritt 1
+        	
+        	
+        	aktuellerSpieler = null;
+        }
 	}
 }
 
