@@ -6,12 +6,23 @@ public class Spielfeld
     public final int SPIELVARIANTE_WELTEROBERUNG = 1;
 	
 	private Kontinent[] kontinente = new Kontinent[7];
-	Land[] laender = new Land[44];
+	private Land[] laender = new Land[44];
 	private Vector<Land> ausgeteilteKarten = new Vector<Land>();
 	private int spielerZahl;
-	Vector<Spieler> spieler = new Vector<Spieler>();
+	private Vector<Spieler> spieler = new Vector<Spieler>();
 	private int maxSpieler = 7;
-	private int landerId;
+	
+	// Getter
+	
+	public Land getLand(int laenderId)
+	{
+		return this.laender[laenderId];
+	}
+	
+	public Spieler getSpieler(int spielerId)
+	{
+		return this.spieler.elementAt(spielerId);
+	}
 	
 	public Spielfeld(int anzahlSpieler, int spielVariante) 
 	{
@@ -76,7 +87,10 @@ public class Spielfeld
 		
 	public void gesamtLaenderListeAusgeben()
 	{
-		// Bitte landerId verwenden!! jedes Land soll eine eindeutige landId bekommen!
+		for (int i = 0; i < 42; i++)
+		{
+			IO.println("ID: " + i  + " " + this.laender[i].getKontinent().getName() + " Land: '" + this.laender[i].getName() + "' Besitzer: '" + this.laender[i].getBesitzer().getName() + "' Truppenstaerke: " + this.laender[i].getTruppenstaerke());
+		}
 	}
 
 	public void nachbarnVerteilen()
@@ -331,6 +345,7 @@ public class Spielfeld
 		}while(this.ausgeteilteKarten.contains(laender[i]));
 		this.ausgeteilteKarten.add(laender[i]);
 		this.laender[i].setBesitzer(s);
+		s.landHinzufuegen(this.laender[i]);
 		this.laender[i].setTruppenstaerke(1);
 		IO.println(this.laender[i].getName() + " gehoert " + s.getName());
 	}
@@ -343,13 +358,13 @@ public class Spielfeld
 			i = (int) (Math.random()*44);
 		}while(this.ausgeteilteKarten.contains(laender[i]));
 		this.ausgeteilteKarten.add(laender[i]);
-		s.handKarten.add(laender[i]);
+		s.handKartenHinzufuegen(laender[i]);
 		return laender[i];
 	}
 
 	public void karteZurueck(Land l, Spieler s) 
 	{
-		s.handKarten.remove(l);
+		s.handKartenLoeschen(l);
 		this.ausgeteilteKarten.remove(l);
 	}
 
@@ -362,15 +377,17 @@ public class Spielfeld
 		return false;
 	}
 	
-	public boolean einheitenZiehen(Spieler s,int menge, int start, int ziel)
+	public void einheitenNachziehen(int menge, int start, int ziel)
 	{
-		if(sindNachbarn(start, ziel) && start != ziel && s.meinLand(this.laender[start]) && s.meinLand(this.laender[ziel]) && (laender[start].getTruppenstaerke() > menge))
+		if(laender[start].getTruppenstaerke() > menge)
 		{
 			laender[start].setTruppenstaerke(-1*menge);
 			laender[ziel].setTruppenstaerke(menge);
-			return true;
 		}
-		return false;
+		else
+		{
+			IO.println("So viele Einheiten koennen nicht nachgezogen werden!");
+		}
 	}
 	
 	public int laenderZaehlen(Spieler s)
@@ -396,4 +413,146 @@ public class Spielfeld
 	{
 		
 	}
+	
+	// Spiel-Funktionen
+
+		public void befreien(Spieler angreifer, int angTruppen, int verTruppen, int angId, int verId) {
+			if (this.laender[angId].getTruppenstaerke() > 1 && this.laender[angId].istNachbar(this.laender[verId])) 
+			{
+				int[] angWuerfel = new int[3];
+				int[] verWuerfel = new int[3];
+				if (angTruppen == 1) 
+				{
+					angWuerfel[0] = wuerfeln();
+					verWuerfel = verteidigerWuerfeln(verTruppen);
+				}
+				else if (angTruppen == 2) 
+				{
+					angWuerfel[0] = wuerfeln();
+					angWuerfel[1] = wuerfeln();
+					verWuerfel = verteidigerWuerfeln(verTruppen);
+				}
+				else if (angTruppen == 3) 
+				{
+					angWuerfel[0] = wuerfeln();
+					angWuerfel[1] = wuerfeln();
+					angWuerfel[2] = wuerfeln();
+					verWuerfel = verteidigerWuerfeln(verTruppen);
+				}
+				// Auswertung
+				if(angTruppen<2 || verTruppen<2)
+				{
+					befreienAuswertung(angreifer, angTruppen, angWuerfel, verWuerfel, 1, angId, verId);
+				}
+				else 
+				{
+					befreienAuswertung(angreifer, angTruppen, angWuerfel, verWuerfel, 1, angId, verId);
+					befreienAuswertung(angreifer, angTruppen, angWuerfel, verWuerfel, 2, angId, verId);
+				}
+			}
+			else 
+			{
+				System.out.println("Angriff fehlgeschlagen!");
+			}
+		}
+		
+		public void befreienAuswertung(Spieler angreifer,int angTruppen, int[] angWuerfel, int[] verWuerfel, int anzRunden, int angId, int verId) {
+				int hoechsteZahlAng = 0;
+				int hoechsteZahlVer = 0;
+				System.out.println(angWuerfel[0]);
+				System.out.println(angWuerfel[1]);
+				System.out.println(angWuerfel[2]);
+				System.out.println(verWuerfel[0]);
+				System.out.println(verWuerfel[1]);
+				if(angWuerfel[0]>=angWuerfel[1] && angWuerfel[0]>=angWuerfel[2]){
+					hoechsteZahlAng = angWuerfel[0];
+					angWuerfel[0] = 0;
+				}
+				else if(angWuerfel[1]>=angWuerfel[0] && angWuerfel[1]>=angWuerfel[2]){
+					hoechsteZahlAng = angWuerfel[1];
+					angWuerfel[1] = 0;
+				}
+				else if(angWuerfel[2]>=angWuerfel[0] && angWuerfel[2]>=angWuerfel[1]){
+					hoechsteZahlAng = angWuerfel[2];
+					angWuerfel[2] = 0;
+				}
+				if(verWuerfel[0]>=verWuerfel[1]){
+					hoechsteZahlVer = verWuerfel[0];
+					verWuerfel[0] = 0;
+				}
+				else {
+					hoechsteZahlVer = verWuerfel[1];
+					verWuerfel[1] = 0;
+				}
+				System.out.println(hoechsteZahlAng);
+				System.out.println(hoechsteZahlVer);
+				if(hoechsteZahlAng > hoechsteZahlVer) {
+					System.out.println("Runde "+ anzRunden +": Angreifer gewinnt.");
+					this.laender[verId].setTruppenstaerke(-1);
+					if (this.laender[verId].getTruppenstaerke() == 0)
+					{
+						this.laender[verId].setBesitzer(angreifer);
+						this.laender[verId].setTruppenstaerke(angTruppen);
+						this.laender[angId].setTruppenstaerke(-1*angTruppen);
+						
+						IO.println("Moechtest du Einheiten nachziehen? (j/n)");
+			        	char eingabe = IO.readChar();
+			        	if(eingabe == 'j')
+			        	{
+			        		IO.println("Wieviele Einheiten moechtest du nachziehen?");
+			        		this.einheitenNachziehen(IO.readInt(), angId, verId);
+			        	}
+					}
+				}
+				else {
+					System.out.println("Runde "+ anzRunden +": Verteidiger gewinnt.");
+					this.laender[angId].setTruppenstaerke(-1);
+				}
+		}
+		
+		public int[] verteidigerWuerfeln(int verTruppen) {
+			int[] verWuerfel = new int[2];
+			if (verTruppen == 1) {
+				verWuerfel[0] = wuerfeln();
+			}
+			else if (verTruppen == 2) {
+				verWuerfel[0] = wuerfeln();
+				verWuerfel[1] = wuerfeln();
+			}
+			return verWuerfel;
+		}
+		
+		public int wuerfeln() 
+		{
+			return (int) (Math.random()*6+1);
+		}
+
+		public void neueArmeen(Spieler aktuellerSpieler)
+		{	    
+			int zuVerteilendeEinheiten = 0;
+	    	do{
+		    	IO.println(aktuellerSpieler.getName() + " muss nun " + this.laenderZaehlen(aktuellerSpieler) + " Einheiten verteilen.\n"
+		    			+ "Geben Sie die ID Ihres Landes ein, in dem Einheiten stationiert werden sollen.");
+		    	int landId = IO.readInt();
+		    	while (landId < 0 || landId > 41)
+		    	{
+		    		IO.println("Falsche Eingabe!");
+		    		landId = IO.readInt();
+		    	}
+		       	IO.println("Wie viele Einheiten sollen stationiert werden?");
+		       	int einheiten = IO.readInt();
+		       	zuVerteilendeEinheiten = this.laenderZaehlen(aktuellerSpieler);
+		       	while (einheiten < 0 || einheiten > this.laenderZaehlen(aktuellerSpieler))
+		       	{
+		       		IO.println("Falsche Eingabe! Es koennen maximal " + this.laenderZaehlen(aktuellerSpieler) + " Einheiten stationiert werden");
+		       		einheiten = IO.readInt();
+		        }
+		        if(aktuellerSpieler.meinLand(this.laender[landId])) // else-Zweig ist in der Funktion definiert, falls false zurück kommt
+		        {
+		        	this.laender[landId].setTruppenstaerke(einheiten);
+			       	zuVerteilendeEinheiten -= einheiten;
+			       	IO.println(this.laender[landId].getTruppenstaerke() + " Einheiten auf " + this.laender[landId].getName());
+		    	}
+	    	}while (zuVerteilendeEinheiten > 0);
+		}
 }

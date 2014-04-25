@@ -5,8 +5,8 @@ public class Spieler
 {
 	private String name;
 	private String auftrag;
-	Vector laender = new Vector();
-	Vector handKarten = new Vector();
+	private Vector<Land> laender = new Vector<Land>();
+	private Vector<Land> handKarten = new Vector<Land>();
 
 	public Spieler (int spielerID) 
 	{
@@ -25,6 +25,20 @@ public class Spieler
 			return true;
 		}
 		return false;
+	}
+	public void landHinzufuegen(Land land)
+	{
+		this.laender.add(land);
+	}
+	
+	public void handKartenHinzufuegen(Land land)
+	{
+		this.handKarten.add(land);
+	}
+	
+	public void handKartenLoeschen(Land land)
+	{
+		this.handKarten.remove(land);
 	}
 	
 	public String getAuftrag() 

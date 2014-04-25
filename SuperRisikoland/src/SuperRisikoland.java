@@ -22,7 +22,7 @@ public class SuperRisikoland
         IO.println("Spielvariante 2: Welteroberung --> Geben Sie ein: 2");    
         spielVariante = IO.readInt();
  
-		// erzeuge neues Spiel
+		// erzeugt Spielfeld
 		Spielfeld spiel = new Spielfeld(anzahlSpieler, spielVariante);
 		
         // Benutzereingabe: Namen jedes Spielers
@@ -35,69 +35,67 @@ public class SuperRisikoland
         
         spiel.startLaenderVerteilen();
         
-        aktuellerSpieler = spiel.spieler.elementAt(0);
-        IO.println(aktuellerSpieler.getName() + " beginnt das Spiel!");
+        aktuellerSpieler = spiel.getSpieler(0);
         
-        while(aktuellerSpieler == spiel.spieler.elementAt(0)) 
+     // Spielablauf
+        while(aktuellerSpieler == spiel.getSpieler(0)) 
         {
-        	// Spielablauf
+        	// LänderListe ausgeben
+        	spiel.gesamtLaenderListeAusgeben();
+        	
+        	// aktueller Spieler
+        	IO.println(aktuellerSpieler.getName() + " ist am Zug!");
         	
         	// Schritt 1: Einheiten verteilen/Neue Armeen
-        	//Variablen
-        	int einheiten = 0;
-        	int zuVerteilendeEinheiten = 0;
-        	int landId = 0;
+        	spiel.neueArmeen(aktuellerSpieler);
         	
-        	IO.println(aktuellerSpieler.getName() + " muss nun " + spiel.laenderZaehlen(aktuellerSpieler) + " Einheiten verteilen.\n"
-        			+ "Geben Sie die ID Ihres Landes ein, in dem Einheiten stationiert werden sollen.");
-        	landId = IO.readInt();
-        	while (landId < 0 || landId > 41)
-        	{
-        		IO.println("Falsche Eingabe!");
-        		landId = IO.readInt();
-        	}
-	       	IO.println("Wie viele Einheiten sollen stationiert werden?");
-	       	einheiten = IO.readInt();
-	       	zuVerteilendeEinheiten = spiel.laenderZaehlen(aktuellerSpieler);
-	       	while (einheiten < 0 || einheiten > spiel.laenderZaehlen(aktuellerSpieler))
-	       	{
-	       		IO.println("Falsche Eingabe! Es koennen maximal " + spiel.laenderZaehlen(aktuellerSpieler) + " Einheiten stationiert werden");
-	       		einheiten = IO.readInt();
-	        }
-	        if(aktuellerSpieler.meinLand(spiel.laender[landId])) // else-Zweig ist in der Funktion definiert, falls false zurück kommt
-	        {
-	        	spiel.laender[landId].setTruppenstaerke(einheiten);
-		       	zuVerteilendeEinheiten -= einheiten;
-		       	IO.println(spiel.laender[landId].getTruppenstaerke() + " Einheiten auf " + spiel.laender[landId].getName());
-        	}
-        	while (zuVerteilendeEinheiten > 0)
-        	{
-        		IO.println(aktuellerSpieler.getName() + " muss noch " + zuVerteilendeEinheiten + " Einheiten verteilen.\n"
-            			+ "Geben Sie die ID Ihres Landes ein, in dem Einheiten stationiert werden sollen.");
-	        	landId = IO.readInt();
-	        	while (landId < 0 || einheiten > 41)
-	        	{
-	        		IO.println("Falsche Eingabe!");
-	        		landId = IO.readInt();
-	        	}
-	        	IO.println("Wie viele Einheiten sollen stationiert werden?");
-	        	einheiten = IO.readInt();
-	        	while (einheiten < 0 || einheiten > zuVerteilendeEinheiten)
-	        	{
-	        		IO.println("Falsche Eingabe! Es koennen maximal " + zuVerteilendeEinheiten + " Einheiten stationiert werden");
-	        		einheiten = IO.readInt();
-	        	}
-	        	spiel.laender[landId].setTruppenstaerke(einheiten);
-	        	zuVerteilendeEinheiten -= einheiten;
-	        	IO.println(spiel.laender[landId].getTruppenstaerke() + " Einheiten auf " + spiel.laender[landId].getName());
-        	}
-        	// Serie einsetzen
+        	// TODO Serie einsetzen
         	
         	// Ende Schritt 1
+        	
+        	// Schritt 2: Befreien von Ländern
+        	// TODO Exceptions
+        	IO.println("Moechtest du angreifen? (j/n)");
+        	char eingabe = IO.readChar();
+        	
+        	while(eingabe == 'j')
+        	{
+        		IO.println("Gib die LaenderID des Angriffslandes ein:");
+        		int angId = IO.readInt();
+        		IO.println("Gib die LaenderID des Verteidigerlandes ein:");
+        		int verId = IO.readInt();
+        		IO.println("Gib an mit wieviel Einheiten du angreifen moechtest:");
+        		int angTruppen = IO.readInt();
+	        	IO.println("Gib an mit wieviel Einheiten " + spiel.getLand(verId).getBesitzer().getName() +" verteidigen moechte:");
+	        	int verTruppen = IO.readInt();
+	        	
+	        	spiel.befreien(aktuellerSpieler, angTruppen, verTruppen, angId, verId);
+	
+	        	IO.println("Moechtest du nochmal angreifen? (j/n)");
+	        	eingabe = IO.readChar();
+        	}
+        	// Ende Schritt 2
+        	
+        	// Schritt 3: Truppen nachziehen
+        	
+        	IO.println("Moechtest du Truppen nachziehen? (j/n)");
+        	eingabe = IO.readChar();
+        	
+        	while(eingabe == 'j')
+        	{
+        		IO.println("Nachziehen von: \n LandID eingeben)");
+        		
+        		
+        	}
+        	
+        	// Ende Schritt 3
         	
         	
         	aktuellerSpieler = null;
         }
 	}
+	
+	
+	
 }
 
