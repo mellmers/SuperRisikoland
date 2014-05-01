@@ -3,12 +3,12 @@ import java.util.Vector;
 public class Mission {
 
 	//private String[] mission = new String[14];
-	private String aufgabeText;
+	private String aufgabenText;
 	Vector<Land> zielLaender;
+	protected Spieler besitzer;
 	
-	public Mission(String aufgabe, Vector<Land> ziel){
-		this.aufgabeText = aufgabe;
-		this.zielLaender = ziel;
+	public Mission(){
+		
 	}
 	
 	

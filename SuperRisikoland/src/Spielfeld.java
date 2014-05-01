@@ -2,8 +2,7 @@ import java.util.Vector;
 
 public class Spielfeld 
 {
-    public final int SPIELVARIANTE_AUFGABEN      = 0;
-    public final int SPIELVARIANTE_WELTEROBERUNG = 1;
+	private int spielvariante;
 	
 	private Kontinent[] kontinente = new Kontinent[7];
 	private Land[] laender = new Land[44];
@@ -11,8 +10,20 @@ public class Spielfeld
 	private int spielerZahl;
 	private Vector<Spieler> spieler = new Vector<Spieler>();
 	private int maxSpieler = 7;
+	private Vector<Land> eroberteLaender = new Vector<Land>();
+	private int eingetauschteSerien = 0;
+	private int zusatzEinheitenSerie = 4;
 	
 	// Getter
+	public Kontinent getKontinent(int kontinentId)
+	{
+		return this.kontinente[kontinentId];
+	}
+	
+	public int getAnzahlEroberterLaender()
+	{
+		return eroberteLaender.size();
+	}
 	
 	public Land getLand(int laenderId)
 	{
@@ -24,15 +35,24 @@ public class Spielfeld
 		return this.spieler.elementAt(spielerId);
 	}
 	
+	// Setter
+	
+	public void setEroberteLaenderNull()
+	{
+		this.eroberteLaender.clear();
+	}
+	
 	public Spielfeld(int anzahlSpieler, int spielVariante) 
 	{
-			kontinente[0] = new Kontinent ("Nord-Amerika");
-			kontinente[1] = new Kontinent ("Sued-Amerika");
-			kontinente[2] = new Kontinent ("Europa");
-			kontinente[3] = new Kontinent ("Afrika");
-			kontinente[4] = new Kontinent ("Asien");
-			kontinente[5] = new Kontinent ("Australien");
-			kontinente[6] = new Kontinent ("Joker");
+			this.spielvariante = spielVariante;
+		
+			kontinente[0] = new Kontinent ("Nord-Amerika", 9, 5);
+			kontinente[1] = new Kontinent ("Sued-Amerika", 4, 2);
+			kontinente[2] = new Kontinent ("Europa", 7, 5);
+			kontinente[3] = new Kontinent ("Afrika", 6, 3);
+			kontinente[4] = new Kontinent ("Asien", 12, 7);
+			kontinente[5] = new Kontinent ("Australien", 4, 2);
+			kontinente[6] = new Kontinent ("Joker", 2, 0);
 			
 			laender[0] = new Land(kontinente[0], "Alaska", "Soldat", 3);
 			laender[1] = new Land(kontinente[0], "Nordwest-Territorium", "Kanone", 4);
@@ -90,6 +110,16 @@ public class Spielfeld
 		for (int i = 0; i < 42; i++)
 		{
 			IO.println("ID: " + i  + " " + this.laender[i].getKontinent().getName() + " Land: '" + this.laender[i].getName() + "' Besitzer: '" + this.laender[i].getBesitzer().getName() + "' Truppenstaerke: " + this.laender[i].getTruppenstaerke());
+		}
+	}
+	
+	public void abfrageSollGesamtLaenderListeAusgegebenWerden()
+	{
+		IO.println("Laenderliste ausgeben? (wenn gewuenscht, dann 'l' eingeben)");
+		char c = IO.readChar();
+		if (c == 'l')
+		{
+			this.gesamtLaenderListeAusgeben();
 		}
 	}
 
@@ -329,9 +359,7 @@ public class Spielfeld
 		{
 			for(int k = 0; k < rest ; k++)
 			{
-				// TODO Verbesserung -> Ein Spieler kann mehrere Karten bekommen
-				int a = (int) (Math.random()*this.spielerZahl);
-				getStartKarte(this.spieler.elementAt(a));
+				getStartKarte(this.spieler.elementAt(k));
 			}
 		}
 		this.ausgeteilteKarten.clear();
@@ -350,7 +378,7 @@ public class Spielfeld
 		IO.println(this.laender[i].getName() + " gehoert " + s.getName());
 	}
 	
-	public Land getKarte(Spieler s) 
+	public void getKarte(Spieler s) 
 	{
 		int i;
 		do
@@ -358,14 +386,7 @@ public class Spielfeld
 			i = (int) (Math.random()*44);
 		}while(this.ausgeteilteKarten.contains(laender[i]));
 		this.ausgeteilteKarten.add(laender[i]);
-		s.handKartenHinzufuegen(laender[i]);
-		return laender[i];
-	}
-
-	public void karteZurueck(Land l, Spieler s) 
-	{
-		s.handKartenLoeschen(l);
-		this.ausgeteilteKarten.remove(l);
+		s.handkartenHinzufuegen(laender[i]);
 	}
 
 	public boolean sindNachbarn(int landIndex1, int landIndex2)
@@ -374,19 +395,30 @@ public class Spielfeld
 		{
 			return true;
 		}
+		IO.println(this.laender[landIndex1].getName() + " und " + this.laender[landIndex2].getName() + " sind keine Nachbarlaender.");
 		return false;
 	}
 	
-	public void einheitenNachziehen(int menge, int start, int ziel)
+	// Spiel-Funktionen
+	
+	public void einheitenNachziehen(int start, int ziel)
 	{
-		if(laender[start].getTruppenstaerke() > menge)
+		int menge;
+		if(this.laender[start].getBesitzer() == this.laender[ziel].getBesitzer())
 		{
+			do
+			{
+				IO.println("Wieviele Einheiten moechtest du nachziehen?");
+				menge = IO.readInt();
+				if(laender[start].getTruppenstaerke() <= menge)
+				{
+					IO.println("So viele Einheiten koennen nicht nachgezogen werden!");
+				}
+			}
+			while(laender[start].getTruppenstaerke() <= menge);
+				
 			laender[start].setTruppenstaerke(-1*menge);
 			laender[ziel].setTruppenstaerke(menge);
-		}
-		else
-		{
-			IO.println("So viele Einheiten koennen nicht nachgezogen werden!");
 		}
 	}
 	
@@ -408,16 +440,9 @@ public class Spielfeld
 		}
 		return anzLaender;
 	}
-	
-	public void einheitenVerteilen(Spieler s) 
-	{
-		
-	}
-	
-	// Spiel-Funktionen
 
-		public void befreien(Spieler angreifer, int angTruppen, int verTruppen, int angId, int verId) {
-			if (this.laender[angId].getTruppenstaerke() > 1 && this.laender[angId].istNachbar(this.laender[verId])) 
+	public void befreien(Spieler angreifer, int angTruppen, int verTruppen, int angId, int verId) {
+			if (this.laender[angId].getTruppenstaerke() > 1 && this.laender[angId].istNachbar(this.laender[verId]) && angTruppen < this.laender[angId].getTruppenstaerke() && verTruppen <= this.laender[verId].getTruppenstaerke() && verTruppen > 0 && verTruppen < 3 && angTruppen > 0 && angTruppen < 4) 
 			{
 				int[] angWuerfel = new int[3];
 				int[] verWuerfel = new int[3];
@@ -456,7 +481,7 @@ public class Spielfeld
 			}
 		}
 		
-		public void befreienAuswertung(Spieler angreifer,int angTruppen, int[] angWuerfel, int[] verWuerfel, int anzRunden, int angId, int verId) {
+	public void befreienAuswertung(Spieler angreifer,int angTruppen, int[] angWuerfel, int[] verWuerfel, int anzRunden, int angId, int verId) {
 				int hoechsteZahlAng = 0;
 				int hoechsteZahlVer = 0;
 				System.out.println(angWuerfel[0]);
@@ -489,20 +514,32 @@ public class Spielfeld
 				if(hoechsteZahlAng > hoechsteZahlVer) {
 					System.out.println("Runde "+ anzRunden +": Angreifer gewinnt.");
 					this.laender[verId].setTruppenstaerke(-1);
-					if (this.laender[verId].getTruppenstaerke() == 0)
+					// Eroberung
+					if (this.laender[verId].getTruppenstaerke() == 0) 
 					{
 						this.laender[verId].setBesitzer(angreifer);
 						this.laender[verId].setTruppenstaerke(angTruppen);
 						this.laender[angId].setTruppenstaerke(-1*angTruppen);
-						
+						angreifer.landHinzufuegen(this.laender[verId]);
+
+						// Gewinnabfrage
+						// Mission
+						// TODO mission erfüllt?
+						// Welteroberung
+						if(this.welteroberung(angreifer))
+						{
+							// TODO Spielende, Siegfenster einblenden
+						}
+						//Ende Gewinnabfrage
 						IO.println("Moechtest du Einheiten nachziehen? (j/n)");
-			        	char eingabe = IO.readChar();
-			        	if(eingabe == 'j')
-			        	{
-			        		IO.println("Wieviele Einheiten moechtest du nachziehen?");
-			        		this.einheitenNachziehen(IO.readInt(), angId, verId);
-			        	}
+				    	if (IO.readChar() == 'j')
+				    	{
+				    		this.einheitenNachziehen(angId, verId);	
+				    	}
+				    	
+				    	this.eroberteLaender.add(this.laender[verId]);
 					}
+					// Ende Eroberung
 				}
 				else {
 					System.out.println("Runde "+ anzRunden +": Verteidiger gewinnt.");
@@ -510,7 +547,7 @@ public class Spielfeld
 				}
 		}
 		
-		public int[] verteidigerWuerfeln(int verTruppen) {
+	public int[] verteidigerWuerfeln(int verTruppen) {
 			int[] verWuerfel = new int[2];
 			if (verTruppen == 1) {
 				verWuerfel[0] = wuerfeln();
@@ -522,29 +559,83 @@ public class Spielfeld
 			return verWuerfel;
 		}
 		
-		public int wuerfeln() 
+	public int wuerfeln() 
 		{
 			return (int) (Math.random()*6+1);
 		}
+	
+	public int serieEinsetzen(Spieler aktuellerSpieler)
+	{
+		int[] handkartenId = new int[3];
+		for ( int i = 0; i < 3; i++)
+		{
+			IO.println(i+1 + ". Handkarte:");
+			handkartenId[i] = IO.readInt();
+		}
+		if(aktuellerSpieler.istSerie(handkartenId[0], handkartenId[1], handkartenId[2]))
+		{
+			if(this.eingetauschteSerien == 0)
+			{
+				this.eingetauschteSerien++;
+				return this.zusatzEinheitenSerie;
+			}
+			else if(this.eingetauschteSerien > 0 && this.eingetauschteSerien < 5)
+			{
+				this.eingetauschteSerien++;
+				this.zusatzEinheitenSerie += 2;
+				return this.zusatzEinheitenSerie;
+			}
+			else if(this.eingetauschteSerien == 5)
+			{
+				this.eingetauschteSerien++;
+				this.zusatzEinheitenSerie += 3;
+				return this.zusatzEinheitenSerie;
+			}
+			else
+			{
+				this.zusatzEinheitenSerie += 5;
+				return this.zusatzEinheitenSerie;
+			}
+		}
+		
+		return 0;
+	}
 
-		public void neueArmeen(Spieler aktuellerSpieler)
-		{	    
-			int zuVerteilendeEinheiten = 0;
-	    	do{
-		    	IO.println(aktuellerSpieler.getName() + " muss nun " + this.laenderZaehlen(aktuellerSpieler) + " Einheiten verteilen.\n"
+	public void neueArmeen(Spieler aktuellerSpieler)
+		{	
+			aktuellerSpieler.handkartenAusgeben();
+			
+			int zwischenSpeicherZusatzTruppenSerie = 0;
+			if(aktuellerSpieler.getAnzahlHandkarten() == 5)
+			{
+				IO.println(aktuellerSpieler.getName() + " muss seine Handkarten einsetzen.");
+				zwischenSpeicherZusatzTruppenSerie = this.serieEinsetzen(aktuellerSpieler);
+			}
+			else
+			{
+				IO.println("Moechtest du eine Serie einloesen? (j/n)");
+				if(IO.readChar() == 'j')
+				{
+					zwischenSpeicherZusatzTruppenSerie = this.serieEinsetzen(aktuellerSpieler);
+				}
+			}
+			int zuVerteilendeEinheiten = this.laenderZaehlen(aktuellerSpieler) + this.zusatzEinheitenKontinente(aktuellerSpieler) + zwischenSpeicherZusatzTruppenSerie;
+			
+			while (zuVerteilendeEinheiten > 0)
+			{
+		    	IO.println(aktuellerSpieler.getName() + " muss nun " + zuVerteilendeEinheiten + " Einheiten verteilen.\n"
 		    			+ "Geben Sie die ID Ihres Landes ein, in dem Einheiten stationiert werden sollen.");
 		    	int landId = IO.readInt();
 		    	while (landId < 0 || landId > 41)
 		    	{
-		    		IO.println("Falsche Eingabe!");
+		    		IO.println("Falsche Eingabe!/nLandID:");
 		    		landId = IO.readInt();
 		    	}
 		       	IO.println("Wie viele Einheiten sollen stationiert werden?");
 		       	int einheiten = IO.readInt();
-		       	zuVerteilendeEinheiten = this.laenderZaehlen(aktuellerSpieler);
-		       	while (einheiten < 0 || einheiten > this.laenderZaehlen(aktuellerSpieler))
+		       	while (einheiten < 0 || einheiten > zuVerteilendeEinheiten)
 		       	{
-		       		IO.println("Falsche Eingabe! Es koennen maximal " + this.laenderZaehlen(aktuellerSpieler) + " Einheiten stationiert werden");
+		       		IO.println("Falsche Eingabe! Es koennen maximal " + zuVerteilendeEinheiten+ " Einheiten stationiert werden!/nWie viele Einheiten sollen stationiert werden?");
 		       		einheiten = IO.readInt();
 		        }
 		        if(aktuellerSpieler.meinLand(this.laender[landId])) // else-Zweig ist in der Funktion definiert, falls false zurück kommt
@@ -553,6 +644,46 @@ public class Spielfeld
 			       	zuVerteilendeEinheiten -= einheiten;
 			       	IO.println(this.laender[landId].getTruppenstaerke() + " Einheiten auf " + this.laender[landId].getName());
 		    	}
-	    	}while (zuVerteilendeEinheiten > 0);
+	    	}
 		}
+	
+	public int zusatzEinheitenKontinente(Spieler spieler)
+	{
+		int zusatzEinheiten = 0;
+		for(int i = 0 ; i < 6 ; i++)
+		{
+			int laenderImBesitz = 0;
+			for(int j = 0 ; j < spieler.getLaenderAnzahl() ; j++){
+				if(spieler.getBesitzLandKontinent(j) == kontinente[i])
+				{
+					laenderImBesitz++;	
+				}
+			}
+			if(laenderImBesitz == kontinente[i].getAnzahlLaender())
+			{
+				IO.println("Spieler " + spieler.getName() + " ist im Beitz von ganz " + kontinente[i].getName() + " und bekommt " + kontinente[i].getZusatzTruppen() + " zusätzliche Einheiten.");
+				zusatzEinheiten += kontinente[i].getZusatzTruppen();
+			}
+		}
+		return zusatzEinheiten;
+	}
+
+	public boolean landWurdeVerwendet(int land)
+	{
+		if(this.eroberteLaender.contains(this.laender[land]))
+		{
+			IO.println("Die Truppen des Landes " + this.laender[land].getName() + " wurden bereits im Kampf verwendet.");
+			return true;
+		}
+		return false;
+	}
+	
+	public boolean welteroberung(Spieler aktuellerSpieler)
+	{
+		if (aktuellerSpieler.getLaenderAnzahl() == 42)
+		{
+			return true;
+		}
+		return false;
+	}
 }
