@@ -6,6 +6,7 @@ public class Land
 	private int truppenStaerke;
 	private Spieler besitzer;
 	Land[] nachbarLaender;
+	private int benutzteEinheiten = 0;
 	
 	public Land(Kontinent kontinent, String name, String einheit, int anzahlNachbarLaender)
 	{
@@ -63,5 +64,18 @@ public class Land
 			}
 		}
 		return false;
+	}
+
+	public int getBenutzteEinheiten() {
+		return benutzteEinheiten;
+	}
+
+	public void erhoeheBenutzteEinheiten(int benutzteEinheiten) {
+		this.benutzteEinheiten += benutzteEinheiten;
 	}	
+	
+	public void setBenutzteEinheiten(int benutzteEinheiten)
+	{
+		this.benutzteEinheiten = benutzteEinheiten;
+	}
 }
