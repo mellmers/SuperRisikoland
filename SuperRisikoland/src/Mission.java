@@ -1,15 +1,52 @@
-import java.util.Vector;
+
 
 public class Mission {
 
 	//private String[] mission = new String[14];
-	private String aufgabenText;
-	Vector<Land> zielLaender;
+	protected String aufgabenText;
+	protected String missionErfuelltText;
 	protected Spieler besitzer;
 	
 	public Mission(){
 		
 	}
+	
+	
+	protected void setBesitzer(Spieler besitzer)
+	{
+		this.besitzer = besitzer;
+		
+	}
+	
+	public String getAufgabenText()
+	{
+		return this.aufgabenText;
+	}
+	
+	public String getMissionErfuelltText()
+	{
+		return this.missionErfuelltText;
+	}
+
+
+	public boolean missionErfuellt() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	
+	public void setAufgabenText()
+	{
+		
+	}
+
+
+	public void setMissionErfuelltText() {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+
 	
 	
 
