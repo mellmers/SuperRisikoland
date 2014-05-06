@@ -13,6 +13,7 @@ public class Spielfeld
 	private Vector<Land> eroberteLaender = new Vector<Land>();
 	private int eingetauschteSerien = 0;
 	private int zusatzEinheitenSerie = 4;
+
 	
 	// Getter
 	public Kontinent getKontinent(int kontinentId)
@@ -109,7 +110,7 @@ public class Spielfeld
 	{
 		for (int i = 0; i < 42; i++)
 		{
-			IO.println("ID: " + i  + " " + this.laender[i].getKontinent().getName() + " Land: '" + this.laender[i].getName() + "' Besitzer: '" + this.laender[i].getBesitzer().getName() + "' Truppenstaerke: " + this.laender[i].getTruppenstaerke());
+			IO.println("ID: " + i  + " " + this.laender[i].getKontinent().getName() + " Land: '" + this.laender[i].getName() + "' Besitzer: '" + this.laender[i].getBesitzer().getName() + "' Truppenstaerke: " + this.laender[i].getTruppenstaerke() + "   Eingesetzte Einheiten: " + this.laender[i].getBenutzteEinheiten());
 		}
 	}
 	
@@ -400,6 +401,39 @@ public class Spielfeld
 	}
 	
 	// Spiel-Funktionen
+	public void einheitenNachKampfNachziehen(int start, int ziel)
+	{
+		int menge;
+		if(this.laender[start].getBesitzer() == this.laender[ziel].getBesitzer())
+		{
+			do
+			{
+				IO.println("Wieviele Einheiten moechtest du nachziehen?");
+				menge = IO.readInt();
+				if(laender[start].getTruppenstaerke() <= menge)
+				{
+					IO.println((laender[start].getTruppenstaerke() <= menge || menge > (laender[start].getTruppenstaerke() - laender[start].getBenutzteEinheiten())) ? "So viele Einheiten koennen nicht nachgezogen werden!" : menge + " Einheiten sind von " + this.laender[start].getName() + " nach " + this.laender[ziel].getName() + " gezogen.");
+				}
+			}
+			while(laender[start].getTruppenstaerke() <= menge);
+				
+			this.laender[start].setTruppenstaerke(-1*menge);
+			this.laender[ziel].setTruppenstaerke(menge);
+			this.laender[ziel].erhoeheBenutzteEinheiten(menge);
+			// Wenn ein Land eroberte wurde und nachgezogen wird muessen die benutzten Einheiten verschoben werden
+    		if(this.laender[start].getBenutzteEinheiten() > 0)
+    		{
+    			if(this.laender[start].getBenutzteEinheiten() > menge)
+    			{
+    				this.laender[start].erhoeheBenutzteEinheiten(-menge);	
+    			}
+    			else
+    			{
+    				this.laender[start].setBenutzteEinheiten(0);
+    			}
+    		}
+		}
+	}
 	
 	public void einheitenNachziehen(int start, int ziel)
 	{
@@ -412,16 +446,24 @@ public class Spielfeld
 				menge = IO.readInt();
 				if(laender[start].getTruppenstaerke() <= menge)
 				{
-					IO.println("So viele Einheiten koennen nicht nachgezogen werden!");
+					IO.println((laender[start].getTruppenstaerke() <= menge || menge > (laender[start].getTruppenstaerke() - laender[start].getBenutzteEinheiten())) ? "So viele Einheiten koennen nicht nachgezogen werden!" : menge + " Einheiten sind von " + this.laender[start].getName() + " nach " + this.laender[ziel].getName() + " gezogen.");
 				}
 			}
-			while(laender[start].getTruppenstaerke() <= menge);
+			while(laender[start].getTruppenstaerke() <= menge || menge > (laender[start].getTruppenstaerke() - laender[start].getBenutzteEinheiten()));
 				
-			laender[start].setTruppenstaerke(-1*menge);
-			laender[ziel].setTruppenstaerke(menge);
+			this.laender[start].setTruppenstaerke(-1*menge);
+			this.laender[ziel].setTruppenstaerke(menge);
+			this.laender[ziel].erhoeheBenutzteEinheiten(menge);
 		}
 	}
 	
+	public void setBenutzteEinheitenNull()
+	{
+		for(int i = 0 ; i < this.laender.length ; i++)
+		{
+			this.laender[i].setBenutzteEinheiten(0);
+		}
+	}
 	public int laenderZaehlen(Spieler s)
 	{
 		int anzLaender = 0;
@@ -442,10 +484,15 @@ public class Spielfeld
 	}
 
 	public void befreien(Spieler angreifer, int angTruppen, int verTruppen, int angId, int verId) {
-			if (this.laender[angId].getTruppenstaerke() > 1 && this.laender[angId].istNachbar(this.laender[verId]) && angTruppen < this.laender[angId].getTruppenstaerke() && verTruppen <= this.laender[verId].getTruppenstaerke() && verTruppen > 0 && verTruppen < 3 && angTruppen > 0 && angTruppen < 4) 
+			if (this.laender[angId].getTruppenstaerke() > 1 && this.laender[angId].istNachbar(this.laender[verId]) && angTruppen < this.laender[angId].getTruppenstaerke() && verTruppen <= this.laender[verId].getTruppenstaerke() && verTruppen > 0 && verTruppen < 3 && angTruppen > 0 && angTruppen < 4 && this.laender[verId].getBesitzer() != this.laender[angId].getBesitzer()) 
 			{
 				int[] angWuerfel = new int[3];
 				int[] verWuerfel = new int[3];
+				/*if(this.laender[angId].getBenutzteEinheiten() <= angTruppen)
+				{
+					this.laender[angId].erhoeheBenutzteEinheiten(angTruppen);
+				}
+				*/
 				if (angTruppen == 1) 
 				{
 					angWuerfel[0] = wuerfeln();
@@ -465,12 +512,17 @@ public class Spielfeld
 					verWuerfel = verteidigerWuerfeln(verTruppen);
 				}
 				// Auswertung
+				if(this.laender[angId].getBenutzteEinheiten() < angTruppen)
+				{
+					this.laender[angId].setBenutzteEinheiten(angTruppen);
+				}
 				if(angTruppen<2 || verTruppen<2)
 				{
 					befreienAuswertung(angreifer, angTruppen, angWuerfel, verWuerfel, 1, angId, verId);
 				}
 				else 
 				{
+					
 					befreienAuswertung(angreifer, angTruppen, angWuerfel, verWuerfel, 1, angId, verId);
 					befreienAuswertung(angreifer, angTruppen, angWuerfel, verWuerfel, 2, angId, verId);
 				}
@@ -517,14 +569,30 @@ public class Spielfeld
 					// Eroberung
 					if (this.laender[verId].getTruppenstaerke() == 0) 
 					{
+						this.laender[verId].getBesitzer().landEntfernen(this.laender[verId]);
 						this.laender[verId].setBesitzer(angreifer);
 						this.laender[verId].setTruppenstaerke(angTruppen);
 						this.laender[angId].setTruppenstaerke(-1*angTruppen);
 						angreifer.landHinzufuegen(this.laender[verId]);
-
+						
+						// benutzte einheiten im angegriffenen Land erhoehen und im angreifenden senken
+						this.laender[verId].setBenutzteEinheiten(angTruppen);
+						if(this.laender[angId].getBenutzteEinheiten() <= angTruppen)
+						{
+							this.laender[angId].setBenutzteEinheiten(0);
+						}
+						else
+						{
+							this.laender[angId].erhoeheBenutzteEinheiten(-angTruppen);
+						}
+						
+						
 						// Gewinnabfrage
-						// Mission
-						// TODO mission erfüllt?
+						
+						// TODO mission erfuellt?
+						
+						this.missionErfuelltUndGewonnen(angreifer);
+						
 						// Welteroberung
 						if(this.welteroberung(angreifer))
 						{
@@ -534,7 +602,8 @@ public class Spielfeld
 						IO.println("Moechtest du Einheiten nachziehen? (j/n)");
 				    	if (IO.readChar() == 'j')
 				    	{
-				    		this.einheitenNachziehen(angId, verId);	
+				    		this.einheitenNachKampfNachziehen(angId, verId);
+
 				    	}
 				    	
 				    	this.eroberteLaender.add(this.laender[verId]);
@@ -544,8 +613,37 @@ public class Spielfeld
 				else {
 					System.out.println("Runde "+ anzRunden +": Verteidiger gewinnt.");
 					this.laender[angId].setTruppenstaerke(-1);
+					if(this.laender[angId].getBenutzteEinheiten() > 0)
+					{
+						this.laender[angId].erhoeheBenutzteEinheiten((- 1));
+					}
+					
+					// TODO im angreifenden Land benutzte einheiten runterzaehlen
+					
 				}
 		}
+	
+	public void missionErfuelltUndGewonnen(Spieler spieler)
+	{
+		// Hat angreifer seine Mission erfuellt?
+		if(spieler.getMission().missionErfuellt())
+		{
+			IO.println(spieler.getMission().getMissionErfuelltText() + "");
+			IO.println(spieler.getName() + " hat das Spiel gewonnen.");
+		}
+			
+		// Wurde eine Mission eines anderen Spielers erfuellt?
+		
+		for(int t = 0 ; t < this.spielerZahl ; t++)
+		{
+			if(this.getSpieler(t).getMission().missionErfuellt() && this.getSpieler(t) != spieler)
+			{
+				IO.println(this.getSpieler(t).getMission().getMissionErfuelltText());
+				IO.println((spieler.getMission().missionErfuellt() ? "Leider hat " + this.getSpieler(t).getName() + "trotzdem nicht gewonnen, da " + spieler.getName() + " seine Mission im eigenen Zug erfuellt hat." : this.getSpieler(t).getName() + " hat das Spiel gewonnen."));
+			}
+
+		}
+	}
 		
 	public int[] verteidigerWuerfeln(int verTruppen) {
 			int[] verWuerfel = new int[2];
@@ -638,7 +736,7 @@ public class Spielfeld
 		       		IO.println("Falsche Eingabe! Es koennen maximal " + zuVerteilendeEinheiten+ " Einheiten stationiert werden!/nWie viele Einheiten sollen stationiert werden?");
 		       		einheiten = IO.readInt();
 		        }
-		        if(aktuellerSpieler.meinLand(this.laender[landId])) // else-Zweig ist in der Funktion definiert, falls false zurück kommt
+		        if(aktuellerSpieler.meinLand(this.laender[landId])) // else-Zweig ist in der Funktion definiert, falls false zurueck kommt
 		        {
 		        	this.laender[landId].setTruppenstaerke(einheiten);
 			       	zuVerteilendeEinheiten -= einheiten;
@@ -661,7 +759,7 @@ public class Spielfeld
 			}
 			if(laenderImBesitz == kontinente[i].getAnzahlLaender())
 			{
-				IO.println("Spieler " + spieler.getName() + " ist im Beitz von ganz " + kontinente[i].getName() + " und bekommt " + kontinente[i].getZusatzTruppen() + " zusätzliche Einheiten.");
+				IO.println("Spieler " + spieler.getName() + " ist im Beitz von ganz " + kontinente[i].getName() + " und bekommt " + kontinente[i].getZusatzTruppen() + " zusaetzliche Einheiten.");
 				zusatzEinheiten += kontinente[i].getZusatzTruppen();
 			}
 		}
@@ -686,4 +784,5 @@ public class Spielfeld
 		}
 		return false;
 	}
+	
 }
