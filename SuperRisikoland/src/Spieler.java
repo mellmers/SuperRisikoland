@@ -4,9 +4,9 @@ import java.util.Vector;
 public class Spieler
 {
 	private String name;
-	private String auftrag;
 	private Vector<Land> laender = new Vector<Land>();
 	private Vector<Land> handkarten = new Vector<Land>();
+	private Mission mission;
 
 	public Spieler (int spielerID) 
 	{
@@ -37,9 +37,18 @@ public class Spieler
 		return this.handkarten.size();
 	}
 	
+	public int getLaenderEinheiten(int Id)
+	{
+		return this.laender.elementAt(Id).getTruppenstaerke();
+	}
+	
 	public void landHinzufuegen(Land land)
 	{
 		this.laender.add(land);
+	}
+	public void landEntfernen(Land land)
+	{
+		this.laender.removeElement(land);
 	}
 	
 	public void handkartenHinzufuegen(Land land)
@@ -52,10 +61,6 @@ public class Spieler
 		this.handkarten.remove(landId);
 	}
 	
-	public String getAuftrag() 
-	{
-		return auftrag;
-	}
 	
 	public boolean meinLand(Land land)
 	{
@@ -96,5 +101,13 @@ public class Spieler
 			return true;
 		}
 		return false;
+	}
+
+	public Mission getMission() {
+		return mission;
+	}
+
+	public void setMission(Mission mission) {
+		this.mission = mission;
 	}
 }
