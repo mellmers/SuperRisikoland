@@ -376,7 +376,6 @@ public class Spielfeld
 		this.laender[i].setBesitzer(s);
 		s.landHinzufuegen(this.laender[i]);
 		this.laender[i].setTruppenstaerke(1);
-		IO.println(this.laender[i].getName() + " gehoert " + s.getName());
 	}
 	
 	public void getKarte(Spieler s) 

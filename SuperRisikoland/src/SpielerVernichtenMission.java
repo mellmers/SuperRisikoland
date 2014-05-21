@@ -1,4 +1,3 @@
-
 public class SpielerVernichtenMission extends AnzahlLaenderErobernMission{
 	
 	private Spieler gegner;
@@ -32,6 +31,4 @@ public class SpielerVernichtenMission extends AnzahlLaenderErobernMission{
 		}
 		return false;
 	}
-
-	
 }

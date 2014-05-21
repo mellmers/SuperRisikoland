@@ -1,4 +1,3 @@
-
 public class AnzahlLaenderErobernMission extends Mission {
 
 	private int anzahlLaender;

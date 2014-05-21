@@ -1,10 +1,23 @@
+import java.io.Console;
 import java.util.Vector;
+
+import Gui.SuperRisikolandGui;
 
 public class SuperRisikoland
 {
 
 	public static void main(String[] args)
 	{ 
+		// GUI
+		
+		SuperRisikolandGui gui = new SuperRisikolandGui();
+		
+		gui.logText.setText("Test");
+		
+		// GUI ENDE
+		
+		
+		// Spielvariblen, die nicht gespeichert werden muessen
 		int anzahlSpieler;
         int spielVariante;
         Spieler aktuellerSpieler;
@@ -12,10 +25,10 @@ public class SuperRisikoland
         Vector<Mission> missionen = new Vector<Mission>();
 
         
-        
-		
         // Benutzereingabe: Anzahl der Spieler
+		
 		IO.println("Anzahl der Spieler? (2-6 Spieler sind moeglich)");
+		
 		anzahlSpieler = IO.readInt();
 		while (anzahlSpieler < 2 || anzahlSpieler > 6)
 		{
@@ -31,17 +44,14 @@ public class SuperRisikoland
  
 		// erzeugt Spielfeld
 		Spielfeld spiel = new Spielfeld(anzahlSpieler, spielVariante);
-		
-		
-		
-		
+
         // Benutzereingabe: Namen jedes Spielers
         for(int i = 0; i < anzahlSpieler; i++) 
         {
 	       	spiel.spielerErstellen(i+1);
         }
         
-      //Missionen generieren
+        // Missionen generieren, wenn Spielvariante 1 gewaehlt wurde
         if(spielVariante == 1){
       		missionen.add(new AnzahlLaenderErobernMission(24));
       		missionen.add(new AnzahlLaenderErobernMission(18));
@@ -57,7 +67,7 @@ public class SuperRisikoland
       		}
       		IO.println("Missionen generiert");
       		
-      		//Missionen verteilen
+      		// Missionen verteilen
       		for(int i = 0 ; i < anzahlSpieler ; i++)
       		{
       			int zufallsMission = (int) (Math.random()*missionen.size());
@@ -81,7 +91,7 @@ public class SuperRisikoland
         }
         
         // Spielablauf
-        while(true) 
+        while(true) // Spiel beenden einfuegen
         {
         	// LaenderListe ausgeben
         	spiel.gesamtLaenderListeAusgeben();
@@ -176,7 +186,5 @@ public class SuperRisikoland
         	// Spielerwechsel Ende
         }
 	}
-	
-	
 }
 
