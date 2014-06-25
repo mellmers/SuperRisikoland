@@ -45,10 +45,17 @@ public class SuperRisikolandGui extends JFrame
 				this.spielerfarbe[i] = spielerfarbe[i];
 			}
 		}
+		this.screen = Toolkit.getDefaultToolkit().getScreenSize();
+		this.b = (int) screen.getWidth();
+		this.h = (int) screen.getHeight();
 		initialize();
 	}
 	
 	// Variablen
+	private Dimension screen;
+	private int b;
+	private int h;
+	
 	public JTextArea logText = new JTextArea();
 	private JButton menu = new JButton("Menü");
 	private int verbleibendeZeit = 30;
@@ -64,13 +71,10 @@ public class SuperRisikolandGui extends JFrame
 	
 	private void initialize()
 	{				
-		this.setSize(1920, 1080);
-		this.setResizable(false);
 		this.setTitle("Super Risikoland");
 		
 		// Fenster wird bei "x" geschlossen
 		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
-		
 		this.setLayout(new BorderLayout());
 		
 		// Oben Menü
@@ -78,20 +82,20 @@ public class SuperRisikolandGui extends JFrame
 		
 		final JPanel panelMenu = new JPanel();
 		panelMenu.setLayout(new GridLayout());
-		panelMenu.setPreferredSize(new Dimension(100, 90));
-		//panelMenu.setBorder(BorderFactory.createLineBorder(Color.yellow));
+		panelMenu.setPreferredSize(new Dimension(this.b/100*10, 90));
+		panelMenu.setBorder(BorderFactory.createLineBorder(Color.yellow));
 		panelMenu.add(this.menu);
 		
 		// Oben Kontinente + Timer
 		final JPanel panelKontinenteTimer = new JPanel();
 		panelKontinenteTimer.setLayout(new GridLayout());
-		//panelKontinenteTimer.setBorder(BorderFactory.createLineBorder(Color.black));
+		panelKontinenteTimer.setBorder(BorderFactory.createLineBorder(Color.black));
 		
 		// Kontinente 1
 		
 		final JPanel kontinente1 = new JPanel();
 		kontinente1.setLayout(new GridLayout(3, 2));
-		kontinente1.setPreferredSize(new Dimension(600, 90));
+		kontinente1.setPreferredSize(new Dimension(this.b/100*30, 90));
 		for(int i = 0; i < 3; i++)
 		{
 			this.labelArrayKontinente[i].setFont(new Font(null, Font.BOLD, 18));
@@ -102,12 +106,12 @@ public class SuperRisikolandGui extends JFrame
 		panelKontinenteTimer.add(kontinente1);
 		// Timer
 		this.labelVerbleibendeZeit.setFont(new Font(null, Font.BOLD, 24));
-		this.labelVerbleibendeZeit.setPreferredSize(new Dimension(500, 90));
+		this.labelVerbleibendeZeit.setPreferredSize(new Dimension(this.b/100*30, 90));
 		panelKontinenteTimer.add(labelVerbleibendeZeit);
 		// Kontinente 2
 		final JPanel kontinente2 = new JPanel();
 		kontinente2.setLayout(new GridLayout(3, 2));
-		kontinente2.setPreferredSize(new Dimension(600, 90));
+		kontinente2.setPreferredSize(new Dimension(this.b/100*30, 90));
 		for(int i = 3; i < 6; i++)
 		{
 			this.labelArrayKontinente[i].setAlignmentX(RIGHT_ALIGNMENT);
@@ -178,6 +182,7 @@ public class SuperRisikolandGui extends JFrame
 		// Fenster anzeigen
 		this.setExtendedState(JFrame.MAXIMIZED_BOTH);
 		this.setVisible(true);
+		this.setResizable(false);
 	}
 	
 	
