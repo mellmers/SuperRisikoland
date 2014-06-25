@@ -1,3 +1,5 @@
+package cui;
+import java.awt.Color;
 import java.util.Vector;
 
 public class Spielfeld 
@@ -45,7 +47,7 @@ public class Spielfeld
 	
 	public Spielfeld(int anzahlSpieler, int spielVariante) 
 	{
-			this.spielvariante = spielVariante;
+			this.setSpielvariante(spielVariante);
 		
 			kontinente[0] = new Kontinent ("Nord-Amerika", 9, 5);
 			kontinente[1] = new Kontinent ("Sued-Amerika", 4, 2);
@@ -333,12 +335,12 @@ public class Spielfeld
 		laender[41].nachbarLaender[1] = laender[40];
 	}
 
-	public boolean spielerErstellen(int spielerID)
+	public boolean spielerErstellen(int spielerID, String spielername, Color spielerfarbe)
 	{
+		// TODO If-Clause weg, weil man durch Gui nicht mehr als 6 Spieler auswählen kann
 		if(this.spieler.size() < this.maxSpieler)
 		{
-			// Im Spielerobjekt Konstruktor wird die Aufforderung fuer den Namen verlangt
-			this.spieler.add(new Spieler(spielerID));
+			this.spieler.add(new Spieler(spielerID, spielername, spielerfarbe));
 			this.spielerZahl ++;
 			return true;
 		}
@@ -782,6 +784,16 @@ public class Spielfeld
 			return true;
 		}
 		return false;
+	}
+
+	public int getSpielvariante()
+	{
+		return spielvariante;
+	}
+
+	public void setSpielvariante(int spielvariante)
+	{
+		this.spielvariante = spielvariante;
 	}
 	
 }

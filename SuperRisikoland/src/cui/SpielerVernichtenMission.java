@@ -1,3 +1,4 @@
+package cui;
 public class SpielerVernichtenMission extends AnzahlLaenderErobernMission{
 	
 	private Spieler gegner;

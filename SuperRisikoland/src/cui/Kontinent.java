@@ -1,3 +1,4 @@
+package cui;
 public class Kontinent {
 
 	private String name;

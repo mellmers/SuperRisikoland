@@ -1,3 +1,4 @@
+package cui;
 public class Mission {
 	protected String aufgabenText;
 	protected String missionErfuelltText;

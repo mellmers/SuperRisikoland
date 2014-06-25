@@ -1,3 +1,5 @@
+package cui;
+import java.awt.Color;
 import java.util.Vector;
 
 
@@ -7,14 +9,13 @@ public class Spieler
 	private Vector<Land> laender = new Vector<Land>();
 	private Vector<Land> handkarten = new Vector<Land>();
 	private Mission mission;
+	private Color spielerfarbe;
 
-	public Spieler (int spielerID) 
+	public Spieler (int spielerID, String spielername, Color spielerfarbe) 
 	{
-		//Mission mission = new Mission();
-		//auftrag = mission.getMission();
-		IO.println("Name des " + spielerID + ". Spielers?");
-		this.name = IO.readString();
-		IO.println("Spieler " + this.name + " mit SpielerID: " + spielerID + " erstellt.");
+		this.name = spielername;
+		this.spielerfarbe = spielerfarbe;
+		IO.println("Spieler " + this.name + " hat die Farbe " + Color.getColor(spielername, spielerfarbe) +" mit SpielerID: " + spielerID + " erstellt.");
 	}
 	
 	public boolean einheitenVerteilen(Land land)
@@ -37,9 +38,9 @@ public class Spieler
 		return this.handkarten.size();
 	}
 	
-	public int getLaenderEinheiten(int Id)
+	public int getLaenderEinheiten(int id)
 	{
-		return this.laender.elementAt(Id).getTruppenstaerke();
+		return this.laender.elementAt(id).getTruppenstaerke();
 	}
 	
 	public void landHinzufuegen(Land land)
@@ -109,5 +110,10 @@ public class Spieler
 
 	public void setMission(Mission mission) {
 		this.mission = mission;
+	}
+
+	public Color getSpielerfarbe()
+	{
+		return spielerfarbe;
 	}
 }

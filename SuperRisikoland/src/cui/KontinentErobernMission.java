@@ -1,3 +1,4 @@
+package cui;
 public class KontinentErobernMission extends Mission
 {
 	private Kontinent ersterKontinent;

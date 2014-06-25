@@ -1,22 +1,11 @@
-import java.io.Console;
+package cui;
+
 import java.util.Vector;
 
-import Gui.SuperRisikolandGui;
-
-public class SuperRisikoland
+public class SuperRisikolandCui
 {
-
 	public static void main(String[] args)
-	{ 
-		// GUI
-		
-		SuperRisikolandGui gui = new SuperRisikolandGui();
-		
-		gui.logText.setText("Test");
-		
-		// GUI ENDE
-		
-		
+	{		
 		// Spielvariblen, die nicht gespeichert werden muessen
 		int anzahlSpieler;
         int spielVariante;
@@ -48,7 +37,8 @@ public class SuperRisikoland
         // Benutzereingabe: Namen jedes Spielers
         for(int i = 0; i < anzahlSpieler; i++) 
         {
-	       	spiel.spielerErstellen(i+1);
+        	IO.println("Wie ist der Name des " + (i+1) + " Spielers?");
+        	spiel.spielerErstellen(i, IO.readString(), null);
         }
         
         // Missionen generieren, wenn Spielvariante 1 gewaehlt wurde

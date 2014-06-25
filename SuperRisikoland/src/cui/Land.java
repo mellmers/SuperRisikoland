@@ -1,3 +1,4 @@
+package cui;
 public class Land 
 {
 	private Kontinent kontinent;

@@ -1,3 +1,4 @@
+package cui;
 public class AnzahlLaenderErobernMission extends Mission {
 
 	private int anzahlLaender;
@@ -9,7 +10,7 @@ public class AnzahlLaenderErobernMission extends Mission {
 	
 	public void setAufgabenText()
 	{
-		this.aufgabenText = "Erobern Sie " + this.anzahlLaender + " Ihrer Wahl" + (this.anzahlLaender == 18 ? " und besetzen Sie jedes dieser Laender mit mindestens 2 Einheiten." : ".");
+		this.aufgabenText = "Erobern Sie " + this.anzahlLaender + " Laender Ihrer Wahl" + (this.anzahlLaender == 18 ? " und besetzen Sie jedes dieser Laender mit mindestens 2 Einheiten." : ".");
 	}
 	
 	public boolean missionErfuellt()
