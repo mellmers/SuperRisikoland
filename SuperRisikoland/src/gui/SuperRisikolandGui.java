@@ -5,11 +5,18 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.RenderingHints;
 import java.awt.Toolkit;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.image.BufferedImage;
 
 import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -54,11 +61,13 @@ public class SuperRisikolandGui extends JFrame
 	private JButton menu = new JButton("Menü");
 	private int verbleibendeZeit = 30;
 	private JLabel labelVerbleibendeZeit = new JLabel("verbleibende Zeit: " + verbleibendeZeit, SwingConstants.CENTER);
-	final private JLabel[] labelArrayKontinente = {new JLabel("Nord-Amerika (5 Einheiten):", SwingConstants.RIGHT), new JLabel("Sï¿½d-Amerika (2 Einheiten):", SwingConstants.RIGHT), new JLabel("Europa (5 Einheiten):", SwingConstants.RIGHT), new JLabel("Afrika (3 Einheiten):", SwingConstants.RIGHT), new JLabel("Asien (7 Einheiten):", SwingConstants.RIGHT), new JLabel("Australien (2 Einheiten):", SwingConstants.RIGHT)};
+	final private JLabel[] labelArrayKontinente = {new JLabel("Nord-Amerika (5 Einheiten):", SwingConstants.RIGHT), new JLabel("Süd-Amerika (2 Einheiten):", SwingConstants.RIGHT), new JLabel("Europa (5 Einheiten):", SwingConstants.RIGHT), new JLabel("Afrika (3 Einheiten):", SwingConstants.RIGHT), new JLabel("Asien (7 Einheiten):", SwingConstants.RIGHT), new JLabel("Australien (2 Einheiten):", SwingConstants.RIGHT)};
 	private JLabel[] labelArrayKontinenteBesitzer = {new JLabel("kein Besitzer", SwingConstants.CENTER), new JLabel("kein Besitzer", SwingConstants.CENTER), new JLabel("kein Besitzer", SwingConstants.CENTER), new JLabel("kein Besitzer", SwingConstants.CENTER), new JLabel("kein Besitzer", SwingConstants.CENTER), new JLabel("kein Besitzer", SwingConstants.CENTER)};
 	
 	private JPanel panelCharAktuellerSpieler;
 	private JPanel panelEigenerChar;
+	
+	private BufferedImage map;
 	
 	private String[] spielername;
 	private Color[] spielerfarbe;
@@ -122,13 +131,36 @@ public class SuperRisikolandGui extends JFrame
 		// Mitte - Karte
 		final JPanel mitte = new JPanel()
 		{
-			public void paint(final Graphics g) 
+			public void paint(Graphics g)
+			{
+				//Graphics2D g2 = (Graphics2D) g;
+				//renderSettings(g2);
+				createMap(b, h/100*76);
+				g.drawImage(map, 0, 0, this);
+			}
+			/*public void paint(final Graphics g) 
 			{
 				super.paint(g);
 		        final Toolkit tk = this.getToolkit();
-		        g.drawImage(tk.getImage("res/karteFarbcodes.png"), 0, 0, b, h/100*76, this);
-		    }
+		        createMap(b, h/100*76);
+		        g.drawImage(map, 0, 0, b, h/100*76, this);
+		    }*/
 		};
+		mitte.addMouseListener(new MouseAdapter()
+		{
+			public void mousePressed(MouseEvent e)
+			{
+				int x = (int) e.getX();
+				int y = (int) e.getY();
+				Color c = new Color(map.getRGB(x, y));
+				
+				System.out.println("X: " + x + " Y: " + y);
+				System.out.println("Rot: " + c.getRed());
+				System.out.println("Grün: " + c.getGreen());
+				System.out.println("Blau: " + c.getBlue());
+			}
+		});
+		
 		
 		// Unten - Spielinfos
 		final JPanel sued = new JPanel();
@@ -183,6 +215,32 @@ public class SuperRisikolandGui extends JFrame
 		this.setExtendedState(JFrame.MAXIMIZED_BOTH);
 		this.setVisible(true);
 		this.setResizable(false);
+	}
+	
+	/*public void paint(Graphics g)
+	{
+		Graphics2D g2 = (Graphics2D) g;
+		renderSettings(g2);
+		createMap(200, 200);
+		g.drawImage(map, 0, 0, this);
+	}*/
+	
+	public void createMap(int b, int h)
+	{
+		map = new BufferedImage(b, h, BufferedImage.TYPE_INT_RGB);
+		ImageIcon mapIcon = new ImageIcon("res/karteFarbcodes.png");
+		
+		Graphics g = map.getGraphics();
+		g.setColor(Color.WHITE);
+		g.fillRect(0,0,b,h);
+		g.drawImage(mapIcon.getImage(), 10, 10, this);
+	}
+	
+	public void renderSettings(Graphics2D g)
+	{
+		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+		g.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
 	}
 	
 	public static void main(String[] args)
