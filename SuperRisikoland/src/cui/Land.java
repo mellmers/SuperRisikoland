@@ -1,5 +1,9 @@
 package cui;
-public class Land 
+
+import java.awt.Color;
+import java.io.Serializable;
+
+public class Land implements Serializable
 {
 	private Kontinent kontinent;
 	private String name;
@@ -8,13 +12,15 @@ public class Land
 	private Spieler besitzer;
 	Land[] nachbarLaender;
 	private int benutzteEinheiten = 0;
+	private Color farbcode;
 	
-	public Land(Kontinent kontinent, String name, String einheit, int anzahlNachbarLaender)
+	public Land(Kontinent kontinent, String name, String einheit, int anzahlNachbarLaender, Color farbe)
 	{
 		this.kontinent = kontinent;
 		this.name = name;
 		this.einheit = einheit;
 		this.nachbarLaender = new Land[anzahlNachbarLaender];
+		this.farbcode = farbe;
 	}
 	
 	// Getter
@@ -78,5 +84,10 @@ public class Land
 	public void setBenutzteEinheiten(int benutzteEinheiten)
 	{
 		this.benutzteEinheiten = benutzteEinheiten;
+	}
+
+	public Color getFarbcode()
+	{
+		return farbcode;
 	}
 }

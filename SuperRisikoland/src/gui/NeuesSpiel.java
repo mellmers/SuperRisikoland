@@ -5,13 +5,17 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
+import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
+import java.io.File;
 import java.io.IOException;
 import java.util.Vector;
 
+import javax.imageio.IIOException;
+import javax.imageio.ImageIO;
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -22,6 +26,10 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 
+import cui.Mission;
+import cui.Spieler;
+import cui.Spielfeld;
+
 public class NeuesSpiel extends JFrame implements ActionListener
 {
 	
@@ -29,17 +37,10 @@ public class NeuesSpiel extends JFrame implements ActionListener
 	private Vector<JTextField> textFieldSpieler = new Vector<JTextField>();
 	private Vector<JPanel> panelSpieler = new Vector<JPanel>();
 	private Vector<JButton> buttonSpielerHinzufuegen = new Vector<JButton>();
-	private JLabel labelCharakter1;
-	private JLabel labelCharakter2;
-	private JLabel labelCharakter3;
-	private JLabel labelCharakter4;
-	private JLabel labelCharakter5;
-	private JLabel labelCharakter6;
-	private JButton buttonSpielStarten;
-	private JButton buttonZurueck;
+	private JLabel labelCharakter1, labelCharakter2, labelCharakter3, labelCharakter4, labelCharakter5, labelCharakter6;
+	private JButton buttonSpielStarten, buttonZurueck;
 	private int anzahlSpieler;
-	private JRadioButton radioButtonWelteroberung;
-	private JRadioButton radioButtonMissionen;
+	private JRadioButton radioButtonWelteroberung, radioButtonMissionen;
 	
 	Color colorDaisy = new Color(250,111,43);
 	Color colorLuigi = new Color(22,169,14);
@@ -49,6 +50,7 @@ public class NeuesSpiel extends JFrame implements ActionListener
 	Color colorWario = new Color(255,239,0);
 	
 	private Color[] colorChars = {this.colorDaisy, this.colorLuigi, this.colorMario, this.colorPeach, this.colorWaluigi, this.colorWario};
+	private String[] color = {"Orange","Gruen","Rot","Pink","Lila","Gelb"};
 	private String[] spielernamen = new String[6];
 	
 	public NeuesSpiel()
@@ -63,7 +65,7 @@ public class NeuesSpiel extends JFrame implements ActionListener
 		}
 	}
 	
-	public void initialize()  throws IOException
+	public void initialize() throws IOException
 	{
 		this.setSize(600, 400);
 		this.setResizable(false);
@@ -75,14 +77,12 @@ public class NeuesSpiel extends JFrame implements ActionListener
 		this.setLayout(new BorderLayout());
 		
 		// Panel Spielerliste
-		final JPanel spielerListe = new JPanel();
-		spielerListe.setLayout(new GridLayout(3, 4));
+		final JPanel spielerListe = new JPanel(new GridLayout(3, 4));
 		
 		// Panel für TextField und Button
 		for(int i = 0; i < 6; i++)
 		{
-			JPanel panel = new JPanel();
-			panel.setLayout(new FlowLayout());
+			JPanel panel = new JPanel(new FlowLayout());
 			this.panelSpieler.add(panel);
 		}
 		
@@ -105,10 +105,8 @@ public class NeuesSpiel extends JFrame implements ActionListener
 					actionSpielerHinzufuegen(spieler, button);
 				}
 			});
-			button.addKeyListener(new KeyListener()
+			button.addKeyListener(new KeyAdapter()
 			{
-				public void keyTyped(KeyEvent e) {}
-	            public void keyReleased(KeyEvent e) {}
 				public void keyPressed(KeyEvent e) {
 	                int key = e.getKeyCode();
 	                if (key == KeyEvent.VK_ENTER) {         
@@ -117,10 +115,8 @@ public class NeuesSpiel extends JFrame implements ActionListener
 	            }
 			}
 			);
-			spieler.addKeyListener(new KeyListener()
+			spieler.addKeyListener(new KeyAdapter()
 			{
-				public void keyTyped(KeyEvent e) {}
-	            public void keyReleased(KeyEvent e) {}
 				public void keyPressed(KeyEvent e) 
 				{
 	                int key = e.getKeyCode();
@@ -140,23 +136,9 @@ public class NeuesSpiel extends JFrame implements ActionListener
 			this.panelSpieler.elementAt(i).add(this.buttonSpielerHinzufuegen.elementAt(i));
 		}
 
-		// Icons einlesen
-		ImageIcon daisyIcon = new ImageIcon("res/charakterIcons/DaisyIcon.png");
-		ImageIcon luigiIcon = new ImageIcon("res/charakterIcons/LuigiIcon.png");
-		ImageIcon marioIcon = new ImageIcon("res/charakterIcons/MarioIcon.png");
-		ImageIcon peachIcon = new ImageIcon("res/charakterIcons/PeachIcon.png");
-		ImageIcon waluigiIcon = new ImageIcon("res/charakterIcons/WaluigiIcon.png");
-		ImageIcon warioIcon = new ImageIcon("res/charakterIcons/WarioIcon.png");
-		// Label Icons erstellen
-		labelCharakter1 = new JLabel(daisyIcon);
-		labelCharakter2 = new JLabel(luigiIcon);
-		labelCharakter3 = new JLabel(marioIcon);
-		labelCharakter4 = new JLabel(peachIcon);
-		labelCharakter5 = new JLabel(waluigiIcon);
-		labelCharakter6 = new JLabel(warioIcon);
-		JLabel labelDaisy = new JLabel("Daisy");
+		this.bilderEinlesen();
 		spielerListe.add(labelCharakter1);
-		spielerListe.add(labelDaisy);
+		spielerListe.add(new JLabel("Daisy"));
 		spielerListe.add(this.panelSpieler.elementAt(0));
 		spielerListe.add(labelCharakter2);
 		spielerListe.add(new JLabel("Luigi"));
@@ -175,9 +157,8 @@ public class NeuesSpiel extends JFrame implements ActionListener
 		spielerListe.add(this.panelSpieler.elementAt(5));
 		
 		// Starten/Zurueck zum Menu/SpielVariante
-		final JPanel menu = new JPanel();
-		menu.setLayout(new GridLayout(3, 1));
-		
+		final JPanel menu = new JPanel(new GridLayout(3, 1));
+
 		// Spielvariante
 		this.radioButtonWelteroberung = new JRadioButton("Welteroberung");
 		this.radioButtonMissionen = new JRadioButton("Missionen");
@@ -185,18 +166,15 @@ public class NeuesSpiel extends JFrame implements ActionListener
 		ButtonGroup bg = new ButtonGroup();
 		bg.add(this.radioButtonMissionen);
 		bg.add(this.radioButtonWelteroberung);
-		final JPanel spielVariante = new JPanel();
-		spielVariante.setLayout(new GridLayout(1, 2));
+		final JPanel spielVariante = new JPanel(new GridLayout(1, 2));
 		spielVariante.add(this.radioButtonWelteroberung);
 		spielVariante.add(this.radioButtonMissionen);		
 		
 		this.buttonSpielStarten = new JButton("Spiel starten");
 		this.buttonSpielStarten.setEnabled(false);
 		this.buttonSpielStarten.addActionListener(this);
-		this.buttonSpielStarten.addKeyListener(new KeyListener()
+		this.buttonSpielStarten.addKeyListener(new KeyAdapter()
 		{
-			public void keyTyped(KeyEvent e) {}
-            public void keyReleased(KeyEvent e) {}
 			public void keyPressed(KeyEvent e) {
                 int key = e.getKeyCode();
                 if (key == KeyEvent.VK_ENTER) {         
@@ -207,10 +185,8 @@ public class NeuesSpiel extends JFrame implements ActionListener
 		);
 		this.buttonZurueck = new JButton("Zurück zum Menü");
 		this.buttonZurueck.addActionListener(this);
-		this.buttonZurueck.addKeyListener(new KeyListener()
+		this.buttonZurueck.addKeyListener(new KeyAdapter()
 		{
-			public void keyTyped(KeyEvent e) {}
-            public void keyReleased(KeyEvent e) {}
 			public void keyPressed(KeyEvent e) {
                 int key = e.getKeyCode();
                 if (key == KeyEvent.VK_ENTER) {         
@@ -231,6 +207,38 @@ public class NeuesSpiel extends JFrame implements ActionListener
 		this.setVisible(true);
 	}
 	
+	private void bilderEinlesen()
+	{
+		try
+		{
+			// Bilder einlesen
+			Image imgDaisy = ImageIO.read(new File("res/charakterIcons/DaisyIcon.png"));
+			Image imgLuigi = ImageIO.read(new File("res/charakterIcons/LuigiIcon.png"));
+			Image imgMario = ImageIO.read(new File("res/charakterIcons/MarioIcon.png"));
+			Image imgPeach = ImageIO.read(new File("res/charakterIcons/PeachIcon.png"));
+			Image imgWaluigi = ImageIO.read(new File("res/charakterIcons/WaluigiIcon.png"));
+			Image imgWario = ImageIO.read(new File("res/charakterIcons/WarioIcon.png"));
+			// Icons einlesen
+			ImageIcon daisyIcon = new ImageIcon(imgDaisy);
+			ImageIcon luigiIcon = new ImageIcon(imgLuigi);
+			ImageIcon marioIcon = new ImageIcon(imgMario);
+			ImageIcon peachIcon = new ImageIcon(imgPeach);
+			ImageIcon waluigiIcon = new ImageIcon(imgWaluigi);
+			ImageIcon warioIcon = new ImageIcon(imgWario);
+			// Label Icons erstellen
+			labelCharakter1 = new JLabel(daisyIcon);
+			labelCharakter2 = new JLabel(luigiIcon);
+			labelCharakter3 = new JLabel(marioIcon);
+			labelCharakter4 = new JLabel(peachIcon);
+			labelCharakter5 = new JLabel(waluigiIcon);
+			labelCharakter6 = new JLabel(warioIcon);
+		}
+		catch(IOException e)
+		{
+			e.printStackTrace();
+		}
+	}
+	
 	public void actionPerformed(ActionEvent e)
 	{
 		if (e.getSource().equals(this.buttonSpielStarten))
@@ -246,14 +254,34 @@ public class NeuesSpiel extends JFrame implements ActionListener
 
 	private void actionSpielStarten()
 	{		
-		int spielVariante = 1;
-		
-		if(this.radioButtonWelteroberung.isSelected())
+		// Spielvariante wird ermittelt
+		int spielVariante = 2;
+		if(this.radioButtonMissionen.isSelected())
 		{
-			spielVariante = 2;
+			spielVariante = 1;
 		}
-		
-		new SuperRisikolandGui(this.anzahlSpieler, spielVariante, this.spielernamen, this.colorChars);
+		SuperRisikolandGui.logText = ""; // Logtext wird bei neuem Spiel gelöscht
+		// Spielfeld wird erstellt
+		Spielfeld spiel = new Spielfeld(this.anzahlSpieler, spielVariante);
+		for (int i = 0; i < this.spielernamen.length; i++)
+		{
+			if(this.spielernamen[i] != null)
+			{
+				spiel.spielerErstellen(i, this.spielernamen[i], this.color[i], this.colorChars[i]);
+			}
+		}
+		// Startländer werden verteilt
+		spiel.startLaenderVerteilen();
+		// Missionen werden erstellt
+		if(spielVariante == 1)
+		{
+			new Mission().missionenErstellen(spiel); // Missionen werden erstellt und im Spielerobjekt abgespeichert
+		}
+		// aktuellerSpieler wird Random festgelegt
+		int rndZahl = (int) (Math.random()*this.anzahlSpieler); // Randomzahl zwischen 0 und der Spieleranzahl
+		Spieler aktuellerSpieler = spiel.getSpieler(rndZahl);
+		// Gui wird aufgerufen
+		new SuperRisikolandGui(spiel, aktuellerSpieler, false);
 		dispose();
 	}
 	

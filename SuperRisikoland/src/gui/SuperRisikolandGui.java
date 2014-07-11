@@ -1,5 +1,6 @@
 package gui;
 
+import java.awt.AWTException;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -8,96 +9,173 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.Image;
 import java.awt.RenderingHints;
+import java.awt.Robot;
 import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionAdapter;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.util.Vector;
 
+import javax.imageio.IIOException;
+import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSlider;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.JToolTip;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
+import javax.swing.ToolTipManager;
+import javax.swing.UIManager;
+import javax.swing.border.Border;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.plaf.SliderUI;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter.DEFAULT;
 
+import gui.Spielstart;
+import cui.Land;
+import cui.Mission;
+import cui.Spieler;
 import cui.Spielfeld;
 
-public class SuperRisikolandGui extends JFrame
+public class SuperRisikolandGui extends JFrame implements ActionListener
 {
+	// Variablen
+	private Dimension screen;
+	private int b, h;
 	
-	public SuperRisikolandGui(int anzahlSpieler, int spielVariante, String[] spielername, Color[] spielerfarbe)
+	public static JTextArea logTextArea = new JTextArea();
+	public static Color aktuellerFarbcode =  new Color(0,0,0);
+	public static String logText = "";
+	private JLabel labelPhase = new JLabel("Neue Armeen", SwingConstants.CENTER);
+	private JButton buttonSpeichern = new JButton("Speichern");
+	private JButton buttonLaden = new JButton("neues Spiel/Laden");
+	private JButton buttonMission = new JButton("Mission anzeigen");
+	public static int verbleibendeZeit = 30;
+	private JLabel labelVerbleibendeZeit = new JLabel("verbleibende Zeit: " + verbleibendeZeit, SwingConstants.CENTER);
+	private JButton buttonPhaseBeenden = new JButton("Phase beenden"), buttonBestaetigung = new JButton("Bestaetigung");
+	final private JLabel[] labelArrayKontinente = {new JLabel("Nord-Amerika (5 Einheiten):", SwingConstants.RIGHT), new JLabel("Sued-Amerika (2 Einheiten):", SwingConstants.RIGHT), new JLabel("Europa (5 Einheiten):", SwingConstants.RIGHT), new JLabel("Afrika (3 Einheiten):", SwingConstants.RIGHT), new JLabel("Asien (7 Einheiten):", SwingConstants.RIGHT), new JLabel("Australien (2 Einheiten):", SwingConstants.RIGHT)};
+	private JLabel[] labelArrayKontinenteBesitzer = {new JLabel("kein Besitzer", SwingConstants.CENTER), new JLabel("kein Besitzer", SwingConstants.CENTER), new JLabel("kein Besitzer", SwingConstants.CENTER), new JLabel("kein Besitzer", SwingConstants.CENTER), new JLabel("kein Besitzer", SwingConstants.CENTER), new JLabel("kein Besitzer", SwingConstants.CENTER)};
+	
+	private JPanel panelCharAktuellerSpieler, panelEigenerChar, panelHandkarten;
+	
+	private BufferedImage map;
+	
+	private ImageIcon[] iihandkarten = new ImageIcon[43];
+	private JLabel[] labelHandkarten = {new JLabel(""),new JLabel(""),new JLabel(""),new JLabel(""),new JLabel("")};
+	private ImageIcon[] iiCharakter = {null,null,null,null,null,null};
+	private JLabel labelCharAktuellerSpieler = new JLabel(""), labelEigenerChar = new JLabel("");
+	
+	private JSlider sliderMap;
+	private int sliderMapWert;
+	
+	private Spieler aktuellerSpieler;
+	private Spielfeld spiel;
+	private Land aktuellesLand;
+	private int aktuellesLandId;
+	
+	private Thread thSpielablauf;
+		
+	public SuperRisikolandGui(Spielfeld spiel, Spieler aktSpieler, boolean geladen)
 	{
 		super();
-		Spielfeld spiel = new Spielfeld(anzahlSpieler, spielVariante);
-		this.spielername = new String[spielername.length];
-		this.spielerfarbe = new Color[spielerfarbe.length];
-		for (int i = 0; i < spielername.length; i++)
+		
+		this.spiel = spiel;
+		this.aktuellerSpieler = aktSpieler;
+		
+		if(geladen == true)
 		{
-			if(spielername[i] != null)
+			// alle Spieler + Spielvariante ausgeben, wenn aus Spielstand geladen wurde
+			logText += "\nSpielfeld mit " + spiel.getAnzahlSpieler() + " Spielern und Spielvariante " + spiel.getSpielvariante() + " geladen.";
+			for (int i = 0; i < spiel.getAnzahlSpieler(); i++)
 			{
-				spiel.spielerErstellen(i, spielername[i], spielerfarbe[i]);
-				this.spielername[i] = spielername[i];
-				this.spielerfarbe[i] = spielerfarbe[i];
+				Spieler s = spiel.getSpieler(i);
+				logText += "\nSpieler " + s.getName() + " mit der Farbe " + s.getSpielerfarbe() +" und mit SpielerID " + s.getSpielerID() + " wurde geladen.";
 			}
+			logTextArea.setText(logText);
 		}
+		// Bildschirmgroeße auslesen und Breite und Hoehe abspeichern
 		this.screen = Toolkit.getDefaultToolkit().getScreenSize();
 		this.b = (int) screen.getWidth();
 		this.h = (int) screen.getHeight();
 		initialize();
+		//this.thSpielablauf = new Thread(new Spielablauf(this.aktuellerSpieler, this.spiel));
+		//this.thSpielablauf.start();
 	}
 	
-	// Variablen
-	private Dimension screen;
-	private int b;
-	private int h;
-	
-	public JTextArea logText = new JTextArea();
-	private JButton menu = new JButton("Menü");
-	private int verbleibendeZeit = 30;
-	private JLabel labelVerbleibendeZeit = new JLabel("verbleibende Zeit: " + verbleibendeZeit, SwingConstants.CENTER);
-	final private JLabel[] labelArrayKontinente = {new JLabel("Nord-Amerika (5 Einheiten):", SwingConstants.RIGHT), new JLabel("Süd-Amerika (2 Einheiten):", SwingConstants.RIGHT), new JLabel("Europa (5 Einheiten):", SwingConstants.RIGHT), new JLabel("Afrika (3 Einheiten):", SwingConstants.RIGHT), new JLabel("Asien (7 Einheiten):", SwingConstants.RIGHT), new JLabel("Australien (2 Einheiten):", SwingConstants.RIGHT)};
-	private JLabel[] labelArrayKontinenteBesitzer = {new JLabel("kein Besitzer", SwingConstants.CENTER), new JLabel("kein Besitzer", SwingConstants.CENTER), new JLabel("kein Besitzer", SwingConstants.CENTER), new JLabel("kein Besitzer", SwingConstants.CENTER), new JLabel("kein Besitzer", SwingConstants.CENTER), new JLabel("kein Besitzer", SwingConstants.CENTER)};
-	
-	private JPanel panelCharAktuellerSpieler;
-	private JPanel panelEigenerChar;
-	
-	private BufferedImage map;
-	
-	private String[] spielername;
-	private Color[] spielerfarbe;
-	
 	private void initialize()
-	{				
+	{	
+		this.panelCharAktuellerSpieler = new JPanel();
+		this.panelHandkarten = new JPanel(new GridLayout(1,5));
+		this.panelEigenerChar = new JPanel();
+		bilderEinlesen(); // Bilder werden eingelesen und abgespeichert
 		this.setTitle("Super Risikoland");
 		
-		// Fenster wird bei "x" geschlossen
-		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
+		this.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+		this.addWindowListener(new WindowAdapter()
+		{
+			public void windowClosing(WindowEvent e)
+			{
+				super.windowClosing(e);
+				int selectedOption = JOptionPane.showOptionDialog(null, "Willst du das Spiel speichern?", "Beenden", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE, null, new String[]{"Speichern", "Beenden", "Abbrechen"}, "Speichern");
+				if(selectedOption == 0){
+					speichern();
+				} 
+				else if(selectedOption == 1){
+					System.exit(0);
+				}
+			}
+			
+		});
+		
 		this.setLayout(new BorderLayout());
 		
-		// Oben Menü
+		// Oben Speichern + Laden + Mission
 		final JPanel nord = new JPanel();
 		
-		final JPanel panelMenu = new JPanel();
-		panelMenu.setLayout(new GridLayout());
+		final JPanel panelMenu = new JPanel(new GridLayout(3,1));
 		panelMenu.setPreferredSize(new Dimension(this.b/100*10, this.h/100*8));
-		panelMenu.setBorder(BorderFactory.createLineBorder(Color.yellow));
-		panelMenu.add(this.menu);
+		//panelMenu.setBorder(BorderFactory.createLineBorder(Color.yellow));
+		
+		this.buttonSpeichern.addActionListener(this);
+		this.buttonLaden.addActionListener(this);
+		this.buttonMission.addActionListener(this);
+
+		panelMenu.add(this.buttonSpeichern);
+		panelMenu.add(this.buttonLaden);
+		panelMenu.add(this.buttonMission);
 		
 		// Oben Kontinente + Timer
-		final JPanel panelKontinenteTimer = new JPanel();
-		panelKontinenteTimer.setLayout(new GridLayout());
-		panelKontinenteTimer.setBorder(BorderFactory.createLineBorder(Color.black));
+		final JPanel panelKontinenteTimer = new JPanel(new GridLayout());
+		//panelKontinenteTimer.setBorder(BorderFactory.createLineBorder(Color.black));
 		
 		// Kontinente 1
-		
-		final JPanel kontinente1 = new JPanel();
-		kontinente1.setLayout(new GridLayout(3, 2));
+		final JPanel kontinente1 = new JPanel(new GridLayout(3, 2));
 		kontinente1.setPreferredSize(new Dimension(this.b/100*30, this.h/100*8));
 		for(int i = 0; i < 3; i++)
 		{
@@ -107,13 +185,29 @@ public class SuperRisikolandGui extends JFrame
 			kontinente1.add(this.labelArrayKontinenteBesitzer[i]);
 		}
 		panelKontinenteTimer.add(kontinente1);
-		// Timer
+		
+		// Status + Timer
+		JPanel panelMissionTimerStatus = new JPanel(new GridLayout(1,2)), panelLabel = new JPanel(new GridLayout(2,1)), panelButton = new JPanel(new GridLayout(2,1));
+		labelPhase.setFont(new Font(null, Font.BOLD, 24));
+		labelPhase.setForeground(Color.red);
+		labelPhase.setPreferredSize(new Dimension(this.b/100*15, this.h/100*4));
 		this.labelVerbleibendeZeit.setFont(new Font(null, Font.BOLD, 24));
-		this.labelVerbleibendeZeit.setPreferredSize(new Dimension(this.b/100*30, this.h/100*8));
-		panelKontinenteTimer.add(labelVerbleibendeZeit);
+		this.labelVerbleibendeZeit.setPreferredSize(new Dimension(this.b/100*15, this.h/100*4));
+		this.buttonPhaseBeenden.setPreferredSize(new Dimension(this.b/100*15, this.h/100*4));
+		this.buttonPhaseBeenden.addActionListener(this);
+		this.buttonPhaseBeenden.setEnabled(false);
+		this.buttonBestaetigung.setPreferredSize(new Dimension(this.b/100*15, this.h/100*4));
+		this.buttonBestaetigung.addActionListener(this);
+		panelButton.add(this.buttonPhaseBeenden);
+		panelButton.add(this.buttonBestaetigung);
+		panelLabel.add(this.labelPhase);
+		panelLabel.add(this.labelVerbleibendeZeit);
+		panelMissionTimerStatus.add(panelLabel);
+		panelMissionTimerStatus.add(panelButton);
+		panelKontinenteTimer.add(panelMissionTimerStatus);
+		
 		// Kontinente 2
-		final JPanel kontinente2 = new JPanel();
-		kontinente2.setLayout(new GridLayout(3, 2));
+		final JPanel kontinente2 = new JPanel(new GridLayout(3, 2));
 		kontinente2.setPreferredSize(new Dimension(this.b/100*30, this.h/100*8));
 		for(int i = 3; i < 6; i++)
 		{
@@ -124,84 +218,35 @@ public class SuperRisikolandGui extends JFrame
 			kontinente2.add(this.labelArrayKontinenteBesitzer[i]);
 		}
 		panelKontinenteTimer.add(kontinente2);
-		// panelMenu und panelKontinenteTimer zum Gesamt Nord Panel hinzufügen
+		// panelMenu und panelKontinenteTimer zum Gesamt Nord Panel hinzufuegen
 		nord.add(panelMenu);
 		nord.add(panelKontinenteTimer);
 		
 		// Mitte - Karte
-		final JPanel mitte = new JPanel()
-		{
-			public void paint(Graphics g)
-			{
-				//Graphics2D g2 = (Graphics2D) g;
-				//renderSettings(g2);
-				createMap(b, h/100*76);
-				g.drawImage(map, 0, 0, this);
-			}
-			/*public void paint(final Graphics g) 
-			{
-				super.paint(g);
-		        final Toolkit tk = this.getToolkit();
-		        createMap(b, h/100*76);
-		        g.drawImage(map, 0, 0, b, h/100*76, this);
-		    }*/
-		};
-		mitte.addMouseListener(new MouseAdapter()
-		{
-			public void mousePressed(MouseEvent e)
-			{
-				int x = (int) e.getX();
-				int y = (int) e.getY();
-				Color c = new Color(map.getRGB(x, y));
-				
-				System.out.println("X: " + x + " Y: " + y);
-				System.out.println("Rot: " + c.getRed());
-				System.out.println("Grün: " + c.getGreen());
-				System.out.println("Blau: " + c.getBlue());
-			}
-		});
-		
+		JPanel mitte = new riskoMap();
 		
 		// Unten - Spielinfos
-		final JPanel sued = new JPanel();
-		sued.setLayout(new GridBagLayout());
-		//aktuellerSpieler Char
-		this.panelCharAktuellerSpieler = new JPanel(){
-			public void paint(final Graphics g) 
-			{
-				super.paint(g);
-		        final Toolkit tk = this.getToolkit();
-		        // Breite des aktuellenChars an Bildschirm anpassen
-		        double size = b/100*9.5;
-		        g.drawImage(tk.getImage("res/charakter/mario.png"), 0, 0, (int)size, h/100*16, this);
-		    }
-		};
+		final JPanel sued = new JPanel(new GridBagLayout());
+		// aktuellerSpieler Char
         double bAktuellerChar = this.b/100*9.5;
 		this.panelCharAktuellerSpieler.setPreferredSize(new Dimension((int)bAktuellerChar, this.h/100*16));
 		sued.add(this.panelCharAktuellerSpieler);
-		// Textarea für Log
-		logText.setEditable(false);
+		
+		// Textarea fuer Log
+		logTextArea.setEditable(false);
+		
 		// Log
-		JScrollPane log = new JScrollPane(logText, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		JScrollPane log = new JScrollPane(logTextArea, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         double bLog = this.b/100*54.5;
 		log.setPreferredSize(new Dimension((int)bLog, this.h/100*16));
 		sued.add(log);
-		//Karten
-		JPanel karten = new JPanel();
-		karten.setLayout(new GridLayout());
+		
+		// Karten
 		double bKarten = b/100*26.5;
-		karten.setPreferredSize(new Dimension((int)bKarten, this.h/100*16));
-		sued.add(karten);
-		//eigener Char
-		this.panelEigenerChar = new JPanel(){
-			public void paint(final Graphics g) 
-			{
-				super.paint(g);
-		        final Toolkit tk = this.getToolkit();
-		        double size = b/100*9.5;
-		        g.drawImage(tk.getImage("res/charakter/wario.png"), 0, 0, (int)size, h/100*16,this);
-		    }
-		};
+		this.panelHandkarten.setPreferredSize(new Dimension((int)bKarten, this.h/100*16));
+		sued.add(this.panelHandkarten);
+		
+		// eigener Char
         double bEigenerChar = this.b/100*9.5;
 		this.panelEigenerChar.setPreferredSize(new Dimension((int)bEigenerChar, this.h/100*16));
 		sued.add(this.panelEigenerChar);
@@ -217,30 +262,226 @@ public class SuperRisikolandGui extends JFrame
 		this.setResizable(false);
 	}
 	
-	/*public void paint(Graphics g)
+	public void actionPerformed(ActionEvent e)
 	{
-		Graphics2D g2 = (Graphics2D) g;
-		renderSettings(g2);
-		createMap(200, 200);
-		g.drawImage(map, 0, 0, this);
-	}*/
-	
-	public void createMap(int b, int h)
-	{
-		map = new BufferedImage(b, h, BufferedImage.TYPE_INT_RGB);
-		ImageIcon mapIcon = new ImageIcon("res/karteFarbcodes.png");
-		
-		Graphics g = map.getGraphics();
-		g.setColor(Color.WHITE);
-		g.fillRect(0,0,b,h);
-		g.drawImage(mapIcon.getImage(), 10, 10, this);
+		if (e.getSource().equals(this.buttonSpeichern)) // Speichern
+		{
+			speichern();
+		}
+		if (e.getSource().equals(this.buttonLaden)) // Laden
+		{
+			new Spielstart(this);
+		}
+		if (e.getSource().equals((this.buttonMission)))
+		{
+			if(this.aktuellerSpieler.getMission() == null)
+			{
+				logText += "\nKeine Missionen vorhanden.";
+				logTextArea.setText(logText);
+			}
+			else
+			{
+				logText += "\n" + this.aktuellerSpieler.getMission().getAufgabenText();
+				logTextArea.setText(logText);
+			}
+		}
+		if (e.getSource().equals(this.buttonPhaseBeenden))
+		{
+			switch(labelPhase.getText())
+			{
+			case "Neue Armeen":
+				labelPhase.setText("Befreiung");
+				break;
+			case "Befreiung":
+				labelPhase.setText("Truppen nachziehen");
+				break;
+			case "Truppen nachziehen":
+				//Popup, ob spieler weiter angreifen möchte
+				// JDialog mit entsprechendem panel starten
+            	int selectedOption = JOptionPane.showOptionDialog(null, "Moechtest du weiter angreifen?", "Befreiung beenden?", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null, null);
+            	// wenn okay gedrückt wurde
+            	if(selectedOption == 0)
+            	{
+            		labelPhase.setText("Befreiung");
+            	}
+            	else
+            	{
+            		labelPhase.setText("Umverteilung");
+            	}
+				break;
+			case "Umverteilung":
+				labelPhase.setText("Neue Armeen");
+				break;
+			default:
+				labelPhase.setText("Neue Armeen");
+				break;
+			}
+		}
+		if (e.getSource().equals(this.buttonBestaetigung))
+		{
+			switch(labelPhase.getText())
+			{
+			case "Neue Armeen":
+				if(aktuellesLandId == 0)
+	    		{
+	    			SuperRisikolandGui.logText += "\nDu musst ein Land auswaehlen und dann bestaetigen!";
+					SuperRisikolandGui.logTextArea.setText(SuperRisikolandGui.logText);
+	    		}
+	    		else if(sliderMapWert == 0)
+	    		{
+	    			SuperRisikolandGui.logText += "\nDu musst mindestens eine Einheit auswaehlen und dann bestaetigen!";
+					SuperRisikolandGui.logTextArea.setText(SuperRisikolandGui.logText);
+	    		}
+	    		else
+	    		{
+	    			spiel.neueArmeen(this.aktuellerSpieler, true, aktuellesLandId, sliderMapWert);
+	    		}
+	    		break;
+			case "Befreiung":
+				break;
+			case "Truppen nachziehen":
+				break;
+			case "Umverteilung":
+				break;
+			default:
+				labelPhase.setText("Neue Armeen");
+				break;
+			}
+		}
 	}
 	
-	public void renderSettings(Graphics2D g)
+	private void bilderEinlesen()
 	{
-		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-		g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-		g.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
+		try
+		{
+			//Bilder einlesen
+			Image[] handkarten = new Image[43];
+			for (int i = 0; i < handkarten.length; i++)
+			{
+				handkarten[i] = null;
+				this.iihandkarten[i] = null;
+			}
+			handkarten[0] = ImageIO.read(new File("res/karten/infanterie/aegypten.png"));
+			handkarten[1] = ImageIO.read(new File("res/karten/infanterie/afghanistan.png"));
+			handkarten[2] = ImageIO.read(new File("res/karten/infanterie/alaska.png"));
+			handkarten[3] = ImageIO.read(new File("res/karten/infanterie/alberta.png"));
+			handkarten[4] = ImageIO.read(new File("res/karten/infanterie/argentinien.png"));
+			handkarten[5] = ImageIO.read(new File("res/karten/infanterie/indien.png"));
+			handkarten[6] = ImageIO.read(new File("res/karten/infanterie/irkutsk.png"));
+			handkarten[7] = ImageIO.read(new File("res/karten/infanterie/island.png"));
+			handkarten[8] = ImageIO.read(new File("res/karten/infanterie/japan.png"));
+			handkarten[9] = ImageIO.read(new File("res/karten/infanterie/madagaskar.png"));
+			handkarten[10] = ImageIO.read(new File("res/karten/infanterie/nordwest-afrika.png"));
+			handkarten[11] = ImageIO.read(new File("res/karten/infanterie/ost-australien.png"));
+			handkarten[12] = ImageIO.read(new File("res/karten/infanterie/westeuropa.png"));
+			handkarten[13] = ImageIO.read(new File("res/karten/infanterie/weststaaten.png"));
+			handkarten[14] = ImageIO.read(new File("res/karten/kavallerie/china.png"));
+			handkarten[15] = ImageIO.read(new File("res/karten/kavallerie/groenland.png"));
+			handkarten[16] = ImageIO.read(new File("res/karten/kavallerie/indonesien.png"));
+			handkarten[17] = ImageIO.read(new File("res/karten/kavallerie/jakutien.png"));
+			handkarten[18] = ImageIO.read(new File("res/karten/kavallerie/kamtschatka.png"));
+			handkarten[19] = ImageIO.read(new File("res/karten/kavallerie/kongo.png"));
+			handkarten[20] = ImageIO.read(new File("res/karten/kavallerie/mittelamerika.png"));
+			handkarten[21] = ImageIO.read(new File("res/karten/kavallerie/mitteleuropa.png"));
+			handkarten[22] = ImageIO.read(new File("res/karten/kavallerie/neuguinea.png"));
+			handkarten[23] = ImageIO.read(new File("res/karten/kavallerie/ontario.png"));
+			handkarten[24] = ImageIO.read(new File("res/karten/kavallerie/peru.png"));
+			handkarten[25] = ImageIO.read(new File("res/karten/kavallerie/sibirien.png"));
+			handkarten[26] = ImageIO.read(new File("res/karten/kavallerie/suedeuropa.png"));
+			handkarten[27] = ImageIO.read(new File("res/karten/kavallerie/ural.png"));
+			handkarten[28] = ImageIO.read(new File("res/karten/artillerie/brasilien.png"));
+			handkarten[29] = ImageIO.read(new File("res/karten/artillerie/grossbritannien.png"));
+			handkarten[30] = ImageIO.read(new File("res/karten/artillerie/mittlerer_osten.png"));
+			handkarten[31] = ImageIO.read(new File("res/karten/artillerie/mongolei.png"));
+			handkarten[32] = ImageIO.read(new File("res/karten/artillerie/nordwest-territorium.png"));
+			handkarten[33] = ImageIO.read(new File("res/karten/artillerie/ost-afrika.png"));
+			handkarten[34] = ImageIO.read(new File("res/karten/artillerie/oststaaten.png"));
+			handkarten[35] = ImageIO.read(new File("res/karten/artillerie/quebec.png"));
+			handkarten[36] = ImageIO.read(new File("res/karten/artillerie/siam.png"));
+			handkarten[37] = ImageIO.read(new File("res/karten/artillerie/skandinavien.png"));
+			handkarten[38] = ImageIO.read(new File("res/karten/artillerie/sued-afrika.png"));
+			handkarten[39] = ImageIO.read(new File("res/karten/artillerie/ukraine.png"));
+			handkarten[40] = ImageIO.read(new File("res/karten/artillerie/venezuela.png"));
+			handkarten[41] = ImageIO.read(new File("res/karten/artillerie/west-australien.png"));
+			handkarten[42] = ImageIO.read(new File("res/karten/joker.png"));
+			Image imgDaisy = ImageIO.read(new File("res/charakter/daisy.png"));
+			Image imgLuigi = ImageIO.read(new File("res/charakter/luigi.png"));
+			Image imgMario = ImageIO.read(new File("res/charakter/mario.png"));
+			Image imgPeach = ImageIO.read(new File("res/charakter/peach.png"));
+			Image imgWaluigi = ImageIO.read(new File("res/charakter/waluigi.png"));
+			Image imgWario = ImageIO.read(new File("res/charakter/wario.png"));
+			// ImageIcon erstellen
+			for (int i = 0; i < handkarten.length; i++)
+			{
+				this.iihandkarten[i] = new ImageIcon(handkarten[i]);
+			}
+			this.iiCharakter[0] = new ImageIcon(imgDaisy);
+			this.iiCharakter[1] = new ImageIcon(imgLuigi);
+			this.iiCharakter[2] = new ImageIcon(imgMario);
+			this.iiCharakter[3] = new ImageIcon(imgPeach);
+			this.iiCharakter[4] = new ImageIcon(imgWaluigi);
+			this.iiCharakter[5] = new ImageIcon(imgWario);
+			// ImageIcon dem Spieler zuordnen
+			for (int i = 0; i < this.spiel.getAnzahlSpieler(); i++)
+			{
+				if(this.spiel.getSpieler(i) != null)
+				{
+					this.spiel.getSpieler(i).setSpielerIcon(this.iiCharakter[this.spiel.getSpieler(i).getSpielerID()]);
+				}
+			}
+			// ImageIcon dem aktuellenSpieler und dem eigenenChar zuordnen
+			this.labelCharAktuellerSpieler.setIcon(this.aktuellerSpieler.getSpielerIcon());
+			this.labelEigenerChar.setIcon(this.aktuellerSpieler.getSpielerIcon());
+			// Label dem Panel hinzufuegen
+			this.panelCharAktuellerSpieler.add(this.labelCharAktuellerSpieler);
+			this.panelEigenerChar.add(this.labelEigenerChar);
+			// Handkarten hinzufuegen
+			for (int i = 0; i < this.labelHandkarten.length; i++)
+			{
+				this.labelHandkarten[i].setIcon(this.iihandkarten[i]);
+				this.panelHandkarten.add(this.labelHandkarten[i]);
+			}
+		}
+		catch(IIOException e)
+		{
+			logText += "\nEin oder mehrere Bilder konnten nicht geladen werden!";
+			logTextArea.setText(logText);
+		}
+		catch(IOException e){}
+	}
+	
+	private void speichern()
+	{
+		// SpeichernDialog erstellen
+		// Erstellung eines FileFilters fuer Spielstaende	
+        FileFilter filter = new FileNameExtensionFilter("Risiko-Spielstaende", "ser");    
+        JFileChooser speichern = new JFileChooser(new File(System.getProperty("user.home")));
+        // Filter wird dem JFileChooser hinzugefuegt
+        speichern.addChoosableFileFilter(filter);
+        // Nur Verzeichnisse auswaehlbar
+        speichern.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        // Dialog zum Speichern von Dateien anzeigen
+        int rueckgabeWert = speichern.showDialog(null, "Spielstand speichern");
+        
+        // Abfrage, ob auf "Speichern" geklickt wurde
+        if(rueckgabeWert == JFileChooser.APPROVE_OPTION)
+        {
+        	File spielstand = speichern.getSelectedFile();
+        	try(final ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(spielstand.getPath().endsWith(".ser") ? spielstand.getPath() : spielstand + ".ser")))
+        	{
+        		oos.writeObject(this.spiel);
+        		oos.writeObject(this.aktuellerSpieler);
+        		// Ausgabe der gespeicherten Datei
+        		logText += "\nErfolgreich gespeichert unter: " + spielstand.getPath();
+        	} catch (FileNotFoundException e1)
+			{
+				logText += "\n" + e1.getMessage();
+			} catch (IOException e1)
+			{
+				logText += "\n" + e1.getMessage();
+			}
+        	logTextArea.setText(logText);
+        }
 	}
 	
 	public static void main(String[] args)
@@ -251,7 +492,6 @@ public class SuperRisikolandGui extends JFrame
 		
 		} catch (Exception e)
 		{
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}*/
 		
@@ -262,4 +502,329 @@ public class SuperRisikolandGui extends JFrame
 		
 		// GUI ENDE
 	}
+
+	public class riskoMap extends JPanel
+	{
+		// Variablen der Map
+		JLabel[] landBeschreibung = {new JLabel("Truppenstaerke: ", SwingConstants.RIGHT), new JLabel("Land: ", SwingConstants.RIGHT), new JLabel("Besitzer: ", SwingConstants.RIGHT)};
+		final JLabel landTruppenstaerke = new JLabel("");
+		final JLabel landname = new JLabel("");
+		final JLabel landBesitzer = new JLabel("");
+		
+		public riskoMap()
+		{
+			// Slider fuer Truppenauswahl, etc erstellen
+			sliderMap = new JSlider(0, 20, 0);
+			sliderMap.setBounds(b/100*4,h/100*60,b/100*20,h/100*5);
+			sliderMap.setMajorTickSpacing(5); // Die Abstaende zwischen den Teilmarkierungen werden festgelegt
+			sliderMap.setMinorTickSpacing(1);
+			sliderMap.createStandardLabels(1); // Standardmarkierungen werden erzeugt		
+			sliderMap.setPaintTicks(true); // Zeichnen der Markierungen wird aktiviert
+			sliderMap.setPaintLabels(true); // Zeichnen der Labels wird aktiviert
+			sliderMap.addChangeListener(new ChangeListener()
+			{
+				public void stateChanged(ChangeEvent e)
+				{
+					sliderMapWert = sliderMap.getValue();
+				}
+			});
+			getContentPane().add(sliderMap);
+			// Label fuer Truppenstaerke, Besitzer und Name erstellen
+			JPanel panelLabelFuerLand = new JPanel(new GridLayout(3, 2));
+			panelLabelFuerLand.setBounds(b/100*3,h/100*68,450,150);
+			for (int i = 0; i < landBeschreibung.length; i++)
+			{
+				landBeschreibung[i].setFont(new Font(null, Font.BOLD, 20));
+			}
+			landTruppenstaerke.setFont(new Font(null, Font.BOLD, 20));
+			landname.setFont(new Font(null, Font.BOLD, 20));
+			landBesitzer.setFont(new Font(null, Font.BOLD, 20));
+			panelLabelFuerLand.add(landBeschreibung[0]);
+			panelLabelFuerLand.add(landTruppenstaerke);
+			panelLabelFuerLand.add(landBeschreibung[1]);
+			panelLabelFuerLand.add(landname);
+			panelLabelFuerLand.add(landBeschreibung[2]);
+			panelLabelFuerLand.add(landBesitzer);
+			getContentPane().add(panelLabelFuerLand);
+			
+			this.addMouseMotionListener(new MouseMotionAdapter()
+			{
+				public void mouseMoved(MouseEvent e)
+				{
+					tooltipErstellen(e);
+				}
+			});
+			this.addMouseListener(new MouseAdapter()
+			{
+				public void mouseClicked(MouseEvent e)
+				{
+					int x = 0, y = 0;
+					try
+					{
+						x = (int) e.getX();
+						y = (int) e.getY();
+						aktuellerFarbcode = new Color(map.getRGB(x, y));
+					}
+					catch(ArrayIndexOutOfBoundsException  ex){}
+					catch(NullPointerException nex){}
+					
+					/*logText += "\nX: " + x + " Y: " + y;
+					logText += "\nRot: " + aktuellerFarbcode.getRed();
+					logText += "\nGruen: " + aktuellerFarbcode.getGreen();
+					logText += "\nBlau: " + aktuellerFarbcode.getBlue();*/
+					
+					// Farbcode abspeichern/abfragen welches Land es ist
+					if(aktuellerFarbcode.getRed() == 10){
+						setLandBeschreibung(0);
+					}else if(aktuellerFarbcode.getRed() == 20){
+						setLandBeschreibung(1);
+					} else if(aktuellerFarbcode.getRed() == 30){
+						setLandBeschreibung(2);
+					}else if(aktuellerFarbcode.getRed() == 40){
+						setLandBeschreibung(3);
+					}else if(aktuellerFarbcode.getRed() == 50){
+						setLandBeschreibung(4);
+					}else if(aktuellerFarbcode.getRed() == 60){
+						setLandBeschreibung(5);
+					}else if(aktuellerFarbcode.getRed() == 70){
+						setLandBeschreibung(6);
+					}else if(aktuellerFarbcode.getRed() == 80){
+						setLandBeschreibung(7);
+					}else if(aktuellerFarbcode.getRed() == 90){
+						setLandBeschreibung(8);
+					}else if(aktuellerFarbcode.getRed() == 240){
+						setLandBeschreibung(9);
+					}else if(aktuellerFarbcode.getRed() == 220){
+						setLandBeschreibung(10);
+					}else if(aktuellerFarbcode.getRed() == 230){
+						setLandBeschreibung(11);
+					}else if(aktuellerFarbcode.getRed() == 250){
+						setLandBeschreibung(12);
+					}else if(aktuellerFarbcode.getGreen() == 10){
+						setLandBeschreibung(13);
+					}else if(aktuellerFarbcode.getGreen() == 70){
+						setLandBeschreibung(14);
+					}else if(aktuellerFarbcode.getGreen() == 20){
+						setLandBeschreibung(15);
+					}else if(aktuellerFarbcode.getGreen() == 40){
+						setLandBeschreibung(16);
+					}else if(aktuellerFarbcode.getGreen() == 60){
+						setLandBeschreibung(17);
+					}else if(aktuellerFarbcode.getGreen() == 30){
+						setLandBeschreibung(18);
+					}else if(aktuellerFarbcode.getGreen() == 50){
+						setLandBeschreibung(19);
+					}else if(aktuellerFarbcode.getGreen() == 250){
+						setLandBeschreibung(20);
+					}else if(aktuellerFarbcode.getGreen() == 240){
+						setLandBeschreibung(21);
+					}else if(aktuellerFarbcode.getGreen() == 220){
+						setLandBeschreibung(22);
+					}else if(aktuellerFarbcode.getGreen() == 230){
+						setLandBeschreibung(23);
+					}else if(aktuellerFarbcode.getGreen() == 210){
+						setLandBeschreibung(24);
+					}else if(aktuellerFarbcode.getGreen() == 200){
+						setLandBeschreibung(25);
+					}else if(aktuellerFarbcode.getBlue() == 50){
+						setLandBeschreibung(26);
+					}else if(aktuellerFarbcode.getBlue() == 60){
+						setLandBeschreibung(27);
+					}else if(aktuellerFarbcode.getBlue() == 90){
+						setLandBeschreibung(28);
+					}else if(aktuellerFarbcode.getBlue() == 100){
+						setLandBeschreibung(29);
+					}else if(aktuellerFarbcode.getBlue() == 80){
+						setLandBeschreibung(30);
+					}else if(aktuellerFarbcode.getBlue() == 70){
+						setLandBeschreibung(31);
+					}else if(aktuellerFarbcode.getBlue() == 110){
+						setLandBeschreibung(32);
+					}else if(aktuellerFarbcode.getBlue() == 20){
+						setLandBeschreibung(33);
+					}else if(aktuellerFarbcode.getBlue() == 40){
+						setLandBeschreibung(34);
+					}else if(aktuellerFarbcode.getBlue() == 10){
+						setLandBeschreibung(35);
+					}else if(aktuellerFarbcode.getBlue() == 30){
+						setLandBeschreibung(36);
+					}else if(aktuellerFarbcode.getBlue() == 120){
+						setLandBeschreibung(37);
+					}else if(aktuellerFarbcode.getBlue() == 250){
+						setLandBeschreibung(38);
+					}else if(aktuellerFarbcode.getBlue() == 240){
+						setLandBeschreibung(39);
+					}else if(aktuellerFarbcode.getBlue() == 230){
+						setLandBeschreibung(40);
+					}else if(aktuellerFarbcode.getBlue() == 220){
+						setLandBeschreibung(41);
+					}else if(aktuellerFarbcode.getRed() == 238){  //aktuellesLand null setzen, wenn auf kein Land geklickt wird
+						landTruppenstaerke.setText("");
+						landname.setText("");
+						landBesitzer.setText("");
+					}
+				}
+			});
+		}
+		
+		public void paint(Graphics g)
+		{
+			super.paint(g);
+			//Graphics2D g2 = (Graphics2D) g;
+			//renderSettings(g2);
+			createMap(b, h/100*76);
+			g.drawImage(map, 0, 0, this);
+		}
+		
+		private void createMap(int b, int h)
+		{
+			map = new BufferedImage(b, h, BufferedImage.TYPE_INT_RGB);
+			ImageIcon mapIcon = new ImageIcon("res/karteFarbcodes.png");
+			
+			Graphics g = map.getGraphics();
+			g.setColor(getContentPane().getBackground());
+			g.fillRect(0,0,b,h);
+			g.drawImage(mapIcon.getImage(), 10, 10, b, h, this);
+		}
+		
+		private void renderSettings(Graphics2D g)
+		{
+			g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+			g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+			g.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
+		}
+		
+		private void tooltipErstellen(MouseEvent e)
+		{
+			int x = 0, y = 0;
+			try
+			{
+				x = (int) e.getX();
+				y = (int) e.getY();
+				aktuellerFarbcode = new Color(map.getRGB(x, y));
+			}
+			catch(ArrayIndexOutOfBoundsException  ex){}
+			catch(NullPointerException nex){}
+			
+			/*logText += "\nX: " + x + " Y: " + y;
+			logText += "\nRot: " + aktuellerFarbcode.getRed();
+			logText += "\nGruen: " + aktuellerFarbcode.getGreen();
+			logText += "\nBlau: " + aktuellerFarbcode.getBlue();*/
+			
+			// Tooltip Einstellungen
+			ToolTipManager.sharedInstance().setInitialDelay(500); // 0,5 Sekunden Verzoegerung bis Tooltip angezeigt wird
+			
+			// Farbcode abspeichern/abfragen welches Land es ist und Tooltip setzen
+			if(aktuellerFarbcode.getRed() == 10){
+				setTooltip(0);
+			}else if(aktuellerFarbcode.getRed() == 20){
+				setTooltip(1);
+			} else if(aktuellerFarbcode.getRed() == 30){
+				setTooltip(2);
+			}else if(aktuellerFarbcode.getRed() == 40){
+				setTooltip(3);
+			}else if(aktuellerFarbcode.getRed() == 50){
+				setTooltip(4);
+			}else if(aktuellerFarbcode.getRed() == 60){
+				setTooltip(5);
+			}else if(aktuellerFarbcode.getRed() == 70){
+				setTooltip(6);
+			}else if(aktuellerFarbcode.getRed() == 80){
+				setTooltip(7);
+			}else if(aktuellerFarbcode.getRed() == 90){
+				setTooltip(8);
+			}else if(aktuellerFarbcode.getRed() == 240){
+				setTooltip(9);
+			}else if(aktuellerFarbcode.getRed() == 220){
+				setTooltip(10);
+			}else if(aktuellerFarbcode.getRed() == 230){
+				setTooltip(11);
+			}else if(aktuellerFarbcode.getRed() == 250){
+				setTooltip(12);
+			}else if(aktuellerFarbcode.getGreen() == 10){
+				setTooltip(13);
+			}else if(aktuellerFarbcode.getGreen() == 70){
+				setTooltip(14);
+			}else if(aktuellerFarbcode.getGreen() == 20){
+				setTooltip(15);
+			}else if(aktuellerFarbcode.getGreen() == 40){
+				setTooltip(16);
+			}else if(aktuellerFarbcode.getGreen() == 60){
+				setTooltip(17);
+			}else if(aktuellerFarbcode.getGreen() == 30){
+				setTooltip(18);
+			}else if(aktuellerFarbcode.getGreen() == 50){
+				setTooltip(19);
+			}else if(aktuellerFarbcode.getGreen() == 250){
+				setTooltip(20);
+			}else if(aktuellerFarbcode.getGreen() == 240){
+				setTooltip(21);
+			}else if(aktuellerFarbcode.getGreen() == 220){
+				setTooltip(22);
+			}else if(aktuellerFarbcode.getGreen() == 230){
+				setTooltip(23);
+			}else if(aktuellerFarbcode.getGreen() == 210){
+				setTooltip(24);
+			}else if(aktuellerFarbcode.getGreen() == 200){
+				setTooltip(25);
+			}else if(aktuellerFarbcode.getBlue() == 50){
+				setTooltip(26);
+			}else if(aktuellerFarbcode.getBlue() == 60){
+				setTooltip(27);
+			}else if(aktuellerFarbcode.getBlue() == 90){
+				setTooltip(28);
+			}else if(aktuellerFarbcode.getBlue() == 100){
+				setTooltip(29);
+			}else if(aktuellerFarbcode.getBlue() == 80){
+				setTooltip(30);
+			}else if(aktuellerFarbcode.getBlue() == 70){
+				setTooltip(31);
+			}else if(aktuellerFarbcode.getBlue() == 110){
+				setTooltip(32);
+			}else if(aktuellerFarbcode.getBlue() == 20){
+				setTooltip(33);
+			}else if(aktuellerFarbcode.getBlue() == 40){
+				setTooltip(34);
+			}else if(aktuellerFarbcode.getBlue() == 10){
+				setTooltip(35);
+			}else if(aktuellerFarbcode.getBlue() == 30){
+				setTooltip(36);
+			}else if(aktuellerFarbcode.getBlue() == 120){
+				setTooltip(37);
+			}else if(aktuellerFarbcode.getBlue() == 250){
+				setTooltip(38);
+			}else if(aktuellerFarbcode.getBlue() == 240){
+				setTooltip(39);
+			}else if(aktuellerFarbcode.getBlue() == 230){
+				setTooltip(40);
+			}else if(aktuellerFarbcode.getBlue() == 220){
+				setTooltip(41);
+			}else if(aktuellerFarbcode.getRed() == 238){  //Tooltip ausblenden, wenn man mit dem Cursor auf keinem Land ist
+				this.setToolTipText(null);
+			}
+		}
+		
+		private void setTooltip(int landId)
+		{
+			Land l = spiel.getLand(landId);
+			String besitzer = l.getBesitzer() != null ? l.getBesitzer().getName() : "kein Besitzer";
+			Color cBesitzer = l.getBesitzer() != null ? l.getBesitzer().getColorSpieler() : Color.white;
+			UIManager.put("ToolTip.background", cBesitzer);
+			UIManager.put("ToolTip.border", BorderFactory.createLineBorder(Color.red));
+			this.setToolTipText("<html>" + landBeschreibung[0].getText() + l.getTruppenstaerke() + "<br>" + landBeschreibung[1].getText() 
+					+ l.getName() + "<br>" + landBeschreibung[2].getText() + besitzer +"</html>");
+		}
+		
+		private void setLandBeschreibung(int landId)
+		{
+			aktuellesLandId = landId;
+			aktuellesLand = spiel.getLand(landId);
+			landTruppenstaerke.setText(""+ aktuellesLand.getTruppenstaerke());
+			landname.setText(aktuellesLand.getName());
+			if(aktuellesLand.getBesitzer() != null)
+			{
+				landBesitzer.setText(aktuellesLand.getBesitzer().getName());
+			} else { landBesitzer.setText("kein Besitzer"); }
+		}
+	}	
 }

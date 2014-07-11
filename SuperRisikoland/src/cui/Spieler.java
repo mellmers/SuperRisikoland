@@ -1,21 +1,33 @@
 package cui;
+import gui.SuperRisikolandGui;
+
 import java.awt.Color;
+import java.io.Serializable;
 import java.util.Vector;
 
+import javax.swing.ImageIcon;
 
-public class Spieler
+
+public class Spieler implements Serializable
 {
 	private String name;
 	private Vector<Land> laender = new Vector<Land>();
 	private Vector<Land> handkarten = new Vector<Land>();
 	private Mission mission;
-	private Color spielerfarbe;
+	private String spielerfarbe;
+	private ImageIcon spielerIcon;
+	private int spielerID;
+	private Color colorSpieler;
 
-	public Spieler (int spielerID, String spielername, Color spielerfarbe) 
+	public Spieler (int spielerID, String spielername, String spielerfarbe, Color c) 
 	{
 		this.name = spielername;
 		this.spielerfarbe = spielerfarbe;
-		IO.println("Spieler " + this.name + " hat die Farbe " + Color.getColor(spielername, spielerfarbe) +" mit SpielerID: " + spielerID + " erstellt.");
+		this.spielerID = spielerID;
+		SuperRisikolandGui.logText += "\nSpieler " + this.name + " mit der Farbe " + this.spielerfarbe +" und mit SpielerID " + spielerID + " wurde erstellt.";
+		SuperRisikolandGui.logTextArea.setText(SuperRisikolandGui.logText);
+		IO.println("Spieler " + this.name + " mit der Farbe " + this.spielerfarbe +" und mit SpielerID " + spielerID + " wurde erstellt.");
+		this.colorSpieler = c;
 	}
 	
 	public boolean einheitenVerteilen(Land land)
@@ -69,7 +81,9 @@ public class Spieler
 		{
 			return true;
 		}
-		IO.println("Dieses Land gehoert dir nicht!");
+		SuperRisikolandGui.logText += "\nDieses Land gehört dir nicht!";
+		SuperRisikolandGui.logTextArea.setText(SuperRisikolandGui.logText);
+		IO.println("Dieses Land gehört dir nicht!");
 		return false;
 	}
 	
@@ -112,8 +126,28 @@ public class Spieler
 		this.mission = mission;
 	}
 
-	public Color getSpielerfarbe()
+	public String getSpielerfarbe()
 	{
 		return spielerfarbe;
+	}
+
+	public ImageIcon getSpielerIcon()
+	{
+		return spielerIcon;
+	}
+
+	public void setSpielerIcon(ImageIcon spielerIcon)
+	{
+		this.spielerIcon = spielerIcon;
+	}
+
+	public int getSpielerID()
+	{
+		return spielerID;
+	}
+
+	public Color getColorSpieler()
+	{
+		return colorSpieler;
 	}
 }

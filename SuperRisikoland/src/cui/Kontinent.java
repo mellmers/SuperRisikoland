@@ -1,5 +1,9 @@
 package cui;
-public class Kontinent {
+
+import java.io.Serializable;
+
+public class Kontinent implements Serializable
+{
 
 	private String name;
 	private int anzahlLaender;

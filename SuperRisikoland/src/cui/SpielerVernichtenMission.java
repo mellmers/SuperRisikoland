@@ -1,5 +1,9 @@
 package cui;
-public class SpielerVernichtenMission extends AnzahlLaenderErobernMission{
+
+import java.io.Serializable;
+
+public class SpielerVernichtenMission extends AnzahlLaenderErobernMission implements Serializable
+{
 	
 	private Spieler gegner;
 	

@@ -1,5 +1,8 @@
 package cui;
-public class KontinentErobernMission extends Mission
+
+import java.io.Serializable;
+
+public class KontinentErobernMission extends Mission implements Serializable
 {
 	private Kontinent ersterKontinent;
 	private Kontinent zweiterKontinent;

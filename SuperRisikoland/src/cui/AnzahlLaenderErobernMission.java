@@ -1,5 +1,9 @@
 package cui;
-public class AnzahlLaenderErobernMission extends Mission {
+
+import java.io.Serializable;
+
+public class AnzahlLaenderErobernMission extends Mission implements Serializable
+{
 
 	private int anzahlLaender;
 	

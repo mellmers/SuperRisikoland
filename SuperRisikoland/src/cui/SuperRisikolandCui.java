@@ -11,8 +11,6 @@ public class SuperRisikolandCui
         int spielVariante;
         Spieler aktuellerSpieler;
         int aktuellerSpielerId;
-        Vector<Mission> missionen = new Vector<Mission>();
-
         
         // Benutzereingabe: Anzahl der Spieler
 		
@@ -38,35 +36,12 @@ public class SuperRisikolandCui
         for(int i = 0; i < anzahlSpieler; i++) 
         {
         	IO.println("Wie ist der Name des " + (i+1) + " Spielers?");
-        	spiel.spielerErstellen(i, IO.readString(), null);
+        	spiel.spielerErstellen(i, IO.readString(), null, null);
         }
         
         // Missionen generieren, wenn Spielvariante 1 gewaehlt wurde
         if(spielVariante == 1){
-      		missionen.add(new AnzahlLaenderErobernMission(24));
-      		missionen.add(new AnzahlLaenderErobernMission(18));
-      		missionen.add(new KontinentErobernMission(1, 2, 1, spiel));
-      		missionen.add(new KontinentErobernMission(2, 5, 1, spiel));
-      		missionen.add(new KontinentErobernMission(3, 4, 0, spiel));
-      		missionen.add(new KontinentErobernMission(1, 4, 0, spiel));
-      		missionen.add(new KontinentErobernMission(0, 5, 0, spiel));
-      		missionen.add(new KontinentErobernMission(0, 3, 0, spiel));
-      		for( int spieler = 0 ; spieler < 6 ; spieler++)
-      		{
-      			missionen.add(( spieler < anzahlSpieler) ? new SpielerVernichtenMission(spiel, spieler) : new AnzahlLaenderErobernMission(24));
-      		}
-      		IO.println("Missionen generiert");
-      		
-      		// Missionen verteilen
-      		for(int i = 0 ; i < anzahlSpieler ; i++)
-      		{
-      			int zufallsMission = (int) (Math.random()*missionen.size());
-      			spiel.getSpieler(i).setMission(missionen.elementAt(zufallsMission));
-      			spiel.getSpieler(i).getMission().setBesitzer(spiel.getSpieler(i));
-      			spiel.getSpieler(i).getMission().setAufgabenText();
-      			spiel.getSpieler(i).getMission().setMissionErfuelltText();
-      			missionen.remove(zufallsMission);
-      		}
+        	new Mission().missionenErstellen(spiel);
         }
         
         // Liste aller Laender ausgeben (mit oder ohne Besitzer)
@@ -75,11 +50,14 @@ public class SuperRisikolandCui
         aktuellerSpielerId = (int) (Math.random()*anzahlSpieler);
         aktuellerSpieler = spiel.getSpieler(aktuellerSpielerId);
         
-        for(int i = 0 ; i < anzahlSpieler ; i++)
+        if(spielVariante == 1)
         {
-        	IO.println(spiel.getSpieler(i).getName() + "   Mission:   " + spiel.getSpieler(i).getMission().getAufgabenText());
+        	for(int i = 0 ; i < anzahlSpieler ; i++)
+        	{
+        		IO.println(spiel.getSpieler(i).getName() + "   Mission:   " + spiel.getSpieler(i).getMission().getAufgabenText());
+        	}
         }
-        
+        	
         // Spielablauf
         while(true) // Spiel beenden einfuegen
         {
@@ -96,7 +74,7 @@ public class SuperRisikolandCui
         	}
         	// Schritt 1: Einheiten verteilen/Neue Armeen
         	
-        	spiel.neueArmeen(aktuellerSpieler);
+        	spiel.neueArmeen(aktuellerSpieler, false, 0, 0);
         	
         	// Ende Schritt 1
         	
@@ -132,7 +110,7 @@ public class SuperRisikolandCui
         	
         	// Ende Schritt 2
         	
-        	// Schritt 3: Truppen nachziehen
+        	// Schritt 3: Umverteilung
         	
         	spiel.abfrageSollGesamtLaenderListeAusgegebenWerden();
         	IO.println("Moechtest du Truppen nachziehen? (j/n)");
