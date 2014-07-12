@@ -12,7 +12,7 @@ public class SuperRisikolandCui
         int spielVariante;
         Spieler aktuellerSpieler;
         int aktuellerSpielerId;
-        
+        // vTest
         // Benutzereingabe: Anzahl der Spieler
 		
 		IO.println("Anzahl der Spieler? (2-6 Spieler sind moeglich)");
