@@ -7,26 +7,21 @@ import java.awt.event.ActionListener;
 import java.io.Serializable;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
 import java.util.Vector;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
-import javax.swing.JTable;
-import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
 
 import cui.Spieler;
-import client.SpielBeitreten;
 import exc.MaximaleSpielerZahlErreichtException;
 import inf.LoginInterface;
 import inf.SpielBeitretenInterface;
+import inf.SpielerInterface;
 
 public class Login extends JFrame implements LoginInterface, Serializable, ActionListener{
 	
@@ -118,6 +113,13 @@ public class Login extends JFrame implements LoginInterface, Serializable, Actio
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void addSpieler(SpielerInterface spieler)
+	{
 		// TODO Auto-generated method stub
 		
 	}
