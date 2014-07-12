@@ -1,5 +1,8 @@
 package client;
 
+import inf.LoginInterface;
+import inf.RemoteInterface;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -10,6 +13,7 @@ import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.io.Serializable;
 import java.rmi.AlreadyBoundException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -30,9 +34,8 @@ import cui.Spieler;
 import exc.MaximaleSpielerZahlErreichtException;
 import gui.Spielstart;
 import gui.SuperRisikolandGui;
-import inf.RemoteInterface;
 
-public class Client extends JFrame implements ActionListener{
+public class Client extends JFrame implements ActionListener, Serializable{
 	static Spieler spieler = new Spieler(1,"Karl","blau",new Color(0,0,0));
 	private JButton buttonVerbinden= new JButton("Verbinden");
 	private JTextField textfieldName = new JTextField(), textfieldServer = new JTextField();
@@ -108,8 +111,8 @@ public class Client extends JFrame implements ActionListener{
 	public void textfieldLeerAbfrage(String labelText, JTextField tf)
 	{
 		// Popup, da kein Name eingegeben wurde
-        // Panel für JDialog
-        // verändert den Dialog zu Textfeld mit Okay button
+        // Panel fï¿½r JDialog
+        // verï¿½ndert den Dialog zu Textfeld mit Okay button
         String[] options = {"OK"};
         JPanel panel = new JPanel();
         JLabel lbl = new JLabel(labelText);
@@ -117,12 +120,12 @@ public class Client extends JFrame implements ActionListener{
         panel.add(lbl);
         panel.add(txt);
 
-        // Dialog wiederholen bis vernünftiger Name angegeben wurde
+        // Dialog wiederholen bis vernï¿½nftiger Name angegeben wurde
         while(txt.getText().trim().equals("")){
         	// JDialog mit entsprechendem panel starten
         	int selectedOption = JOptionPane.showOptionDialog(null, panel, "Textfeld darf nicht leer sein!", JOptionPane.NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options , options[0]);
         	
-        	// wenn okay gedrückt wurde
+        	// wenn okay gedrï¿½ckt wurde
         	if(selectedOption == 0)
         	{
         		tf.setText(txt.getText().trim());
@@ -134,11 +137,11 @@ public class Client extends JFrame implements ActionListener{
 	{
 		//SERVER
 		Registry registry = LocateRegistry.getRegistry("localhost",(int)port.getValue());
-		RemoteInterface remote = (RemoteInterface) registry.lookup("RMI");
+		LoginInterface server = (LoginInterface) registry.lookup(this.textfieldServer.getText().trim());
 		//CLIENT
-		SuperRisikolandGui srg = new SuperRisikolandGui(remote, spieler, true);
-		registry.rebind(textfieldName.getText(), srg);
-		remote.addClient(textfieldName.getText(),(int)port.getValue());
+		SpielBeitreten client = new SpielBeitreten(this.textfieldName.getText().trim(),(int) this.port.getValue(), this.textfieldServer.getText().trim());
+		registry.rebind(textfieldName.getText(), client);
+		server.addClient(textfieldName.getText(),(int)port.getValue());
 		
 	}
 	

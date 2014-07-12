@@ -1,5 +1,4 @@
 package server;
-import inf.ClientInterface;
 import inf.RemoteInterface;
 
 import java.awt.BorderLayout;
@@ -79,10 +78,11 @@ public class Server extends JFrame implements ActionListener{
 	
 	public void serverErstellen() throws RemoteException
 	{
-		Spielfeld remote = new Spielfeld(2,1);
+		Login remote = new Login((int) spinnerPort.getValue(), textfieldServername.getText().trim());
+		//Spielfeld remote = new Spielfeld(2,1);
 		Registry registry = LocateRegistry.createRegistry((int) spinnerPort.getValue());
 		registry.rebind(textfieldServername.getText().trim(), remote);
-		System.out.println("start is started");
+		System.out.println("Server is started.");
 	}
 	
 	public void actionPerformed(ActionEvent e) {
