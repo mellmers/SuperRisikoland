@@ -1,8 +1,12 @@
 package client;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -14,109 +18,132 @@ import java.rmi.registry.Registry;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JSpinner;
 import javax.swing.JTextField;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingConstants;
 
 import cui.Spieler;
 import exc.MaximaleSpielerZahlErreichtException;
+import gui.Spielstart;
 import gui.SuperRisikolandGui;
-import inf.ClientInterface;
 import inf.RemoteInterface;
 
-public class Client extends JFrame implements ClientInterface, ActionListener{
+public class Client extends JFrame implements ActionListener{
 	static Spieler spieler = new Spieler(1,"Karl","blau",new Color(0,0,0));
-	String name;
-	JButton button;
-	JTextField nameTxt;
-	int port;
+	private JButton buttonVerbinden= new JButton("Verbinden");
+	private JTextField textfieldName = new JTextField(), textfieldServer = new JTextField();
+	private JSpinner port = new JSpinner(new SpinnerNumberModel(9999, 1000, 9999, 1));
+	
 	public Client()
 	{
 		super();
 		initialize();
-		
 	}
 	
 	public void initialize(){
-		this.setTitle("Risiko");
+		this.setTitle("Verbindung zum Risikoserver");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		this.setSize(300,100);
+		this.setSize(350,150);
 		this.setLocationRelativeTo(null);
-		
 		this.setResizable(false);
-		this.setLayout(new GridBagLayout());
 		
-		final JPanel panel = new JPanel();
-		panel.setLayout(new GridBagLayout());
-		panel.setPreferredSize(new Dimension(200, 200));
+		this.setLayout(new BorderLayout());
 		
-		button = new JButton();
-		button.setBackground(null);
-		button.setText("Verbinden");
-		button.addActionListener(this);
-		panel.add(button);
+		JPanel panel = new JPanel(new GridLayout(3,2));
+
+		JLabel labelName = new JLabel("Dein Name: ", SwingConstants.RIGHT);
+		panel.add(labelName);
+		panel.add(textfieldName);
+		JLabel labelPort = new JLabel("Portnummer: ", SwingConstants.RIGHT);
+		labelPort.setToolTipText("");
+		panel.add(labelPort);
+		panel.add(port);
+		JLabel labelServer = new JLabel("Servername: ", SwingConstants.RIGHT);
+		labelServer.setToolTipText("");
+		panel.add(labelServer);
+		panel.add(textfieldServer);
 		
-		name = "";
-		nameTxt = new JTextField();
-		nameTxt.setPreferredSize(new Dimension(90, 20));
-		panel.add(nameTxt);
+		JPanel panelVerbindung = new JPanel(new FlowLayout(FlowLayout.CENTER));
+		buttonVerbinden.addActionListener(this);
+		panelVerbindung.add(buttonVerbinden);
 		
-		this.add(panel);
+		this.add(panel, BorderLayout.CENTER);
+		this.add(panelVerbindung, BorderLayout.SOUTH);
 		
-		this.setVisible(true);	
+		this.setVisible(true);
 	}
 	
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		if (e.getSource().equals(this.button)) 
+		if (e.getSource().equals(this.buttonVerbinden)) 
 		{ 
-			name = nameTxt.getText();
-			try {
-				verbindungStarten();
-			} catch (RemoteException | NotBoundException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			} catch (MaximaleSpielerZahlErreichtException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
+			if(this.textfieldName.getText().trim().equals(""))
+			{
+				textfieldLeerAbfrage("Dein Name: ", this.textfieldName);
+			}
+			else if(this.textfieldServer.getText().trim().equals(""))
+			{
+				textfieldLeerAbfrage("Servername: ", this.textfieldServer);
+			}
+			else
+			{
+				try {
+					verbindungStarten();
+				} catch (RemoteException | NotBoundException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				} catch (MaximaleSpielerZahlErreichtException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 			}
 		}
 		
 	}
 	
+	public void textfieldLeerAbfrage(String labelText, JTextField tf)
+	{
+		// Popup, da kein Name eingegeben wurde
+        // Panel für JDialog
+        // verändert den Dialog zu Textfeld mit Okay button
+        String[] options = {"OK"};
+        JPanel panel = new JPanel();
+        JLabel lbl = new JLabel(labelText);
+        JTextField txt = new JTextField(10);
+        panel.add(lbl);
+        panel.add(txt);
+
+        // Dialog wiederholen bis vernünftiger Name angegeben wurde
+        while(txt.getText().trim().equals("")){
+        	// JDialog mit entsprechendem panel starten
+        	int selectedOption = JOptionPane.showOptionDialog(null, panel, "Textfeld darf nicht leer sein!", JOptionPane.NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options , options[0]);
+        	
+        	// wenn okay gedrückt wurde
+        	if(selectedOption == 0)
+        	{
+        		tf.setText(txt.getText().trim());
+        	}
+        }
+	}
+	
 	public void verbindungStarten() throws RemoteException, NotBoundException, MaximaleSpielerZahlErreichtException
 	{
 		//SERVER
-		Registry registry = LocateRegistry.getRegistry("localhost",9999);
+		Registry registry = LocateRegistry.getRegistry("localhost",(int)port.getValue());
 		RemoteInterface remote = (RemoteInterface) registry.lookup("RMI");
 		//CLIENT
 		SuperRisikolandGui srg = new SuperRisikolandGui(remote, spieler, true);
-		registry.rebind(this.name, srg);
-		remote.addClient(this.name);
+		registry.rebind(textfieldName.getText(), srg);
+		remote.addClient(textfieldName.getText(),(int)port.getValue());
+		
 	}
 	
 	public static void main(String[] args) throws AlreadyBoundException, NotBoundException, IOException, MaximaleSpielerZahlErreichtException{
-		//SERVER
+		//Client wird gestartet
 		new Client();
-		/*Registry registry = LocateRegistry.getRegistry("localhost",9999);
-		RemoteInterface remote = (RemoteInterface) registry.lookup("RMI");
-		//CLIENT
-		SuperRisikolandGui srg = new SuperRisikolandGui(remote, spieler, true);
-		registry.rebind("Karl", srg);
-		///
-		System.out.println("hallo");
-		//remote.laenderEinlesen();
-		remote.test();
-		remote.addClient("Karl");
-		System.out.println("hallo2");
-		Color c =  new Color(0,0,0);
-		//remote.spielerErstellen(0, "Bernd", "rot", c);
-		 * 
-		 */
-		
-		
 	}
-
-	
-
-	
 }

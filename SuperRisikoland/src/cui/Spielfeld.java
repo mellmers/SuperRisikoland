@@ -862,10 +862,10 @@ public class Spielfeld extends UnicastRemoteObject implements RemoteInterface, S
 	{
 		return this.anzahlSpieler;
 	}
-	public void addClient(String name) throws RemoteException, MaximaleSpielerZahlErreichtException, NotBoundException {
+	public void addClient(String name, int port) throws RemoteException, MaximaleSpielerZahlErreichtException, NotBoundException {
 		if(clients.size() < 6)
 		{
-			Registry registry = LocateRegistry.getRegistry("localhost",9999);
+			Registry registry = LocateRegistry.getRegistry("localhost",port);
 			// evtl Client individualisieren
 			SuperRisikoLandGuiInterface remote = (SuperRisikoLandGuiInterface) registry.lookup(name);
 			clients.add(remote);
@@ -882,11 +882,5 @@ public class Spielfeld extends UnicastRemoteObject implements RemoteInterface, S
 	public SuperRisikolandGui getClient(int spielerId)
 	{
 		return (SuperRisikolandGui) this.clients.elementAt(spielerId);
-	}
-
-	@Override
-	public void test() throws RemoteException {
-		// TODO Auto-generated method stub
-		
 	}
 }

@@ -1,6 +1,5 @@
 package gui;
 
-import inf.ClientInterface;
 import inf.RemoteInterface;
 import inf.SuperRisikoLandGuiInterface;
 
@@ -423,25 +422,6 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
         }
 	}
 	
-	public static void main(String[] args)
-	{
-		/*try
-		{
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		
-		} catch (Exception e)
-		{
-			e.printStackTrace();
-		}*/
-		
-		// GUI starten
-		
-		new Spielstart();
-		//new SuperRisikolandGui(0, 0, args, null);
-		
-		// GUI ENDE
-	}
-
 	public class riskoMap extends JPanel
 	{
 		// Variablen der Map
@@ -767,5 +747,5 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 	public void zahl(int u) throws RemoteException {
 		System.out.println("Hallo " + u);
 		
-	}	
+	}
 }
