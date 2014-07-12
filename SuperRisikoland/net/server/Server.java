@@ -29,5 +29,6 @@ public class Server {
 		remote.getClient(0).zahl(u);
 		remote.getClient(0).speichern();
 	}
+	// Test
 	
 }
