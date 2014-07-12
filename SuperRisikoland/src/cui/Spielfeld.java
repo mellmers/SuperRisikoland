@@ -1,14 +1,25 @@
 package cui;
 
+import exc.MaximaleSpielerZahlErreichtException;
+import gui.Spielablauf;
 import gui.SuperRisikolandGui;
+import inf.ClientInterface;
+import inf.RemoteInterface;
+import inf.SpielerInterface;
+import inf.SuperRisikoLandGuiInterface;
 
 import java.awt.Color;
 import java.io.Serializable;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.Vector;
 
-import javax.swing.JOptionPane;
+import client.Client;
 
-public class Spielfeld implements Serializable
+public class Spielfeld extends UnicastRemoteObject implements RemoteInterface, Serializable
 {
 	private int spielvariante;
 	
@@ -21,22 +32,7 @@ public class Spielfeld implements Serializable
 	private Vector<Land> eroberteLaender = new Vector<Land>();
 	private int eingetauschteSerien = 0;
 	private int zusatzEinheitenSerie = 4;
-	
-	public Spielfeld(int anzahlSpieler, int spielVariante) 
-	{
-		this.setSpielvariante(spielVariante);
-		
-		this.kontinenteEinlesen();
-			
-		this.laenderEinlesen();
-			
-		this.nachbarnVerteilen();
-		
-		SuperRisikolandGui.logText += "Spielfeld mit " + anzahlSpieler + " Spielern und Spielvariante " + spielVariante + " erstellt.";
-		SuperRisikolandGui.logTextArea.setText(SuperRisikolandGui.logText);
-		IO.println("Spielfeld mit " + anzahlSpieler + " Spielern und Spielvariante " + spielVariante + " erstellt.");
-		// 14x Soldat, 14x Pferd, 14x Kanone  + 2 "Joker" (Pferd, Soldat oder Kanone)
-	}
+	private Vector<SuperRisikoLandGuiInterface> clients = new Vector<SuperRisikoLandGuiInterface>();
 	
 	// Getter
 	public Kontinent getKontinent(int kontinentId)
@@ -64,6 +60,23 @@ public class Spielfeld implements Serializable
 	public void setEroberteLaenderNull()
 	{
 		this.eroberteLaender.clear();
+	}
+	
+	public Spielfeld(int anzahlSpieler, int spielVariante) throws RemoteException
+	{
+		super();
+		this.setSpielvariante(spielVariante);
+		
+		this.kontinenteEinlesen();
+			
+		this.laenderEinlesen();
+			
+		this.nachbarnVerteilen();
+		
+		SuperRisikolandGui.logText += "Spielfeld mit " + anzahlSpieler + " Spielern und Spielvariante " + spielVariante + " erstellt.";
+		SuperRisikolandGui.logTextArea.setText(SuperRisikolandGui.logText);
+		IO.println("Spielfeld mit " + anzahlSpieler + " Spielern und Spielvariante " + spielVariante + " erstellt.");
+		// 14x Soldat, 14x Pferd, 14x Kanone  + 2 "Joker" (Pferd, Soldat oder Kanone)
 	}
 	
 	public void kontinenteEinlesen()
@@ -354,7 +367,7 @@ public class Spielfeld implements Serializable
 
 	public boolean spielerErstellen(int spielerID, String spielername, String spielerfarbe, Color c)
 	{
-		// TODO If-Clause weg, weil man durch Gui nicht mehr als 6 Spieler auswählen kann
+		// TODO If-Clause weg, weil man durch Gui nicht mehr als 6 Spieler auswï¿½hlen kann
 		if(this.spieler.size() < this.maxSpieler)
 		{
 			this.spieler.add(new Spieler(spielerID, spielername, spielerfarbe, c));
@@ -663,23 +676,23 @@ public class Spielfeld implements Serializable
 		}
 	}
 		
+	public int[] verteidigerWuerfeln(int verTruppen) {
+			int[] verWuerfel = new int[2];
+			if (verTruppen == 1) {
+				verWuerfel[0] = wuerfeln();
+			}
+			else if (verTruppen == 2) {
+				verWuerfel[0] = wuerfeln();
+				verWuerfel[1] = wuerfeln();
+			}
+			return verWuerfel;
+		}
+		
 	public int wuerfeln() 
 		{
 			return (int) (Math.random()*6+1);
 		}
 	
-	public int[] verteidigerWuerfeln(int verTruppen) {
-		int[] verWuerfel = new int[2];
-		if (verTruppen == 1) {
-			verWuerfel[0] = wuerfeln();
-		}
-		else if (verTruppen == 2) {
-			verWuerfel[0] = wuerfeln();
-			verWuerfel[1] = wuerfeln();
-		}
-		return verWuerfel;
-	}
-
 	public int serieEinsetzen(Spieler aktuellerSpieler)
 	{
 		int[] handkartenId = new int[3];
@@ -717,38 +730,27 @@ public class Spielfeld implements Serializable
 		return 0;
 	}
 
-	public void neueArmeen(Spieler aktuellerSpieler, boolean gui, int landId, int einheiten)
+	public void neueArmeen(Spieler aktuellerSpieler, Spielablauf spielablauf)
 		{	
 			aktuellerSpieler.handkartenAusgeben();
 			
 			int zwischenSpeicherZusatzTruppenSerie = 0;
 			if(aktuellerSpieler.getAnzahlHandkarten() == 5)
 			{
-				SuperRisikolandGui.logText += "\n" + aktuellerSpieler.getName() + " muss seine Handkarten einsetzen und eine Serie einlösen!";
+				SuperRisikolandGui.logText += "\n" + aktuellerSpieler.getName() + " muss seine Handkarten einsetzen und eine Serie einlï¿½sen!";
 				SuperRisikolandGui.logTextArea.setText(SuperRisikolandGui.logText);
-				IO.println(aktuellerSpieler.getName() + " muss seine Handkarten einsetzen und eine Serie einlösen!");
+				IO.println(aktuellerSpieler.getName() + " muss seine Handkarten einsetzen und eine Serie einlï¿½sen!");
 				zwischenSpeicherZusatzTruppenSerie = this.serieEinsetzen(aktuellerSpieler);
 			}
 			else
 			{
-				if(!gui) // nur CUI
+				if(spielablauf == null) // nur CUI
 				{
 					IO.println("Moechtest du eine Serie einloesen? (j/n)");
 					if(IO.readChar() == 'j')
 					{
 						zwischenSpeicherZusatzTruppenSerie = this.serieEinsetzen(aktuellerSpieler);
 					}
-				}
-				else
-				{
-					//Popup, ob spieler serie einloesen moechte
-					// JDialog mit entsprechendem panel starten
-	            	int selectedOption = JOptionPane.showOptionDialog(null, "Moechtest du eine Serie einloesen?", "Serie einloesen?", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null, null);
-	            	// wenn okay gedrueckt wurde
-	            	if(selectedOption == 0)
-	            	{
-	            		zwischenSpeicherZusatzTruppenSerie = this.serieEinsetzen(aktuellerSpieler);
-	            	}
 				}
 			}
 			int zuVerteilendeEinheiten = this.laenderZaehlen(aktuellerSpieler) + this.zusatzEinheitenKontinente(aktuellerSpieler) + zwischenSpeicherZusatzTruppenSerie;
@@ -760,7 +762,9 @@ public class Spielfeld implements Serializable
 		    	IO.println(aktuellerSpieler.getName() + " muss nun " + zuVerteilendeEinheiten + " Einheiten verteilen.\n"
 		    			+ "Geben Sie die ID Ihres Landes ein, in dem Einheiten stationiert werden sollen.");
 		    	
-		    	if(!gui) // nur CUI
+		    	int landId = 0;
+		    	int einheiten = 0;
+		    	if(spielablauf == null) // nur CUI
 				{
 		    		landId = IO.readInt();
 			    	while (landId < 0 || landId > 41)
@@ -776,26 +780,16 @@ public class Spielfeld implements Serializable
 			       		einheiten = IO.readInt();
 			        }
 				}
-		    	else // GUI
+		    	else
 		    	{
-		    		if(landId == 0)
-		    		{
-		    			SuperRisikolandGui.logText += "\nDu musst ein Land auswählen und dann bestätigen!";
-						SuperRisikolandGui.logTextArea.setText(SuperRisikolandGui.logText);
-		    		}
-		    		else if(einheiten == 0)
-		    		{
-		    			SuperRisikolandGui.logText += "\nDu musst mindestens eine Einheit auswaehlen und dann bestätigen!";
-						SuperRisikolandGui.logTextArea.setText(SuperRisikolandGui.logText);
-		    		}
+		    		
 		    	}
+		    	// TODO Slider
 		        if(aktuellerSpieler.meinLand(this.laender[landId])) // else-Zweig ist in der Funktion definiert, falls false zurueck kommt
 		        {
 		        	this.laender[landId].setTruppenstaerke(einheiten);
 			       	zuVerteilendeEinheiten -= einheiten;
 			       	IO.println(this.laender[landId].getTruppenstaerke() + " Einheiten auf " + this.laender[landId].getName());
-			       	SuperRisikolandGui.logText += "\n" + this.laender[landId].getTruppenstaerke() + " Einheiten auf " + this.laender[landId].getName();
-					SuperRisikolandGui.logTextArea.setText(SuperRisikolandGui.logText);
 		    	}
 	    	}
 		}
@@ -853,4 +847,34 @@ public class Spielfeld implements Serializable
 	{
 		return this.anzahlSpieler;
 	}
+	
+	public void test()
+	{
+		System.out.println("test");
+	}
+
+	@Override
+	public void addClient(String name) throws RemoteException, MaximaleSpielerZahlErreichtException, NotBoundException {
+		if(clients.size() < 6)
+		{
+			Registry registry = LocateRegistry.getRegistry("localhost",9999);
+			// evtl Client individualisieren
+			SuperRisikoLandGuiInterface remote = (SuperRisikoLandGuiInterface) registry.lookup(name);
+			clients.add(remote);
+			System.out.println("Spieler: " + name + " erstellt");
+			
+			
+		}
+		else
+		{
+			throw new MaximaleSpielerZahlErreichtException();
+		}
+		
+	}
+	public SuperRisikolandGui getClient(int spielerId)
+	{
+		return (SuperRisikolandGui) this.clients.elementAt(spielerId);
+	}
+	
+	
 }
