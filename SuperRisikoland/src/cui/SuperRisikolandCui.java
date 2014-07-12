@@ -1,10 +1,11 @@
 package cui;
 
+import java.rmi.RemoteException;
 import java.util.Vector;
 
 public class SuperRisikolandCui
 {
-	public static void main(String[] args)
+	public static void main(String[] args) throws RemoteException
 	{		
 		// Spielvariblen, die nicht gespeichert werden muessen
 		int anzahlSpieler;

@@ -12,6 +12,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
+import java.rmi.RemoteException;
 import java.util.Vector;
 
 import javax.imageio.IIOException;
@@ -178,7 +179,14 @@ public class NeuesSpiel extends JFrame implements ActionListener
 			public void keyPressed(KeyEvent e) {
                 int key = e.getKeyCode();
                 if (key == KeyEvent.VK_ENTER) {         
-                	actionSpielStarten();
+                	try
+					{
+						actionSpielStarten();
+					} catch (RemoteException e1)
+					{
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
                 }
             }
 		}
@@ -243,7 +251,14 @@ public class NeuesSpiel extends JFrame implements ActionListener
 	{
 		if (e.getSource().equals(this.buttonSpielStarten))
 		{
-			actionSpielStarten();
+			try
+			{
+				actionSpielStarten();
+			} catch (RemoteException e1)
+			{
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 		}
 		
 		if (e.getSource().equals(this.buttonZurueck))
@@ -252,7 +267,7 @@ public class NeuesSpiel extends JFrame implements ActionListener
 		}
 	}
 
-	private void actionSpielStarten()
+	private void actionSpielStarten() throws RemoteException
 	{		
 		// Spielvariante wird ermittelt
 		int spielVariante = 2;

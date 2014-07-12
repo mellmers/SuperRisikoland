@@ -1,14 +1,22 @@
 package cui;
 
+import exc.MaximaleSpielerZahlErreichtException;
 import gui.SuperRisikolandGui;
+import inf.RemoteInterface;
+import inf.SuperRisikoLandGuiInterface;
 
 import java.awt.Color;
 import java.io.Serializable;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.Vector;
 
 import javax.swing.JOptionPane;
 
-public class Spielfeld implements Serializable
+public class Spielfeld extends UnicastRemoteObject implements RemoteInterface, Serializable
 {
 	private int spielvariante;
 	
@@ -21,8 +29,9 @@ public class Spielfeld implements Serializable
 	private Vector<Land> eroberteLaender = new Vector<Land>();
 	private int eingetauschteSerien = 0;
 	private int zusatzEinheitenSerie = 4;
+	private Vector<SuperRisikoLandGuiInterface> clients = new Vector<SuperRisikoLandGuiInterface>();
 	
-	public Spielfeld(int anzahlSpieler, int spielVariante) 
+	public Spielfeld(int anzahlSpieler, int spielVariante) throws RemoteException 
 	{
 		this.setSpielvariante(spielVariante);
 		
@@ -852,5 +861,26 @@ public class Spielfeld implements Serializable
 	public int getAnzahlSpieler()
 	{
 		return this.anzahlSpieler;
+	}
+	public void addClient(String name) throws RemoteException, MaximaleSpielerZahlErreichtException, NotBoundException {
+		if(clients.size() < 6)
+		{
+			Registry registry = LocateRegistry.getRegistry("localhost",9999);
+			// evtl Client individualisieren
+			SuperRisikoLandGuiInterface remote = (SuperRisikoLandGuiInterface) registry.lookup(name);
+			clients.add(remote);
+			System.out.println("Spieler: " + name + " erstellt");
+			
+			
+		}
+		else
+		{
+			throw new MaximaleSpielerZahlErreichtException();
+		}
+		
+	}
+	public SuperRisikolandGui getClient(int spielerId)
+	{
+		return (SuperRisikolandGui) this.clients.elementAt(spielerId);
 	}
 }

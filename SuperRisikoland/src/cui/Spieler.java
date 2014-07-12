@@ -1,5 +1,6 @@
 package cui;
 import gui.SuperRisikolandGui;
+import inf.SpielerInterface;
 
 import java.awt.Color;
 import java.io.Serializable;
@@ -8,7 +9,7 @@ import java.util.Vector;
 import javax.swing.ImageIcon;
 
 
-public class Spieler implements Serializable
+public class Spieler implements Serializable, SpielerInterface
 {
 	private String name;
 	private Vector<Land> laender = new Vector<Land>();
@@ -81,9 +82,9 @@ public class Spieler implements Serializable
 		{
 			return true;
 		}
-		SuperRisikolandGui.logText += "\nDieses Land gehört dir nicht!";
+		SuperRisikolandGui.logText += "\nDieses Land gehï¿½rt dir nicht!";
 		SuperRisikolandGui.logTextArea.setText(SuperRisikolandGui.logText);
-		IO.println("Dieses Land gehört dir nicht!");
+		IO.println("Dieses Land gehï¿½rt dir nicht!");
 		return false;
 	}
 	
