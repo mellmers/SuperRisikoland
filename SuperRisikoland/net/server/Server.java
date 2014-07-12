@@ -54,5 +54,6 @@ public class Server extends JFrame{
 		remote.getClient(0).zahl(u);
 		remote.getClient(0).speichern();*/
 	}
+	// Test
 	
 }
