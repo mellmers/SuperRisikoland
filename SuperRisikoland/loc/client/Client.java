@@ -139,7 +139,7 @@ public class Client extends JFrame implements ActionListener, Serializable{
 		Registry registry = LocateRegistry.getRegistry("localhost",(int)port.getValue());
 		LoginInterface server = (LoginInterface) registry.lookup(this.textfieldServer.getText().trim());
 		//CLIENT
-		SpielBeitreten client = new SpielBeitreten(this.textfieldName.getText().trim(),(int) this.port.getValue(), this.textfieldServer.getText().trim());
+		SpielBeitreten client = new SpielBeitreten(server, this.textfieldName.getText().trim(),(int) this.port.getValue(), this.textfieldServer.getText().trim());
 		registry.rebind(textfieldName.getText(), client);
 		server.addClient(textfieldName.getText(),(int)port.getValue());
 		

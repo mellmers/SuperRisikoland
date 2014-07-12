@@ -169,7 +169,7 @@ public class NeuesSpiel extends JFrame implements ActionListener
 		bg.add(this.radioButtonWelteroberung);
 		final JPanel spielVariante = new JPanel(new GridLayout(1, 2));
 		spielVariante.add(this.radioButtonWelteroberung);
-		spielVariante.add(this.radioButtonMissionen);		
+		spielVariante.add(this.radioButtonMissionen);
 		
 		this.buttonSpielStarten = new JButton("Spiel starten");
 		this.buttonSpielStarten.setEnabled(false);
