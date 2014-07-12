@@ -1,9 +1,11 @@
 package cui;
 
+import inf.LandInterface;
+
 import java.awt.Color;
 import java.io.Serializable;
 
-public class Land implements Serializable
+public class Land implements Serializable, LandInterface
 {
 	private Kontinent kontinent;
 	private String name;
