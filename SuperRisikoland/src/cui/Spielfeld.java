@@ -6,6 +6,8 @@ import java.awt.Color;
 import java.io.Serializable;
 import java.util.Vector;
 
+import javax.swing.JOptionPane;
+
 public class Spielfeld implements Serializable
 {
 	private int spielvariante;
@@ -736,6 +738,17 @@ public class Spielfeld implements Serializable
 					{
 						zwischenSpeicherZusatzTruppenSerie = this.serieEinsetzen(aktuellerSpieler);
 					}
+				}
+				else
+				{
+					//Popup, ob spieler serie einloesen moechte
+					// JDialog mit entsprechendem panel starten
+	            	int selectedOption = JOptionPane.showOptionDialog(null, "Moechtest du eine Serie einloesen?", "Serie einloesen?", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null, null);
+	            	// wenn okay gedrueckt wurde
+	            	if(selectedOption == 0)
+	            	{
+	            		zwischenSpeicherZusatzTruppenSerie = this.serieEinsetzen(aktuellerSpieler);
+	            	}
 				}
 			}
 			int zuVerteilendeEinheiten = this.laenderZaehlen(aktuellerSpieler) + this.zusatzEinheitenKontinente(aktuellerSpieler) + zwischenSpeicherZusatzTruppenSerie;
