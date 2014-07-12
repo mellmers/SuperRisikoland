@@ -1,54 +1,95 @@
 package server;
+import inf.RemoteInterface;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.Serializable;
+import java.io.IOException;
+import java.rmi.AlreadyBoundException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.util.Vector;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
-import javax.swing.SwingConstants;
+import javax.swing.JSpinner;
+import javax.swing.JTextField;
+import javax.swing.SpinnerNumberModel;
 
 import cui.Spieler;
+import cui.Spielfeld;
 import exc.MaximaleSpielerZahlErreichtException;
-import inf.LoginInterface;
-import inf.SpielBeitretenInterface;
-import inf.SpielerInterface;
 
-public class Login extends JFrame implements LoginInterface, Serializable, ActionListener{
+
+public class Login extends JFrame implements ActionListener{
 	
-	private Vector<SpielBeitretenInterface> clients = new Vector<SpielBeitretenInterface>();
-	private Vector<Spieler> spieler = new Vector<Spieler>();
+	final JSpinner spinnerPort = new JSpinner(new SpinnerNumberModel(9999, 1000, 9999, 1));
+	final JTextField textfieldServername = new JTextField();
+	private JButton buttonServerErstellen = new JButton("Erstellen");
 	
-	private String servername;
-	JPanel panel = new JPanel(new GridLayout(7,1));
+	//zweites Fenster
+	JPanel panelSpielernamen = new JPanel(new GridLayout(7,1));
 	private JButton buttonNeuesSpiel = new JButton("Neues Spiel");
 	private JButton buttonSpielLaden = new JButton("Spiel laden");
 	private JRadioButton radioButtonWelteroberung = new JRadioButton("Welteroberung"), radioButtonMissionen = new JRadioButton("Missionen");
 	
-	
-	public Login(int port, String servername)
+	public Login()
 	{
-		this.servername = servername;
-		initialize();
+		super();
+		initialize();	
 	}
 	
 	public void initialize()
 	{
-		this.setTitle(this.servername);
+		this.setTitle("Server");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		this.setSize(350,210);
+		this.setSize(350,100);
 		this.setResizable(false);
 		this.setLocationRelativeTo(null);
 		this.setLayout(new BorderLayout());
+		JPanel panel = new JPanel(new GridLayout(2,2));
+		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+		
+		JLabel labelPort = new JLabel("Port:");
+		JLabel labelServername = new JLabel("Servername:");
+		
+		
+		textfieldServername.setText("Servername");
+		textfieldServername.setPreferredSize(new Dimension(120, 30));
+		spinnerPort.setPreferredSize(new Dimension(120, 30));
+		buttonServerErstellen.addActionListener(this);
+		
+		
+		
+		panel.add(labelPort);
+		panel.add(spinnerPort);
+		panel.add(labelServername);
+		panel.add(textfieldServername);
+		buttonPanel.add(buttonServerErstellen);
+		this.add(panel, BorderLayout.CENTER);
+		this.add(buttonPanel, BorderLayout.SOUTH);
+		this.setVisible(true);
+	}
+	
+	public void initializeLogin()
+	{
+		JFrame login = new JFrame();
+		login.setTitle(textfieldServername.getText().trim());
+		login.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		login.setSize(350,210);
+		login.setResizable(false);
+		login.setLocationRelativeTo(null);
+		login.setLayout(new BorderLayout());
 		JPanel panelButtons = new JPanel(new GridLayout(2,1));
 		
 		// Spielvariante
@@ -63,66 +104,70 @@ public class Login extends JFrame implements LoginInterface, Serializable, Actio
 		panelButtons.add(buttonNeuesSpiel);
 		panelButtons.add(buttonSpielLaden);
 		
-		this.add(spielVariante,BorderLayout.CENTER);
-		this.add(panelButtons,BorderLayout.SOUTH);
-		this.add(this.panel, BorderLayout.NORTH);
-		this.setVisible(true);
+		login.add(spielVariante,BorderLayout.CENTER);
+		login.add(panelButtons,BorderLayout.SOUTH);
+		login.add(this.panelSpielernamen, BorderLayout.NORTH);
+		login.setVisible(true);
 	}
-
-	public void spielStarten() {
-		// TODO Auto-generated method stub
+	
+	public void Spielstart()
+	{
 		
 	}
 	
-	public void addSpieler(Spieler dieserSpieler)
+	public void serverErstellen() throws RemoteException
 	{
-		this.spieler.add(dieserSpieler);
+		Server server = new Server();
+		//Spielfeld remote = new Spielfeld(2,1);
+		Registry registry = LocateRegistry.createRegistry((int) spinnerPort.getValue());
+		registry.rebind(textfieldServername.getText().trim(), server);
+		System.out.println("Server is started.");
 	}
 	
-	public void addClient(String name, int port) throws RemoteException, MaximaleSpielerZahlErreichtException, NotBoundException {
-		if(this.clients.size() < 6)
-		{
-			/*Registry registry = LocateRegistry.getRegistry("localhost",port);
-			// evtl Client individualisieren
-			SpielBeitreten client = (SpielBeitreten) registry.lookup(name);
-			this.spieler.add(client);*/
-			JLabel spielerLabel = new JLabel(name, SwingConstants.CENTER);
-			this.panel.add(spielerLabel);
-			this.setVisible(true);
-			
-			System.out.println("Spieler: " + name + " erstellt");
-			
-		}
-		else
-		{
-			throw new MaximaleSpielerZahlErreichtException();
-			
-		}
-	}
-	
-	/*public static void main(String[] args) throws RemoteException, MaximaleSpielerZahlErreichtException, NotBoundException
-	{
-		Login l = new Login(9999, "Jochen");
-		l.addClient("Paul",9999);
-		l.addClient("Paul",9999);
-		l.addClient("Paul",9999);
-		l.addClient("Paul",9999);
-		l.addClient("Paul",9999);
-		l.addClient("Paul",9999);
-	}*/
-
-	@Override
 	public void actionPerformed(ActionEvent e) {
-		// TODO Auto-generated method stub
-		
+		if (e.getSource().equals(this.buttonServerErstellen)) 
+		{
+			if(this.textfieldServername.getText().trim().equals(""))
+			{
+				//Popup, da kein Name eingegeben wurde
+	            // Panel f�r JDialog
+	            // ver�ndert den Dialog zu Textfeld mit Okay button
+	            String[] options = {"OK"};
+	            JPanel panel = new JPanel();
+	            JLabel lbl = new JLabel("Servername: ");
+	            JTextField txt = new JTextField(10);
+	            panel.add(lbl);
+	            panel.add(txt);
+	   
+	            // Dialog wiederholen bis vern�nftiger Name angegeben wurde
+	            while( txt.getText().trim().equals("")){
+	            	// JDialog mit entsprechendem panel starten
+	            	int selectedOption = JOptionPane.showOptionDialog(null, panel, "Feld darf nicht leer sein!", JOptionPane.NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options , options[0]);
+	            	
+	            	// wenn okay gedr�ckt wurde
+	            	if(selectedOption == 0)
+	            	{
+	            		this.textfieldServername.setText(txt.getText().trim());
+	            	
+	            	}
+	            }
+			}
+			else
+			{
+				try {
+					serverErstellen();
+					this.dispose();
+					initializeLogin();
+				} catch (RemoteException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+					System.out.println("Fehler");
+				}
+			}		
+		}
 	}
 
-	@Override
-	public void addSpieler(SpielerInterface spieler)
-	{
-		// TODO Auto-generated method stub
-		
+	public static void main(String[] args) throws AlreadyBoundException, NotBoundException, IOException{
+		new Login();
 	}
-	
-
 }
