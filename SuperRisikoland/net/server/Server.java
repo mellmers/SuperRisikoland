@@ -117,6 +117,7 @@ public class Server extends JFrame implements ActionListener{
 			{
 				try {
 					serverErstellen();
+					dispose();
 				} catch (RemoteException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
