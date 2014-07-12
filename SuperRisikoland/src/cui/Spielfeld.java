@@ -363,7 +363,7 @@ public class Spielfeld extends UnicastRemoteObject implements RemoteInterface, S
 
 	public boolean spielerErstellen(int spielerID, String spielername, String spielerfarbe, Color c)
 	{
-		// TODO If-Clause weg, weil man durch Gui nicht mehr als 6 Spieler auswählen kann
+		// TODO If-Clause weg, weil man durch Gui nicht mehr als 6 Spieler auswï¿½hlen kann
 		if(this.spieler.size() < this.maxSpieler)
 		{
 			this.spieler.add(new Spieler(spielerID, spielername, spielerfarbe, c));
@@ -733,9 +733,9 @@ public class Spielfeld extends UnicastRemoteObject implements RemoteInterface, S
 			int zwischenSpeicherZusatzTruppenSerie = 0;
 			if(aktuellerSpieler.getAnzahlHandkarten() == 5)
 			{
-				SuperRisikolandGui.logText += "\n" + aktuellerSpieler.getName() + " muss seine Handkarten einsetzen und eine Serie einlösen!";
+				SuperRisikolandGui.logText += "\n" + aktuellerSpieler.getName() + " muss seine Handkarten einsetzen und eine Serie einlï¿½sen!";
 				SuperRisikolandGui.logTextArea.setText(SuperRisikolandGui.logText);
-				IO.println(aktuellerSpieler.getName() + " muss seine Handkarten einsetzen und eine Serie einlösen!");
+				IO.println(aktuellerSpieler.getName() + " muss seine Handkarten einsetzen und eine Serie einlï¿½sen!");
 				zwischenSpeicherZusatzTruppenSerie = this.serieEinsetzen(aktuellerSpieler);
 			}
 			else
@@ -789,12 +789,12 @@ public class Spielfeld extends UnicastRemoteObject implements RemoteInterface, S
 		    	{
 		    		if(landId == 0)
 		    		{
-		    			SuperRisikolandGui.logText += "\nDu musst ein Land auswählen und dann bestätigen!";
+		    			SuperRisikolandGui.logText += "\nDu musst ein Land auswï¿½hlen und dann bestï¿½tigen!";
 						SuperRisikolandGui.logTextArea.setText(SuperRisikolandGui.logText);
 		    		}
 		    		else if(einheiten == 0)
 		    		{
-		    			SuperRisikolandGui.logText += "\nDu musst mindestens eine Einheit auswaehlen und dann bestätigen!";
+		    			SuperRisikolandGui.logText += "\nDu musst mindestens eine Einheit auswaehlen und dann bestï¿½tigen!";
 						SuperRisikolandGui.logTextArea.setText(SuperRisikolandGui.logText);
 		    		}
 		    	}
@@ -882,5 +882,11 @@ public class Spielfeld extends UnicastRemoteObject implements RemoteInterface, S
 	public SuperRisikolandGui getClient(int spielerId)
 	{
 		return (SuperRisikolandGui) this.clients.elementAt(spielerId);
+	}
+
+	@Override
+	public void test() throws RemoteException {
+		// TODO Auto-generated method stub
+		
 	}
 }
