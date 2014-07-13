@@ -141,9 +141,18 @@ public class Login extends JFrame implements ActionListener{
 		{
 			if(server.getClient(i) != null && !this.labelMitspieler[i].equals(server.getClient(i).getSpielername()))
 			{
-				this.labelMitspieler[i].setText(server.getClient(i).getSpielername());
+				this.labelMitspieler[i].setText("Spieler " + server.getClient(i).getSpielername() + " beigetreten.");
+			}
+			for(int j = 0 ; j < server.getAlleSpielerAnzahl(); j++)
+			{
+				//if(server.getClient(i).getSpielername() == server.getSpieler(j).getName())	
+				if(server.getClient(i).getSpielername().equals(server.getSpieler(j).getName()))	
+				{
+					this.labelMitspieler[i].setText("Spieler " + server.getClient(i).getSpielername() + " beigetreten und hat die Farbe " + server.getSpieler(j).getSpielerfarbe());
+				}
 			}
 		}
+
 	
 	}
 

@@ -78,7 +78,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface, Seri
 		if(!this.spieler.contains((Spieler) spieler))
 		{
 			this.spieler.add((Spieler) spieler);
-			System.out.println("Spieler " + this.spieler.elementAt(0).getName() + " hat seinen Charakter ausgewaehlt.");
+			System.out.println("Spieler " + spieler.getName() + " hat seinen Charakter ausgewaehlt.");
 		}
 	}
 	
