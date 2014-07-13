@@ -26,6 +26,9 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
@@ -56,7 +59,7 @@ public class SpielBeitreten extends JFrame implements ActionListener, Serializab
 	// Variablen
 	private JLabel[] labelSpielername = {new JLabel(),new JLabel(),new JLabel(),new JLabel(),new JLabel(),new JLabel()};
 	private JLabel[] labelCharakter = {new JLabel(),new JLabel(),new JLabel(),new JLabel(),new JLabel(),new JLabel()};
-	private MouseAdapter[] mouseAdapterChars = new MouseAdapter[6];
+	private MouseAdapter[] mouseAdapterChars = new MouseAdapter[6]; // MouseAdapter, damit man diese später deaktivieren kann
 	private JLabel aktuellerChar;
 	private JButton buttonAuswahlBestaetigen = new JButton("Auswahl bestaetigen");
 	
@@ -206,8 +209,65 @@ public class SpielBeitreten extends JFrame implements ActionListener, Serializab
 		
 		// Fenster anzeigen
 		spielBeitreten.setVisible(true);
+		
+		// Aktualsierung erstellen
+		final ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
+		service.scheduleWithFixedDelay(new Runnable()
+		{
+			public void run()
+			{
+				try
+				{
+					aktualisieren();
+				} catch (RemoteException e)
+				{
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		},0,1,TimeUnit.MILLISECONDS);
 	}
 	
+	private void aktualisieren() throws RemoteException
+	{
+		for (int j = 0; j < server.getAlleSpielerAnzahl(); j++)
+		{
+			if(server.getSpieler(j).getSpielerID() == 0)
+			{
+				labelCharakter[0].setEnabled(false);
+			}
+			else if(server.getSpieler(j).getSpielerID() == 1)
+			{
+				labelCharakter[1].setEnabled(false);
+			}
+			else if(server.getSpieler(j).getSpielerID() == 2)
+			{
+				labelCharakter[2].setEnabled(false);
+			}
+			else if(server.getSpieler(j).getSpielerID() == 3)
+			{
+				labelCharakter[3].setEnabled(false);
+			}
+			else if(server.getSpieler(j).getSpielerID() == 4)
+			{
+				labelCharakter[4].setEnabled(false);
+			}
+			else if(server.getSpieler(j).getSpielerID() == 5)
+			{
+				labelCharakter[5].setEnabled(false);
+			}
+			else
+			{
+				int spielVoll = JOptionPane.showOptionDialog(null,"Das Spiel hat leider schon zuviele Mitspieler, daher kannst du auf diesem Server nicht mehr mitspielen!" ,"Spiel ist voll", JOptionPane.DEFAULT_OPTION, JOptionPane.ERROR_MESSAGE, null, new String[]{"Schliessen"}, "Schliessen");
+				if(spielVoll == 0)
+				{
+					this.dispose();
+					new SpielBeitreten();
+				}
+			}
+		}
+	}
+
 	private void bilderEinlesen()
 	{
 		try
@@ -240,7 +300,6 @@ public class SpielBeitreten extends JFrame implements ActionListener, Serializab
 		}
 	}
 	
-	
 	private void actionAuswahlBestaetigen() throws RemoteException
 	{
 		this.spieler = new Spieler(spielerId, textfieldName.getText().trim(), color[spielerId], colorChars[spielerId]);
@@ -252,8 +311,7 @@ public class SpielBeitreten extends JFrame implements ActionListener, Serializab
 			this.labelCharakter[i].removeMouseListener(this.mouseAdapterChars[i]);
 		}
 	}
-	
-	@Override
+
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource().equals(this.buttonAuswahlBestaetigen))
 		{
