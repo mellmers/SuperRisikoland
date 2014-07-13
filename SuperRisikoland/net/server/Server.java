@@ -1,7 +1,5 @@
 package server;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.Serializable;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -10,14 +8,16 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Vector;
 
+import javax.swing.JOptionPane;
+
 import cui.Spieler;
 import cui.Spielfeld;
-import exc.MaximaleSpielerZahlErreichtException;
 import inf.ServerInterface;
 import inf.ClientInterface;
 import inf.SpielerInterface;
 
-public class Server extends UnicastRemoteObject implements ServerInterface, Serializable, ActionListener{
+public class Server extends UnicastRemoteObject implements ServerInterface, Serializable
+{
 	
 	/**
 	 * 
@@ -38,7 +38,8 @@ public class Server extends UnicastRemoteObject implements ServerInterface, Seri
 	
 
 	
-	public void addClient(String name, int port) throws RemoteException, MaximaleSpielerZahlErreichtException, NotBoundException {
+	public boolean addClient(String name, int port) throws RemoteException, NotBoundException 
+	{
 		if(this.clients.size() < 6)
 		{
 			Registry registry = LocateRegistry.getRegistry("localhost",port);
@@ -47,19 +48,10 @@ public class Server extends UnicastRemoteObject implements ServerInterface, Seri
 			this.clients.add(client);
 			
 			System.out.println("Client " + client.getSpielername() + " ist beigetreten.");
-			
+			return true;
 		}
-		else
-		{
-			throw new MaximaleSpielerZahlErreichtException();
-			
-		}
-	}
-	
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		// TODO Auto-generated method stub
-		
+		JOptionPane.showMessageDialog(null, "Dieser Server ist leider voll.");		
+		return false;
 	}
 
 	public void addSpieler(SpielerInterface spieler) throws RemoteException
