@@ -95,6 +95,15 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 	private ServerInterface server;
 	private SpielfeldInterface spiel;
 		
+	public SuperRisikolandGui() throws RemoteException
+	{
+		super();
+		// Bildschirmgroesse auslesen und Breite und Hoehe abspeichern
+		this.screen = Toolkit.getDefaultToolkit().getScreenSize();
+		this.b = (int) screen.getWidth();
+		this.h = (int) screen.getHeight();
+		initialize();
+	}
 	public SuperRisikolandGui(ServerInterface server, Spieler aktSpieler, Spieler eigenerSpieler, boolean geladen)  throws RemoteException
 	{
 		super();
@@ -224,10 +233,15 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		JPanel mitte = new riskoMap();
 		
 		// Unten - Spielinfos
+		//groessen:
+		int bKarten = this.h/100*50;
+		int bChar = this.h/100*16;
+		int bLog = this.b-bKarten-2*bChar;
+		
 		final JPanel sued = new JPanel(new GridBagLayout());
 		// aktuellerSpieler Char
-        double bAktuellerChar = this.b/100*9.5;
-		this.panelCharAktuellerSpieler.setPreferredSize(new Dimension((int)bAktuellerChar, this.h/100*16));
+        
+		this.panelCharAktuellerSpieler.setPreferredSize(new Dimension((int)bChar, this.h/100*16));
 		sued.add(this.panelCharAktuellerSpieler);
 		
 		// Textarea fuer Log
@@ -235,18 +249,17 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		
 		// Log
 		JScrollPane log = new JScrollPane(logTextArea, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        double bLog = this.b/100*54.5;
-		log.setPreferredSize(new Dimension((int)bLog, this.h/100*16));
+        
+		log.setPreferredSize(new Dimension(bLog, this.h/100*16));
 		sued.add(log);
 		
 		// Karten
-		double bKarten = b/100*26.5;
-		this.panelHandkarten.setPreferredSize(new Dimension((int)bKarten, this.h/100*16));
+		this.panelHandkarten.setPreferredSize(new Dimension(bKarten, this.h/100*16));
 		sued.add(this.panelHandkarten);
 		
 		// eigener Char
-        double bEigenerChar = this.b/100*9.5;
-		this.panelEigenerChar.setPreferredSize(new Dimension((int)bEigenerChar, this.h/100*16));
+        
+		this.panelEigenerChar.setPreferredSize(new Dimension(bChar, this.h/100*16));
 		sued.add(this.panelEigenerChar);
 		
 		// Ausrichtung der Panels
@@ -383,16 +396,16 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 			this.iiCharakter[4] = new ImageIcon(imgWaluigi);
 			this.iiCharakter[5] = new ImageIcon(imgWario);
 			// ImageIcon dem Spieler zuordnen
-			for (int i = 0; i < this.spiel.getAnzahlSpieler(); i++)
+			/*for (int i = 0; i < this.spiel.getAnzahlSpieler(); i++)
 			{
 				if(this.spiel.getSpieler(i) != null)
 				{
 					this.spiel.getSpieler(i).setSpielerIcon(this.iiCharakter[this.spiel.getSpieler(i).getSpielerID()]);
 				}
-			}
+			}*/
 			// ImageIcon dem aktuellenSpieler und dem eigenenChar zuordnen
-			this.labelCharAktuellerSpieler.setIcon(this.aktuellerSpieler.getSpielerIcon());
-			this.labelEigenerChar.setIcon(this.eigenerSpieler.getSpielerIcon());
+			//this.labelCharAktuellerSpieler.setIcon(this.aktuellerSpieler.getSpielerIcon());
+			//this.labelEigenerChar.setIcon(this.eigenerSpieler.getSpielerIcon());
 			// Label dem Panel hinzufuegen
 			this.panelCharAktuellerSpieler.add(this.labelCharAktuellerSpieler);
 			this.panelEigenerChar.add(this.labelEigenerChar);
@@ -609,7 +622,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 			super.paint(g);
 			//Graphics2D g2 = (Graphics2D) g;
 			//renderSettings(g2);
-			createMap(b, h/100*76);
+			createMap(b, h/100*71);
 			g.drawImage(map, 0, 0, this);
 		}
 		
@@ -620,8 +633,9 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 			
 			Graphics g = map.getGraphics();
 			g.setColor(getContentPane().getBackground());
-			g.fillRect(0,0,b,h);
+			g.fillRect(0,0,b, h);
 			g.drawImage(mapIcon.getImage(), 10, 10, b, h, this);
+			System.out.println(b +"Hallo"+ h + "");
 		}
 		
 		private void renderSettings(Graphics2D g)
@@ -777,5 +791,10 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 	public void setLogTextGui(String logTextGui)
 	{
 		this.logTextGui += "\n" + logTextGui;
+	}
+	
+	public static void main(String[] args) throws RemoteException
+	{
+		new SuperRisikolandGui();
 	}
 }
