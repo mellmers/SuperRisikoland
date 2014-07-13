@@ -118,7 +118,7 @@ public class Login extends JFrame implements ActionListener{
 		login.add(panelButtons,BorderLayout.SOUTH);
 		login.add(this.panelSpielernamen, BorderLayout.NORTH);
 		login.setVisible(true);
-		/*final ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
+		final ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
 		service.scheduleWithFixedDelay(new Runnable()
 		{
 			public void run()
@@ -132,12 +132,9 @@ public class Login extends JFrame implements ActionListener{
 					e.printStackTrace();
 				}
 			}
-		},0,1,TimeUnit.SECONDS);*/
+		},0,1,TimeUnit.SECONDS);
 	}
 	
-<<<<<<< HEAD
-	public void spielstart() throws RemoteException
-=======
 	public void aktualisieren() throws RemoteException
 	{
 		for(int i = 0 ; i < server.getAlleClients(); i++)
@@ -150,8 +147,7 @@ public class Login extends JFrame implements ActionListener{
 	
 	}
 
-	public void Spielstart()
->>>>>>> refs/remotes/origin/master
+	public void spielstart() throws RemoteException
 	{
 		int spielVariante = 0;
 		if(this.radioButtonMissionen.isSelected())
