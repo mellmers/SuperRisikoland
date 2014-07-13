@@ -14,6 +14,9 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.Vector;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
@@ -57,6 +60,7 @@ public class Login extends JFrame implements ActionListener{
 			{
 				JLabel labelSpieler = new JLabel(server.getSpieler(i).getName());
 				this.panelSpielernamen.add(labelSpieler);
+				System.out.println("test" + server.getSpieler(i).getName());
 			}
 		}
 
@@ -89,9 +93,12 @@ public class Login extends JFrame implements ActionListener{
 		panel.add(labelServername);
 		panel.add(textfieldServername);
 		buttonPanel.add(buttonServerErstellen);
+		this.add(panelSpielernamen, BorderLayout.NORTH);
 		this.add(panel, BorderLayout.CENTER);
 		this.add(buttonPanel, BorderLayout.SOUTH);
 		this.setVisible(true);
+		
+		
 	}
 	
 	public void initializeLogin()
@@ -121,7 +128,14 @@ public class Login extends JFrame implements ActionListener{
 		login.add(panelButtons,BorderLayout.SOUTH);
 		login.add(this.panelSpielernamen, BorderLayout.NORTH);
 		login.setVisible(true);
-		aktualisieren();
+		final ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
+		service.scheduleWithFixedDelay(new Runnable()
+		{
+			public void run()
+			{
+				aktualisieren();
+			}
+		},0,1,TimeUnit.SECONDS);
 	}
 	
 	public void Spielstart()
