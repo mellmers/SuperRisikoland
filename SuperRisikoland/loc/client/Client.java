@@ -63,4 +63,12 @@ public class Client extends UnicastRemoteObject implements ClientInterface, Seri
 	{
 		gui = new SuperRisikolandGui(server, (Spieler) spieler, false);
 	}
+	public boolean istGuiGestartet()
+	{
+		if(this.gui != null)
+		{
+			return true;
+		}
+		return false;
+	}
 }

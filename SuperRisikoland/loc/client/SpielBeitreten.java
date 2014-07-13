@@ -68,6 +68,7 @@ public class SpielBeitreten extends JFrame implements ActionListener, Serializab
 	
 	Spieler spieler;
 	int spielerId;
+	JFrame spielBeitreten;
 	
 	public SpielBeitreten()
 	{
@@ -119,7 +120,7 @@ public class SpielBeitreten extends JFrame implements ActionListener, Serializab
 	}
 	public void initializeSpielBeitreten() throws IOException
 	{
-		JFrame spielBeitreten = new JFrame();
+		spielBeitreten = new JFrame();
 		spielBeitreten.setSize(600, 300);
 		spielBeitreten.setResizable(false);
 		spielBeitreten.setLocationRelativeTo(null);
@@ -257,14 +258,9 @@ public class SpielBeitreten extends JFrame implements ActionListener, Serializab
 			{
 				labelCharakter[5].setEnabled(false);
 			}
-			else
+			if( this.client.istGuiGestartet())
 			{
-				int spielVoll = JOptionPane.showOptionDialog(null,"Das Spiel hat leider schon zuviele Mitspieler, daher kannst du auf diesem Server nicht mehr mitspielen!" ,"Spiel ist voll", JOptionPane.DEFAULT_OPTION, JOptionPane.ERROR_MESSAGE, null, new String[]{"Schliessen"}, "Schliessen");
-				if(spielVoll == 0)
-				{
-					this.dispose();
-					new SpielBeitreten();
-				}
+				spielBeitreten.dispose();
 			}
 		}
 	}

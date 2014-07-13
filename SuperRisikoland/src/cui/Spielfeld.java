@@ -17,7 +17,7 @@ import java.util.Vector;
 
 import javax.swing.JOptionPane;
 
-public class Spielfeld extends UnicastRemoteObject implements SpielfeldInterface, Serializable
+public class Spielfeld implements SpielfeldInterface, Serializable
 {
 	private int spielvariante;
 	
