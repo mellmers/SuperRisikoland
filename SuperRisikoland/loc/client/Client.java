@@ -38,7 +38,7 @@ import gui.SuperRisikolandGui;
 import inf.ServerInterface;
 import inf.ClientInterface;
 
-public class Client extends UnicastRemoteObject implements ClientInterface, Serializable, ActionListener
+public class Client extends UnicastRemoteObject implements ClientInterface, Serializable
 {
 	
 	private String spielername;
@@ -51,12 +51,6 @@ public class Client extends UnicastRemoteObject implements ClientInterface, Seri
 		this.server = server;
 	}
 
-	
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
 
 
 	public String getSpielername() {

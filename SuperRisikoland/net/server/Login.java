@@ -42,11 +42,24 @@ public class Login extends JFrame implements ActionListener{
 	private JButton buttonNeuesSpiel = new JButton("Neues Spiel");
 	private JButton buttonSpielLaden = new JButton("Spiel laden");
 	private JRadioButton radioButtonWelteroberung = new JRadioButton("Welteroberung"), radioButtonMissionen = new JRadioButton("Missionen");
+	Server server;
 	
 	public Login()
 	{
 		super();
 		initialize();	
+	}
+	public void aktualisieren()
+	{
+		for(int i = 0 ; i < server.getAlleSpielerAnzahl(); i++)
+		{
+			if(server.getSpieler(i) != null)
+			{
+				JLabel labelSpieler = new JLabel(server.getSpieler(i).getName());
+				this.panelSpielernamen.add(labelSpieler);
+			}
+		}
+
 	}
 	
 	public void initialize()
@@ -108,6 +121,7 @@ public class Login extends JFrame implements ActionListener{
 		login.add(panelButtons,BorderLayout.SOUTH);
 		login.add(this.panelSpielernamen, BorderLayout.NORTH);
 		login.setVisible(true);
+		aktualisieren();
 	}
 	
 	public void Spielstart()
@@ -117,7 +131,7 @@ public class Login extends JFrame implements ActionListener{
 	
 	public void serverErstellen() throws RemoteException
 	{
-		Server server = new Server();
+		server = new Server();
 		//Spielfeld remote = new Spielfeld(2,1);
 		Registry registry = LocateRegistry.createRegistry((int) spinnerPort.getValue());
 		registry.rebind(textfieldServername.getText().trim(), server);

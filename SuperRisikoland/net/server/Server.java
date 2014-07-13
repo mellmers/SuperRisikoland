@@ -88,8 +88,21 @@ public class Server extends UnicastRemoteObject implements ServerInterface, Seri
 
 	public void addSpieler(SpielerInterface spieler) throws RemoteException
 	{
-		this.spieler.add((Spieler) spieler);
-		System.out.println(this.spieler.elementAt(0).getName());
+		if(!this.spieler.contains((Spieler) spieler))
+		{
+			this.spieler.add((Spieler) spieler);
+			System.out.println(this.spieler.elementAt(0).getName());
+		}
+	}
+	
+	public Spieler getSpieler(int index)
+	{
+		return this.spieler.elementAt(index);
+	}
+	public int getAlleSpielerAnzahl()
+	{
+		return this.spieler.size();
+		
 	}
 
 
