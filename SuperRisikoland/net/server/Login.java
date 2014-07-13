@@ -46,24 +46,12 @@ public class Login extends JFrame implements ActionListener{
 	private JButton buttonSpielLaden = new JButton("Spiel laden");
 	private JRadioButton radioButtonWelteroberung = new JRadioButton("Welteroberung"), radioButtonMissionen = new JRadioButton("Missionen");
 	Server server;
+	private JLabel[] labelMitspieler = {new JLabel(),new JLabel(),new JLabel(),new JLabel(),new JLabel(),new JLabel()};
 	
 	public Login()
 	{
 		super();
 		initialize();	
-	}
-	public void aktualisieren()
-	{
-		for(int i = 0 ; i < server.getAlleSpielerAnzahl(); i++)
-		{
-			if(server.getSpieler(i) != null)
-			{
-				JLabel labelSpieler = new JLabel(server.getSpieler(i).getName());
-				this.panelSpielernamen.add(labelSpieler);
-				System.out.println("test" + server.getSpieler(i).getName());
-			}
-		}
-
 	}
 	
 	public void initialize()
@@ -79,15 +67,12 @@ public class Login extends JFrame implements ActionListener{
 		
 		JLabel labelPort = new JLabel("Port:");
 		JLabel labelServername = new JLabel("Servername:");
-		
-		
+
 		textfieldServername.setText("Servername");
 		textfieldServername.setPreferredSize(new Dimension(120, 30));
 		spinnerPort.setPreferredSize(new Dimension(120, 30));
 		buttonServerErstellen.addActionListener(this);
-		
-		
-		
+
 		panel.add(labelPort);
 		panel.add(spinnerPort);
 		panel.add(labelServername);
@@ -96,9 +81,7 @@ public class Login extends JFrame implements ActionListener{
 		this.add(panelSpielernamen, BorderLayout.NORTH);
 		this.add(panel, BorderLayout.CENTER);
 		this.add(buttonPanel, BorderLayout.SOUTH);
-		this.setVisible(true);
-		
-		
+		this.setVisible(true);	
 	}
 	
 	public void initializeLogin()
@@ -110,6 +93,12 @@ public class Login extends JFrame implements ActionListener{
 		login.setResizable(false);
 		login.setLocationRelativeTo(null);
 		login.setLayout(new BorderLayout());
+		
+		for (int i = 0; i < this.labelMitspieler.length; i++)
+		{
+			this.panelSpielernamen.add(this.labelMitspieler[i]);
+		}
+		
 		JPanel panelButtons = new JPanel(new GridLayout(2,1));
 		
 		// Spielvariante
@@ -133,23 +122,42 @@ public class Login extends JFrame implements ActionListener{
 		{
 			public void run()
 			{
-				aktualisieren();
+				try
+				{
+					aktualisieren();
+				} catch (RemoteException e)
+				{
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		},0,1,TimeUnit.SECONDS);
 	}
 	
+	public void aktualisieren() throws RemoteException
+	{
+		for(int i = 0 ; i < server.getAlleClients(); i++)
+		{
+			if(server.getClient(i) != null && !this.labelMitspieler[i].equals(server.getClient(i).getSpielername()))
+			{
+				this.labelMitspieler[i].setText(server.getClient(i).getSpielername());
+			}
+		}
+	
+	}
+
 	public void Spielstart()
 	{
 		
 	}
-	
+
 	public void serverErstellen() throws RemoteException
 	{
 		server = new Server();
 		//Spielfeld remote = new Spielfeld(2,1);
 		Registry registry = LocateRegistry.createRegistry((int) spinnerPort.getValue());
 		registry.rebind(textfieldServername.getText().trim(), server);
-		System.out.println("Server is started.");
+		System.out.println("Server gestartet.");
 	}
 	
 	public void actionPerformed(ActionEvent e) {
@@ -176,7 +184,6 @@ public class Login extends JFrame implements ActionListener{
 	            	if(selectedOption == 0)
 	            	{
 	            		this.textfieldServername.setText(txt.getText().trim());
-	            	
 	            	}
 	            }
 			}
