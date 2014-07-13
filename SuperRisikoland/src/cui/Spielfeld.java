@@ -32,8 +32,10 @@ public class Spielfeld extends UnicastRemoteObject implements RemoteInterface, S
 	private int zusatzEinheitenSerie = 4;
 	private Vector<SuperRisikoLandGuiInterface> clients = new Vector<SuperRisikoLandGuiInterface>();
 	
-	public Spielfeld(int anzahlSpieler, int spielVariante) throws RemoteException 
+	public Spielfeld(Vector<Spieler> alleSpieler, int spielVariante) throws RemoteException 
 	{
+		this.spieler = alleSpieler;
+		this.anzahlSpieler = this.spieler.size();
 		this.setSpielvariante(spielVariante);
 		
 		this.kontinenteEinlesen();

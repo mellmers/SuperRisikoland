@@ -22,6 +22,7 @@ import javax.swing.SwingConstants;
 
 import client.Client;
 import cui.Spieler;
+import cui.Spielfeld;
 import exc.MaximaleSpielerZahlErreichtException;
 import inf.ServerInterface;
 import inf.ClientInterface;
@@ -37,7 +38,8 @@ public class Server extends UnicastRemoteObject implements ServerInterface, Seri
 	private Vector<Spieler> spieler = new Vector<Spieler>();
 	
 	private String servername;
-	
+	Spielfeld spiel;
+	private int spielVariante;
 	
 	
 	protected Server() throws RemoteException
@@ -46,10 +48,6 @@ public class Server extends UnicastRemoteObject implements ServerInterface, Seri
 	}
 	
 
-	public void spielStarten() {
-		// TODO Auto-generated method stub
-		
-	}
 	
 	public void addClient(String name, int port) throws RemoteException, MaximaleSpielerZahlErreichtException, NotBoundException {
 		if(this.clients.size() < 6)
@@ -69,17 +67,6 @@ public class Server extends UnicastRemoteObject implements ServerInterface, Seri
 		}
 	}
 	
-	/*public static void main(String[] args) throws RemoteException, MaximaleSpielerZahlErreichtException, NotBoundException
-	{
-		Login l = new Login(9999, "Jochen");
-		l.addClient("Paul",9999);
-		l.addClient("Paul",9999);
-		l.addClient("Paul",9999);
-		l.addClient("Paul",9999);
-		l.addClient("Paul",9999);
-		l.addClient("Paul",9999);
-	}*/
-
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		// TODO Auto-generated method stub
@@ -104,6 +91,9 @@ public class Server extends UnicastRemoteObject implements ServerInterface, Seri
 		return this.spieler.size();
 		
 	}
-
+	public void spielBeginnen(int spielVariante) throws RemoteException
+	{
+		spiel = new Spielfeld(this.spieler, spielVariante);
+	}
 
 }

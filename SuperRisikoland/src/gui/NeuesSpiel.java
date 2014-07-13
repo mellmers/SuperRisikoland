@@ -80,14 +80,14 @@ public class NeuesSpiel extends JFrame implements ActionListener
 		// Panel Spielerliste
 		final JPanel spielerListe = new JPanel(new GridLayout(3, 4));
 		
-		// Panel für TextField und Button
+		// Panel fï¿½r TextField und Button
 		for(int i = 0; i < 6; i++)
 		{
 			JPanel panel = new JPanel(new FlowLayout());
 			this.panelSpieler.add(panel);
 		}
 		
-		// Spieler hinzufügen einbetten
+		// Spieler hinzufï¿½gen einbetten
 		for(int i = 0; i < 6; i++)
 		{
 			// Textfield erstellen
@@ -130,7 +130,7 @@ public class NeuesSpiel extends JFrame implements ActionListener
 			);
 			button.setPreferredSize(new Dimension(90, 20));
 		}
-		// "Spieler hinzufügen" in Panel schreiben
+		// "Spieler hinzufï¿½gen" in Panel schreiben
 		for(int i = 0; i < 6; i++)
 		{
 			this.panelSpieler.elementAt(i).add(this.textFieldSpieler.elementAt(i));
@@ -191,7 +191,7 @@ public class NeuesSpiel extends JFrame implements ActionListener
             }
 		}
 		);
-		this.buttonZurueck = new JButton("Zurück zum Menü");
+		this.buttonZurueck = new JButton("Zurï¿½ck zum Menï¿½");
 		this.buttonZurueck.addActionListener(this);
 		this.buttonZurueck.addKeyListener(new KeyAdapter()
 		{
@@ -275,9 +275,9 @@ public class NeuesSpiel extends JFrame implements ActionListener
 		{
 			spielVariante = 1;
 		}
-		SuperRisikolandGui.logText = ""; // Logtext wird bei neuem Spiel gelöscht
+		SuperRisikolandGui.logText = ""; // Logtext wird bei neuem Spiel gelï¿½scht
 		// Spielfeld wird erstellt
-		Spielfeld spiel = new Spielfeld(this.anzahlSpieler, spielVariante);
+		Spielfeld spiel = new Spielfeld(null, spielVariante);
 		for (int i = 0; i < this.spielernamen.length; i++)
 		{
 			if(this.spielernamen[i] != null)
@@ -285,7 +285,7 @@ public class NeuesSpiel extends JFrame implements ActionListener
 				spiel.spielerErstellen(i, this.spielernamen[i], this.color[i], this.colorChars[i]);
 			}
 		}
-		// Startländer werden verteilt
+		// Startlï¿½nder werden verteilt
 		spiel.startLaenderVerteilen();
 		// Missionen werden erstellt
 		if(spielVariante == 1)
@@ -308,7 +308,7 @@ public class NeuesSpiel extends JFrame implements ActionListener
 	
 	private void actionSpielerHinzufuegen(JTextField textField, JButton button)
 	{
-		if(button.getText() == "Ändern")
+		if(button.getText() == "ï¿½ndern")
 		{
 			for(int i=0; i < this.colorChars.length; i++)
 			{
@@ -337,7 +337,7 @@ public class NeuesSpiel extends JFrame implements ActionListener
 				}
 			}
 			textField.setEnabled(false);
-			button.setText("Ändern");
+			button.setText("ï¿½ndern");
 			this.anzahlSpieler++;
 			if(this.anzahlSpieler >= 2)
 			{
@@ -350,8 +350,8 @@ public class NeuesSpiel extends JFrame implements ActionListener
 			// Variablen
             String name = "";
            
-            // Panel für JDialog
-            // verändert den Dialog zu Textfeld mit Okay button
+            // Panel fï¿½r JDialog
+            // verï¿½ndert den Dialog zu Textfeld mit Okay button
             String[] options = {"OK"};
             JPanel panel = new JPanel();
             JLabel lbl = new JLabel("Spielername: ");
@@ -359,12 +359,12 @@ public class NeuesSpiel extends JFrame implements ActionListener
             panel.add(lbl);
             panel.add(txt);
    
-            // Dialog wiederholen bis vernünftiger Name angegeben wurde
+            // Dialog wiederholen bis vernï¿½nftiger Name angegeben wurde
             while( name.equals("")){
             	// JDialog mit entsprechendem panel starten
             	int selectedOption = JOptionPane.showOptionDialog(null, panel, "Bitte geben Sie einen Namen ein", JOptionPane.NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options , options[0]);
             	
-            	// wenn okay gedrückt wurde
+            	// wenn okay gedrï¿½ckt wurde
             	if(selectedOption == 0)
             	{
             		name = txt.getText();
@@ -379,7 +379,7 @@ public class NeuesSpiel extends JFrame implements ActionListener
 						}
 						textField.setText(name);
 						textField.setEnabled(false);
-						button.setText("Ändern");
+						button.setText("ï¿½ndern");
 						this.anzahlSpieler++;
             		}
             	}

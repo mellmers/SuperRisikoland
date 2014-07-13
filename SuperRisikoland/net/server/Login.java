@@ -119,7 +119,8 @@ public class Login extends JFrame implements ActionListener{
 		bg.add(this.radioButtonWelteroberung);
 		final JPanel spielVariante = new JPanel(new GridLayout(1, 2));
 		spielVariante.add(this.radioButtonWelteroberung);
-		spielVariante.add(this.radioButtonMissionen);		
+		spielVariante.add(this.radioButtonMissionen);
+		this.buttonNeuesSpiel.addActionListener(this);
 		
 		panelButtons.add(buttonNeuesSpiel);
 		panelButtons.add(buttonSpielLaden);
@@ -128,19 +129,28 @@ public class Login extends JFrame implements ActionListener{
 		login.add(panelButtons,BorderLayout.SOUTH);
 		login.add(this.panelSpielernamen, BorderLayout.NORTH);
 		login.setVisible(true);
-		final ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
+		/*final ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
 		service.scheduleWithFixedDelay(new Runnable()
 		{
 			public void run()
 			{
 				aktualisieren();
 			}
-		},0,1,TimeUnit.SECONDS);
+		},0,1,TimeUnit.SECONDS);*/
 	}
 	
-	public void Spielstart()
+	public void spielstart() throws RemoteException
 	{
-		
+		int spielVariante = 0;
+		if(this.radioButtonMissionen.isSelected())
+		{
+			spielVariante = 1;
+		}
+		if(this.radioButtonWelteroberung.isSelected())
+		{
+			spielVariante = 2;
+		}
+		server.spielBeginnen(spielVariante);
 	}
 	
 	public void serverErstellen() throws RemoteException
@@ -192,6 +202,15 @@ public class Login extends JFrame implements ActionListener{
 					System.out.println("Fehler");
 				}
 			}		
+		}
+		if(e.getSource().equals(this.buttonNeuesSpiel))
+		{
+			try {
+				this.spielstart();
+			} catch (RemoteException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 		}
 	}
 

@@ -12,6 +12,7 @@ public class SuperRisikolandCui
         int spielVariante;
         Spieler aktuellerSpieler;
         int aktuellerSpielerId;
+        Vector<Spieler> alleSpieler = new Vector<Spieler>();
         // vTest
         // Benutzereingabe: Anzahl der Spieler
 		
@@ -31,14 +32,16 @@ public class SuperRisikolandCui
         spielVariante = IO.readInt();
  
 		// erzeugt Spielfeld
-		Spielfeld spiel = new Spielfeld(anzahlSpieler, spielVariante);
+		
 
         // Benutzereingabe: Namen jedes Spielers
         for(int i = 0; i < anzahlSpieler; i++) 
         {
         	IO.println("Wie ist der Name des " + (i+1) + " Spielers?");
-        	spiel.spielerErstellen(i, IO.readString(), null, null);
+        	Spieler spieler = new Spieler(i, IO.readString(), null, null);
+        	alleSpieler.add(spieler);
         }
+        Spielfeld spiel = new Spielfeld( alleSpieler, spielVariante);
         
         // Missionen generieren, wenn Spielvariante 1 gewaehlt wurde
         if(spielVariante == 1){
