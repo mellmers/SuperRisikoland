@@ -57,7 +57,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface, Seri
 			ClientInterface client = (ClientInterface) registry.lookup(name);
 			this.clients.add(client);
 			
-			System.out.println("Spieler: " + client.getSpielername() + " erstellt");
+			System.out.println("Client " + client.getSpielername() + " ist beigetreten.");
 			
 		}
 		else
@@ -78,14 +78,25 @@ public class Server extends UnicastRemoteObject implements ServerInterface, Seri
 		if(!this.spieler.contains((Spieler) spieler))
 		{
 			this.spieler.add((Spieler) spieler);
-			System.out.println(this.spieler.elementAt(0).getName());
+			System.out.println("Spieler " + this.spieler.elementAt(0).getName() + " hat seinen Charakter ausgewaehlt.");
 		}
+	}
+	
+	public ClientInterface getClient(int index)
+	{
+		return this.clients.elementAt(index);
 	}
 	
 	public Spieler getSpieler(int index)
 	{
 		return this.spieler.elementAt(index);
 	}
+	
+	public int getAlleClients()
+	{
+		return this.clients.size();
+	}
+	
 	public int getAlleSpielerAnzahl()
 	{
 		return this.spieler.size();

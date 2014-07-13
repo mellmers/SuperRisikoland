@@ -319,8 +319,7 @@ public class SpielBeitreten extends JFrame implements ActionListener, Serializab
 		registry.rebind(textfieldName.getText(), client);
 		server.addClient(textfieldName.getText(),(int)port.getValue());
 		this.dispose();
-		initializeSpielBeitreten();
-		
+		initializeSpielBeitreten();	
 	}
 	
 	public static void main(String[] args) throws AlreadyBoundException, NotBoundException, IOException, MaximaleSpielerZahlErreichtException{
