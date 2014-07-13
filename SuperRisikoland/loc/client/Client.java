@@ -37,12 +37,14 @@ import gui.Spielstart;
 import gui.SuperRisikolandGui;
 import inf.ServerInterface;
 import inf.ClientInterface;
+import inf.SpielerInterface;
 
 public class Client extends UnicastRemoteObject implements ClientInterface, Serializable
 {
 	
 	private String spielername;
 	ServerInterface server;
+	SuperRisikolandGui gui;
 	
 	public Client(ServerInterface server, String name, int port, String servername) throws RemoteException
 	{
@@ -55,5 +57,10 @@ public class Client extends UnicastRemoteObject implements ClientInterface, Seri
 
 	public String getSpielername() {
 		return spielername;
-	}	
+	}
+	
+	public void neuesSpielStarten(SpielerInterface spieler) throws RemoteException
+	{
+		gui = new SuperRisikolandGui(server, (Spieler) spieler, false);
+	}
 }

@@ -1,6 +1,7 @@
 package gui;
 
-import inf.RemoteInterface;
+import inf.SpielfeldInterface;
+import inf.ServerInterface;
 import inf.SuperRisikoLandGuiInterface;
 
 import java.awt.AWTException;
@@ -84,7 +85,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 	public static int verbleibendeZeit = 30;
 	private JLabel labelVerbleibendeZeit = new JLabel("verbleibende Zeit: " + verbleibendeZeit, SwingConstants.CENTER);
 	private JButton buttonPhaseBeenden = new JButton("Phase Beenden");
-	final private JLabel[] labelArrayKontinente = {new JLabel("Nord-Amerika (5 Einheiten):", SwingConstants.RIGHT), new JLabel("S�d-Amerika (2 Einheiten):", SwingConstants.RIGHT), new JLabel("Europa (5 Einheiten):", SwingConstants.RIGHT), new JLabel("Afrika (3 Einheiten):", SwingConstants.RIGHT), new JLabel("Asien (7 Einheiten):", SwingConstants.RIGHT), new JLabel("Australien (2 Einheiten):", SwingConstants.RIGHT)};
+	final private JLabel[] labelArrayKontinente = {new JLabel("Nord-Amerika (5 Einheiten):", SwingConstants.RIGHT), new JLabel("S���d-Amerika (2 Einheiten):", SwingConstants.RIGHT), new JLabel("Europa (5 Einheiten):", SwingConstants.RIGHT), new JLabel("Afrika (3 Einheiten):", SwingConstants.RIGHT), new JLabel("Asien (7 Einheiten):", SwingConstants.RIGHT), new JLabel("Australien (2 Einheiten):", SwingConstants.RIGHT)};
 	private JLabel[] labelArrayKontinenteBesitzer = {new JLabel("kein Besitzer", SwingConstants.CENTER), new JLabel("kein Besitzer", SwingConstants.CENTER), new JLabel("kein Besitzer", SwingConstants.CENTER), new JLabel("kein Besitzer", SwingConstants.CENTER), new JLabel("kein Besitzer", SwingConstants.CENTER), new JLabel("kein Besitzer", SwingConstants.CENTER)};
 	
 	private JPanel panelCharAktuellerSpieler, panelEigenerChar, panelHandkarten;
@@ -97,15 +98,15 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 	private JLabel labelCharAktuellerSpieler = new JLabel(""), labelEigenerChar = new JLabel("");
 	
 	private Spieler aktuellerSpieler;
-	private RemoteInterface spiel;
+	private Spielfeld spiel;
 	
 	private transient Thread thSpielablauf;
 		
-	public SuperRisikolandGui(RemoteInterface spiel, Spieler aktSpieler, boolean geladen)  throws RemoteException
+	public SuperRisikolandGui(ServerInterface server, Spieler aktSpieler, boolean geladen)  throws RemoteException
 	{
 		super();
 		
-		this.spiel = spiel;
+		this.spiel = (Spielfeld) server.getSpiel();
 		this.aktuellerSpieler = aktSpieler;
 		//System.out.println("1");
 		
@@ -122,7 +123,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 			logTextArea.setText(logText);
 			//System.out.println("3");
 		}
-		// Bildschirmgr��e auslesen und Breite und H�he abspeichern
+		// Bildschirmgr������e auslesen und Breite und H���he abspeichern
 		this.screen = Toolkit.getDefaultToolkit().getScreenSize();
 		this.b = (int) screen.getWidth();
 		this.h = (int) screen.getHeight();
@@ -219,7 +220,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 			kontinente2.add(this.labelArrayKontinenteBesitzer[i]);
 		}
 		panelKontinenteTimer.add(kontinente2);
-		// panelMenu und panelKontinenteTimer zum Gesamt Nord Panel hinzuf�gen
+		// panelMenu und panelKontinenteTimer zum Gesamt Nord Panel hinzuf���gen
 		nord.add(panelMenu);
 		nord.add(panelKontinenteTimer);
 		
@@ -233,7 +234,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		this.panelCharAktuellerSpieler.setPreferredSize(new Dimension((int)bAktuellerChar, this.h/100*16));
 		sued.add(this.panelCharAktuellerSpieler);
 		
-		// Textarea f�r Log
+		// Textarea f���r Log
 		logTextArea.setEditable(false);
 		
 		// Log
@@ -370,7 +371,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 			// ImageIcon dem aktuellenSpieler und dem eigenenChar zuordnen
 			this.labelCharAktuellerSpieler.setIcon(this.aktuellerSpieler.getSpielerIcon());
 			this.labelEigenerChar.setIcon(this.aktuellerSpieler.getSpielerIcon());
-			// Label dem Panel hinzuf�gen
+			// Label dem Panel hinzuf���gen
 			this.panelCharAktuellerSpieler.add(this.labelCharAktuellerSpieler);
 			this.panelEigenerChar.add(this.labelEigenerChar);
 			// Handkarten hinzufuegen
@@ -391,12 +392,12 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 	public void speichern()
 	{
 		// SpeichernDialog erstellen
-		// Erstellung eines FileFilters f�r Spielst�nde	
-        FileFilter filter = new FileNameExtensionFilter("Risiko-Spielst�nde", "ser");    
+		// Erstellung eines FileFilters f���r Spielst���nde	
+        FileFilter filter = new FileNameExtensionFilter("Risiko-Spielst���nde", "ser");    
         JFileChooser speichern = new JFileChooser(new File(System.getProperty("user.home")));
-        // Filter wird dem JFileChooser hinzugef�gt
+        // Filter wird dem JFileChooser hinzugef���gt
         speichern.addChoosableFileFilter(filter);
-        // Nur Verzeichnisse ausw�hlbar
+        // Nur Verzeichnisse ausw���hlbar
         speichern.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         // Dialog zum Speichern von Dateien anzeigen
         int rueckgabeWert = speichern.showDialog(null, "Spielstand speichern");
@@ -432,11 +433,11 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		
 		public riskoMap()
 		{
-			// Slider f�r Truppenauswahl, etc erstellen
+			// Slider f���r Truppenauswahl, etc erstellen
 			JSlider sliderMap = new JSlider(SwingConstants.VERTICAL, 0, 10, 0);
 			sliderMap.setBounds(100, 200, 50, 200);
 			getContentPane().add(sliderMap);
-			// Label f�r Truppenst�rke, Besitzer und Name erstellen
+			// Label f���r Truppenst���rke, Besitzer und Name erstellen
 			JPanel panelLabelFuerLand = new JPanel(new GridLayout(3, 2));
 			panelLabelFuerLand.setBounds(b/100*3,h/100*68,450,150);
 			for (int i = 0; i < landBeschreibung.length; i++)
@@ -482,7 +483,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 					
 					/*logText += "\nX: " + x + " Y: " + y;
 					logText += "\nRot: " + aktuellerFarbcode.getRed();
-					logText += "\nGr�n: " + aktuellerFarbcode.getGreen();
+					logText += "\nGr���n: " + aktuellerFarbcode.getGreen();
 					logText += "\nBlau: " + aktuellerFarbcode.getBlue();*/
 					
 					// Farbcode abspeichern/abfragen welches Land es ist
@@ -625,11 +626,11 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 			
 			/*logText += "\nX: " + x + " Y: " + y;
 			logText += "\nRot: " + aktuellerFarbcode.getRed();
-			logText += "\nGr�n: " + aktuellerFarbcode.getGreen();
+			logText += "\nGr���n: " + aktuellerFarbcode.getGreen();
 			logText += "\nBlau: " + aktuellerFarbcode.getBlue();*/
 			
 			// Tooltip Einstellungen
-			ToolTipManager.sharedInstance().setInitialDelay(500); // 0,5 Sekunden Verz�gerung bis Tooltip angezeigt wird
+			ToolTipManager.sharedInstance().setInitialDelay(500); // 0,5 Sekunden Verz���gerung bis Tooltip angezeigt wird
 			
 			// Farbcode abspeichern/abfragen welches Land es ist und Tooltip setzen
 			if(aktuellerFarbcode.getRed() == 10){

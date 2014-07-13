@@ -296,7 +296,7 @@ public class NeuesSpiel extends JFrame implements ActionListener
 		int rndZahl = (int) (Math.random()*this.anzahlSpieler); // Randomzahl zwischen 0 und der Spieleranzahl
 		Spieler aktuellerSpieler = spiel.getSpieler(rndZahl);
 		// Gui wird aufgerufen
-		new SuperRisikolandGui(spiel, aktuellerSpieler, false);
+		//new SuperRisikolandGui(spiel, aktuellerSpieler, false);
 		dispose();
 	}
 	

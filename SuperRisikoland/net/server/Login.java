@@ -1,5 +1,5 @@
 package server;
-import inf.RemoteInterface;
+import inf.SpielfeldInterface;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -110,6 +110,7 @@ public class Login extends JFrame implements ActionListener{
 		spielVariante.add(this.radioButtonWelteroberung);
 		spielVariante.add(this.radioButtonMissionen);
 		this.buttonNeuesSpiel.addActionListener(this);
+		this.buttonNeuesSpiel.setEnabled(false);
 		
 		panelButtons.add(buttonNeuesSpiel);
 		panelButtons.add(buttonSpielLaden);
@@ -151,6 +152,10 @@ public class Login extends JFrame implements ActionListener{
 					this.labelMitspieler[i].setText("Spieler " + server.getClient(i).getSpielername() + " beigetreten und hat die Farbe " + server.getSpieler(j).getSpielerfarbe());
 				}
 			}
+			if(server.getAlleSpielerAnzahl() >= 2)
+			{
+				this.buttonNeuesSpiel.setEnabled(true);
+			}
 		}
 
 	
@@ -168,6 +173,21 @@ public class Login extends JFrame implements ActionListener{
 			spielVariante = 2;
 		}
 		server.spielBeginnen(spielVariante);
+		for(int i = 0; i < server.getAlleClients(); i++)
+		{
+			server.getClient(i).neuesSpielStarten(this.getPassendenSpieler(i));
+		}
+	}
+	public Spieler getPassendenSpieler(int i) throws RemoteException
+	{
+		for(int j = 0 ; j < server.getAlleSpielerAnzahl(); j++)
+		{
+			if(server.getClient(i).getSpielername().equals(server.getSpieler(j).getName()))
+			{
+				return server.getSpieler(j); 
+			}
+		}
+		return null;
 	}
 
 	public void serverErstellen() throws RemoteException

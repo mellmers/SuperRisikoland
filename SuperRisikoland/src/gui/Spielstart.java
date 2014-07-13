@@ -138,17 +138,17 @@ public class Spielstart extends JFrame implements ActionListener
 	private void spielLaden()
 	{
 		// LadenDialog erstellen
-		// Erstellung eines FileFilters für Spielstände	
-        FileFilter filter = new FileNameExtensionFilter("Risiko-Spielstände", "ser");         
+		// Erstellung eines FileFilters fï¿½r Spielstï¿½nde	
+        FileFilter filter = new FileNameExtensionFilter("Risiko-Spielstï¿½nde", "ser");         
         JFileChooser laden = new JFileChooser(new File(System.getProperty("user.home")));
-        // Filter wird dem JFileChooser hinzugefügt
+        // Filter wird dem JFileChooser hinzugefï¿½gt
         laden.addChoosableFileFilter(filter);
-        // Nur Dateien auswählbar
+        // Nur Dateien auswï¿½hlbar
         laden.setFileSelectionMode(JFileChooser.FILES_ONLY);
         // Dialog zum Oeffnen von Dateien anzeigen
         int rueckgabeWert = laden.showDialog(null, "Spielstand laden");
         
-        // Abfrage, ob auf "Öffnen" geklickt wurde
+        // Abfrage, ob auf "ï¿½ffnen" geklickt wurde
         if(rueckgabeWert == JFileChooser.APPROVE_OPTION)
         {
 	    	File spielstand = laden.getSelectedFile();
@@ -159,10 +159,10 @@ public class Spielstart extends JFrame implements ActionListener
 	    		Spielfeld spiel = (Spielfeld) ois.readObject();
 	    		// aktuellen Spieler laden
 	    		Spieler aktuellerSpieler = (Spieler) ois.readObject();
-	    		// Überprüfung und Ausgabe der ausgewählten Datei
+	    		// ï¿½berprï¿½fung und Ausgabe der ausgewï¿½hlten Datei
 	    		SuperRisikolandGui.logText = "Spielstand " + laden.getSelectedFile().getName() +" wurde erfolgreich geladen!";
 	    		// Gui erstellen		
-	    		new SuperRisikolandGui(spiel, aktuellerSpieler, true);
+	    		//new SuperRisikolandGui(spiel, aktuellerSpieler, true);
 	    		if(this.altesFrame != null)
 	    		{
 	    			this.altesFrame.dispose();

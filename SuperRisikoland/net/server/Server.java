@@ -107,4 +107,8 @@ public class Server extends UnicastRemoteObject implements ServerInterface, Seri
 		spiel = new Spielfeld(this.spieler, spielVariante);
 	}
 
+	public Spielfeld getSpiel() throws RemoteException
+	{
+		return this.spiel;
+	}
 }

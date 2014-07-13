@@ -3,7 +3,7 @@ package cui;
 
 import exc.MaximaleSpielerZahlErreichtException;
 import gui.SuperRisikolandGui;
-import inf.RemoteInterface;
+import inf.SpielfeldInterface;
 import inf.SuperRisikoLandGuiInterface;
 
 import java.awt.Color;
@@ -17,7 +17,7 @@ import java.util.Vector;
 
 import javax.swing.JOptionPane;
 
-public class Spielfeld extends UnicastRemoteObject implements RemoteInterface, Serializable
+public class Spielfeld extends UnicastRemoteObject implements SpielfeldInterface, Serializable
 {
 	private int spielvariante;
 	
