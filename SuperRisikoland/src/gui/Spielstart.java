@@ -160,7 +160,7 @@ public class Spielstart extends JFrame implements ActionListener
 	    		// aktuellen Spieler laden
 	    		Spieler aktuellerSpieler = (Spieler) ois.readObject();
 	    		// �berpr�fung und Ausgabe der ausgew�hlten Datei
-	    		SuperRisikolandGui.logText = "Spielstand " + laden.getSelectedFile().getName() +" wurde erfolgreich geladen!";
+	    		//SuperRisikolandGui.logText = "Spielstand " + laden.getSelectedFile().getName() +" wurde erfolgreich geladen!";
 	    		// Gui erstellen		
 	    		//new SuperRisikolandGui(spiel, aktuellerSpieler, true);
 	    		if(this.altesFrame != null)
@@ -170,16 +170,16 @@ public class Spielstart extends JFrame implements ActionListener
 	    		this.dispose();
 	    	} catch (FileNotFoundException e1)
 			{
-				SuperRisikolandGui.logText += "\n" + e1.getMessage();
+				//SuperRisikolandGui.logText += "\n" + e1.getMessage();
 			} catch (IOException e1)
 			{
-				SuperRisikolandGui.logText += "\n" + e1.getMessage();
+				//SuperRisikolandGui.logText += "\n" + e1.getMessage();
 			} catch (ClassNotFoundException e1)
 			{
-				SuperRisikolandGui.logText += "\n" + e1.getMessage();
+				//SuperRisikolandGui.logText += "\n" + e1.getMessage();
 			}
 	    	// Logtext in TextArea schreiben
-	        SuperRisikolandGui.logTextArea.setText(SuperRisikolandGui.logText);
+	        //SuperRisikolandGui.logTextArea.setText(SuperRisikolandGui.logText);
 		}
 	}
 }

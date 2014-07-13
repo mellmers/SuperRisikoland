@@ -1,6 +1,7 @@
 package cui;
 
 import inf.LandInterface;
+import inf.SpielerInterface;
 
 import java.awt.Color;
 import java.io.Serializable;

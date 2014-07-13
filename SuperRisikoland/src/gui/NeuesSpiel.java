@@ -275,9 +275,8 @@ public class NeuesSpiel extends JFrame implements ActionListener
 		{
 			spielVariante = 1;
 		}
-		SuperRisikolandGui.logText = ""; // Logtext wird bei neuem Spiel gel�scht
 		// Spielfeld wird erstellt
-		Spielfeld spiel = new Spielfeld(null, spielVariante);
+		Spielfeld spiel = new Spielfeld(null, null, spielVariante);
 		for (int i = 0; i < this.spielernamen.length; i++)
 		{
 			if(this.spielernamen[i] != null)
@@ -285,7 +284,7 @@ public class NeuesSpiel extends JFrame implements ActionListener
 				spiel.spielerErstellen(i, this.spielernamen[i], this.color[i], this.colorChars[i]);
 			}
 		}
-		// Startl�nder werden verteilt
+		// Startlaender werden verteilt
 		spiel.startLaenderVerteilen();
 		// Missionen werden erstellt
 		if(spielVariante == 1)

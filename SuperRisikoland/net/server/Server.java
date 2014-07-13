@@ -12,9 +12,11 @@ import javax.swing.JOptionPane;
 
 import cui.Spieler;
 import cui.Spielfeld;
+import gui.SuperRisikolandGui;
 import inf.ServerInterface;
 import inf.ClientInterface;
 import inf.SpielerInterface;
+import inf.SpielfeldInterface;
 
 public class Server extends UnicastRemoteObject implements ServerInterface, Serializable
 {
@@ -29,7 +31,9 @@ public class Server extends UnicastRemoteObject implements ServerInterface, Seri
 	private String servername;
 	Spielfeld spiel;
 	private int spielVariante;
-	
+	// Ausgelagerte Variablen
+	private SpielerInterface aktuellerSpieler;
+	private String logText = "Server gestartet.";
 	
 	protected Server() throws RemoteException
 	{
@@ -68,7 +72,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface, Seri
 		return this.clients.elementAt(index);
 	}
 	
-	public Spieler getSpieler(int index)
+	public SpielerInterface getSpieler(int index)
 	{
 		return this.spieler.elementAt(index);
 	}
@@ -85,11 +89,30 @@ public class Server extends UnicastRemoteObject implements ServerInterface, Seri
 	}
 	public void spielBeginnen(int spielVariante) throws RemoteException
 	{
-		spiel = new Spielfeld(this.spieler, spielVariante);
+		// aktuellerSpieler wird Random festgelegt
+		int rndZahl = (int) (Math.random()*this.spieler.size()); // Randomzahl zwischen 0 und der Spieleranzahl
+		aktuellerSpieler = this.getSpieler(rndZahl);
+		spiel = new Spielfeld(this, this.spieler, spielVariante);
+		setLogText(aktuellerSpieler.getName() + " ist nun an der Reihe.");
 	}
 
-	public Spielfeld getSpiel() throws RemoteException
+	public SpielfeldInterface getSpielfeldInterface() throws RemoteException
 	{
-		return this.spiel;
+		return (SpielfeldInterface) this.spiel;
+	}
+	
+	public SpielerInterface getAktuellerSpieler()
+	{
+		return this.aktuellerSpieler;
+	}
+	
+	public void setLogText(String logText) throws RemoteException
+	{
+		this.logText += "\n" + logText;
+	}
+	
+	public String getLogText() throws RemoteException
+	{
+		return this.logText;
 	}
 }

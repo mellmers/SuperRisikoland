@@ -3,6 +3,7 @@ package cui;
 
 import exc.MaximaleSpielerZahlErreichtException;
 import gui.SuperRisikolandGui;
+import inf.ServerInterface;
 import inf.SpielfeldInterface;
 import inf.SuperRisikoLandGuiInterface;
 
@@ -12,10 +13,11 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.rmi.server.UnicastRemoteObject;
 import java.util.Vector;
 
 import javax.swing.JOptionPane;
+
+import server.Server;
 
 public class Spielfeld implements SpielfeldInterface, Serializable
 {
@@ -32,21 +34,32 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 	private int zusatzEinheitenSerie = 4;
 	private Vector<SuperRisikoLandGuiInterface> clients = new Vector<SuperRisikoLandGuiInterface>();
 	
-	public Spielfeld(Vector<Spieler> alleSpieler, int spielVariante) throws RemoteException 
+	private ServerInterface server;
+	
+	public Spielfeld(ServerInterface server, Vector<Spieler> alleSpieler, int spielVariante) throws RemoteException
 	{
+		this.server = server;
 		this.spieler = alleSpieler;
 		this.anzahlSpieler = this.spieler.size();
 		this.setSpielvariante(spielVariante);
 		
-		this.kontinenteEinlesen();
-			
-		this.laenderEinlesen();
-			
-		this.nachbarnVerteilen();
-		
-		SuperRisikolandGui.logText += "Spielfeld mit " + anzahlSpieler + " Spielern und Spielvariante " + spielVariante + " erstellt.";
-		SuperRisikolandGui.logTextArea.setText(SuperRisikolandGui.logText);
+		server.setLogText("Spielfeld mit " + this.anzahlSpieler + " Spielern und Spielvariante " + spielVariante + " erstellt.");
 		IO.println("Spielfeld mit " + anzahlSpieler + " Spielern und Spielvariante " + spielVariante + " erstellt.");
+
+		this.kontinenteEinlesen();
+
+		this.laenderEinlesen();
+
+		this.nachbarnVerteilen();
+
+		// Startlaender werden verteilt
+		this.startLaenderVerteilen();
+
+		// Missionen werden erstellt
+		if(spielVariante == 1)
+		{
+			new Mission().missionenErstellen(this); // Missionen werden erstellt und im Spielerobjekt abgespeichert
+		}
 		// 14x Soldat, 14x Pferd, 14x Kanone  + 2 "Joker" (Pferd, Soldat oder Kanone)
 	}
 	
@@ -400,7 +413,8 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 	public void getStartKarte(Spieler s) 
 	{
 		int i;
-		do{
+		do
+		{
 			i = (int) (Math.random()*42);
 		}while(this.ausgeteilteKarten.contains(laender[i]));
 		this.ausgeteilteKarten.add(laender[i]);
@@ -729,15 +743,14 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 		return 0;
 	}
 
-	public void neueArmeen(Spieler aktuellerSpieler, boolean gui, int landId, int einheiten)
+	public void neueArmeen(Spieler aktuellerSpieler, boolean gui, int landId, int einheiten) throws RemoteException
 		{	
 			aktuellerSpieler.handkartenAusgeben();
 			
 			int zwischenSpeicherZusatzTruppenSerie = 0;
 			if(aktuellerSpieler.getAnzahlHandkarten() == 5)
 			{
-				SuperRisikolandGui.logText += "\n" + aktuellerSpieler.getName() + " muss seine Handkarten einsetzen und eine Serie einl�sen!";
-				SuperRisikolandGui.logTextArea.setText(SuperRisikolandGui.logText);
+				server.setLogText(aktuellerSpieler.getName() + " muss seine Handkarten einsetzen und eine Serie einloesen!");
 				IO.println(aktuellerSpieler.getName() + " muss seine Handkarten einsetzen und eine Serie einl�sen!");
 				zwischenSpeicherZusatzTruppenSerie = this.serieEinsetzen(aktuellerSpieler);
 			}
@@ -767,8 +780,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 			
 			while (zuVerteilendeEinheiten > 0)
 			{
-				SuperRisikolandGui.logText += "\n" + aktuellerSpieler.getName() + " muss " + zuVerteilendeEinheiten + " Einheiten verteilen.";
-				SuperRisikolandGui.logTextArea.setText(SuperRisikolandGui.logText);
+				server.setLogText(aktuellerSpieler.getName() + " muss " + zuVerteilendeEinheiten + " Einheiten verteilen.");
 		    	IO.println(aktuellerSpieler.getName() + " muss nun " + zuVerteilendeEinheiten + " Einheiten verteilen.\n"
 		    			+ "Geben Sie die ID Ihres Landes ein, in dem Einheiten stationiert werden sollen.");
 		    	
@@ -792,13 +804,11 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 		    	{
 		    		if(landId == 0)
 		    		{
-		    			SuperRisikolandGui.logText += "\nDu musst ein Land ausw�hlen und dann best�tigen!";
-						SuperRisikolandGui.logTextArea.setText(SuperRisikolandGui.logText);
+		    			server.setLogText("Du musst ein Land ausw�hlen und dann bestaetigen!");
 		    		}
 		    		else if(einheiten == 0)
 		    		{
-		    			SuperRisikolandGui.logText += "\nDu musst mindestens eine Einheit auswaehlen und dann best�tigen!";
-						SuperRisikolandGui.logTextArea.setText(SuperRisikolandGui.logText);
+		    			server.setLogText("Du musst mindestens eine Einheit auswaehlen und dann bestaetigen!");
 		    		}
 		    	}
 		        if(aktuellerSpieler.meinLand(this.laender[landId])) // else-Zweig ist in der Funktion definiert, falls false zurueck kommt
@@ -806,9 +816,13 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 		        	this.laender[landId].setTruppenstaerke(einheiten);
 			       	zuVerteilendeEinheiten -= einheiten;
 			       	IO.println(this.laender[landId].getTruppenstaerke() + " Einheiten auf " + this.laender[landId].getName());
-			       	SuperRisikolandGui.logText += "\n" + this.laender[landId].getTruppenstaerke() + " Einheiten auf " + this.laender[landId].getName();
-					SuperRisikolandGui.logTextArea.setText(SuperRisikolandGui.logText);
+			       	server.setLogText(this.laender[landId].getTruppenstaerke() + " Einheiten auf " + this.laender[landId].getName());
 		    	}
+		        else
+		        {
+		        	server.setLogText("Dieses Land gehoert dir nicht!");
+		    		IO.println("Dieses Land gehoert dir nicht!");
+		        }
 	    	}
 		}
 	
@@ -872,9 +886,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 			// evtl Client individualisieren
 			SuperRisikoLandGuiInterface remote = (SuperRisikoLandGuiInterface) registry.lookup(name);
 			clients.add(remote);
-			System.out.println("Spieler: " + name + " erstellt");
-			
-			
+			System.out.println("Spieler: " + name + " erstellt");	
 		}
 		else
 		{
@@ -885,5 +897,10 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 	public SuperRisikolandGui getClient(int spielerId)
 	{
 		return (SuperRisikolandGui) this.clients.elementAt(spielerId);
+	}
+	
+	public ServerInterface getServer()
+	{
+		return this.server;
 	}
 }

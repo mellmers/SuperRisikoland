@@ -1,6 +1,8 @@
 package client;
 
+import inf.ClientInterface;
 import inf.ServerInterface;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
@@ -37,12 +39,13 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 
 import cui.Spieler;
+import cui.Spielfeld;
 import exc.MaximaleSpielerZahlErreichtException;
 
 public class SpielBeitreten extends JFrame implements ActionListener, Serializable
 {
 	ServerInterface server;
-	Client client;
+	ClientInterface client;
 	
 	private JButton buttonVerbinden= new JButton("Verbinden");
 	private JTextField textfieldName = new JTextField(), textfieldServer = new JTextField();

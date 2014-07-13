@@ -61,7 +61,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface, Seri
 	
 	public void neuesSpielStarten(SpielerInterface spieler) throws RemoteException
 	{
-		gui = new SuperRisikolandGui(server, (Spieler) spieler, false);
+		gui = new SuperRisikolandGui(server, (Spieler) server.getAktuellerSpieler(), (Spieler) spieler, false);
 	}
 	public boolean istGuiGestartet()
 	{

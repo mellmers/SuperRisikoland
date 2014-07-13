@@ -25,8 +25,6 @@ public class Spieler implements Serializable, SpielerInterface
 		this.name = spielername;
 		this.spielerfarbe = spielerfarbe;
 		this.spielerID = spielerID;
-		SuperRisikolandGui.logText += "\nSpieler " + this.name + " mit der Farbe " + this.spielerfarbe +" und mit SpielerID " + spielerID + " wurde erstellt.";
-		SuperRisikolandGui.logTextArea.setText(SuperRisikolandGui.logText);
 		IO.println("Spieler " + this.name + " mit der Farbe " + this.spielerfarbe +" und mit SpielerID " + spielerID + " wurde erstellt.");
 		this.colorSpieler = c;
 	}
@@ -82,9 +80,6 @@ public class Spieler implements Serializable, SpielerInterface
 		{
 			return true;
 		}
-		SuperRisikolandGui.logText += "\nDieses Land geh�rt dir nicht!";
-		SuperRisikolandGui.logTextArea.setText(SuperRisikolandGui.logText);
-		IO.println("Dieses Land geh�rt dir nicht!");
 		return false;
 	}
 	

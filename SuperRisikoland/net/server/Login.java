@@ -1,4 +1,7 @@
 package server;
+import inf.ServerInterface;
+import inf.SpielerInterface;
+
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -42,7 +45,7 @@ public class Login extends JFrame implements ActionListener{
 	private JButton buttonNeuesSpiel = new JButton("Neues Spiel");
 	private JButton buttonSpielLaden = new JButton("Spiel laden");
 	private JRadioButton radioButtonWelteroberung = new JRadioButton("Welteroberung"), radioButtonMissionen = new JRadioButton("Missionen");
-	Server server;
+	ServerInterface server;
 	private JLabel[] labelMitspieler = {new JLabel(),new JLabel(),new JLabel(),new JLabel(),new JLabel(),new JLabel()};
 	
 	public Login()
@@ -152,7 +155,6 @@ public class Login extends JFrame implements ActionListener{
 			}
 			for(int j = 0 ; j < server.getAlleSpielerAnzahl(); j++)
 			{
-				//if(server.getClient(i).getSpielername() == server.getSpieler(j).getName())	
 				if(server.getClient(i).getSpielername().equals(server.getSpieler(j).getName()))	
 				{
 					this.labelMitspieler[i].setText("Spieler " + server.getClient(i).getSpielername() + " beigetreten und hat die Farbe " + server.getSpieler(j).getSpielerfarbe());
@@ -182,9 +184,10 @@ public class Login extends JFrame implements ActionListener{
 		for(int i = 0; i < server.getAlleClients(); i++)
 		{
 			server.getClient(i).neuesSpielStarten(this.getPassendenSpieler(i));
+			server.setLogText("Spieler " + server.getSpieler(i).getName() + " mit der Farbe " + server.getSpieler(i).getSpielerfarbe() +" und mit SpielerID " + server.getSpieler(i).getSpielerID() + " wurde erstellt.");
 		}
 	}
-	public Spieler getPassendenSpieler(int i) throws RemoteException
+	public SpielerInterface getPassendenSpieler(int i) throws RemoteException
 	{
 		for(int j = 0 ; j < server.getAlleSpielerAnzahl(); j++)
 		{

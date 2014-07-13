@@ -41,7 +41,7 @@ public class SuperRisikolandCui
         	Spieler spieler = new Spieler(i, IO.readString(), null, null);
         	alleSpieler.add(spieler);
         }
-        Spielfeld spiel = new Spielfeld( alleSpieler, spielVariante);
+        Spielfeld spiel = new Spielfeld(null, alleSpieler, spielVariante);
         
         // Missionen generieren, wenn Spielvariante 1 gewaehlt wurde
         if(spielVariante == 1){

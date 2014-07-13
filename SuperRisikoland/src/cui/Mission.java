@@ -1,8 +1,7 @@
 package cui;
 
-import gui.SuperRisikolandGui;
-
 import java.io.Serializable;
+import java.rmi.RemoteException;
 import java.util.Vector;
 
 public class Mission implements Serializable
@@ -15,7 +14,7 @@ public class Mission implements Serializable
 		
 	}
 	
-	public Vector<Mission> missionenErstellen(Spielfeld spiel)
+	public Vector<Mission> missionenErstellen(Spielfeld spiel) throws RemoteException
 	{
 		Vector<Mission> missionen = new Vector<Mission>();
 		missionen.add(new AnzahlLaenderErobernMission(24));
@@ -43,8 +42,7 @@ public class Mission implements Serializable
   		}
   		
   		IO.println("Missionen wurden generiert.");
-  		SuperRisikolandGui.logText += "\nMissionen wurden generiert.";
-  		SuperRisikolandGui.logTextArea.setText(SuperRisikolandGui.logText);
+  		spiel.getServer().setLogText("Missionen wurden generiert.");
   		for(int i = 0 ; i < spiel.getAnzahlSpieler() ; i++)
     	{
     		IO.println(spiel.getSpieler(i).getName() + "'s Mission:  " + spiel.getSpieler(i).getMission().getAufgabenText());

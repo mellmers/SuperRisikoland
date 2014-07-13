@@ -1,6 +1,7 @@
 package gui;
 
 import inf.ServerInterface;
+import inf.SpielfeldInterface;
 import inf.SuperRisikoLandGuiInterface;
 
 import java.awt.BorderLayout;
@@ -29,6 +30,10 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.rmi.RemoteException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 import javax.imageio.IIOException;
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
@@ -48,6 +53,7 @@ import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
+
 import gui.Spielstart;
 import cui.Land;
 import cui.Spieler;
@@ -63,9 +69,9 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 	private Dimension screen;
 	private int b, h;
 	
-	public static JTextArea logTextArea = new JTextArea();
+	private String logTextGui = "";
+	private JTextArea logTextArea = new JTextArea();
 	public static Color aktuellerFarbcode =  new Color(0,0,0);
-	public static String logText = "";
 	public static JLabel labelStatus = new JLabel("KEIN STATUS", SwingConstants.CENTER);
 	private JButton buttonSpeichern = new JButton("Speichern");
 	private JButton buttonLaden = new JButton("neues Spiel/Laden");
@@ -73,7 +79,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 	public static int verbleibendeZeit = 30;
 	private JLabel labelVerbleibendeZeit = new JLabel("verbleibende Zeit: " + verbleibendeZeit, SwingConstants.CENTER);
 	private JButton buttonPhaseBeenden = new JButton("Phase Beenden");
-	final private JLabel[] labelArrayKontinente = {new JLabel("Nord-Amerika (5 Einheiten):", SwingConstants.RIGHT), new JLabel("S���d-Amerika (2 Einheiten):", SwingConstants.RIGHT), new JLabel("Europa (5 Einheiten):", SwingConstants.RIGHT), new JLabel("Afrika (3 Einheiten):", SwingConstants.RIGHT), new JLabel("Asien (7 Einheiten):", SwingConstants.RIGHT), new JLabel("Australien (2 Einheiten):", SwingConstants.RIGHT)};
+	final private JLabel[] labelArrayKontinente = {new JLabel("Nord-Amerika (5 Einheiten):", SwingConstants.RIGHT), new JLabel("Sued-Amerika (2 Einheiten):", SwingConstants.RIGHT), new JLabel("Europa (5 Einheiten):", SwingConstants.RIGHT), new JLabel("Afrika (3 Einheiten):", SwingConstants.RIGHT), new JLabel("Asien (7 Einheiten):", SwingConstants.RIGHT), new JLabel("Australien (2 Einheiten):", SwingConstants.RIGHT)};
 	private JLabel[] labelArrayKontinenteBesitzer = {new JLabel("kein Besitzer", SwingConstants.CENTER), new JLabel("kein Besitzer", SwingConstants.CENTER), new JLabel("kein Besitzer", SwingConstants.CENTER), new JLabel("kein Besitzer", SwingConstants.CENTER), new JLabel("kein Besitzer", SwingConstants.CENTER), new JLabel("kein Besitzer", SwingConstants.CENTER)};
 	
 	private JPanel panelCharAktuellerSpieler, panelEigenerChar, panelHandkarten;
@@ -85,42 +91,37 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 	private ImageIcon[] iiCharakter = {null,null,null,null,null,null};
 	private JLabel labelCharAktuellerSpieler = new JLabel(""), labelEigenerChar = new JLabel("");
 	
-	private Spieler aktuellerSpieler;
-	private Spielfeld spiel;
-	
-	private transient Thread thSpielablauf;
+	private Spieler aktuellerSpieler, eigenerSpieler;
+	private ServerInterface server;
+	private SpielfeldInterface spiel;
 		
-	public SuperRisikolandGui(ServerInterface server, Spieler aktSpieler, boolean geladen)  throws RemoteException
+	public SuperRisikolandGui(ServerInterface server, Spieler aktSpieler, Spieler eigenerSpieler, boolean geladen)  throws RemoteException
 	{
 		super();
 		
-		this.spiel = (Spielfeld) server.getSpiel();
+		this.server = server;
+		this.spiel = server.getSpielfeldInterface();
 		this.aktuellerSpieler = aktSpieler;
-		//System.out.println("1");
+		this.eigenerSpieler = eigenerSpieler;
 		
 		if(geladen)
 		{
 			// alle Spieler + Spielvariante ausgeben, wenn aus Spielstand geladen wurde
-			logText += "\nSpielfeld mit " + spiel.getAnzahlSpieler() + " Spielern und Spielvariante " + spiel.getSpielvariante() + " geladen.";
+			server.setLogText("Spielfeld mit " + spiel.getAnzahlSpieler() + " Spielern und Spielvariante " + spiel.getSpielvariante() + " geladen.");
 			for (int i = 0; i < spiel.getAnzahlSpieler(); i++)
 			{
 				Spieler s = (Spieler) spiel.getSpieler(i);
-				logText += "\nSpieler " + s.getName() + " mit der Farbe " + s.getSpielerfarbe() +" und mit SpielerID " + s.getSpielerID() + " wurde geladen.";
+				server.setLogText("Spieler " + s.getName() + " mit der Farbe " + s.getSpielerfarbe() +" und mit SpielerID " + s.getSpielerID() + " wurde geladen.");
 			}
-			//System.out.println("2");
-			logTextArea.setText(logText);
-			//System.out.println("3");
 		}
-		// Bildschirmgr������e auslesen und Breite und H���he abspeichern
+		// Bildschirmgroesse auslesen und Breite und Hoehe abspeichern
 		this.screen = Toolkit.getDefaultToolkit().getScreenSize();
 		this.b = (int) screen.getWidth();
 		this.h = (int) screen.getHeight();
 		initialize();
-		//this.thSpielablauf = new Thread(new Spielablauf(this.aktuellerSpieler, this.spiel));
-		//this.thSpielablauf.start();
 	}
 	
-	private void initialize()
+	private void initialize() throws RemoteException
 	{	
 		this.panelCharAktuellerSpieler = new JPanel();
 		this.panelHandkarten = new JPanel(new GridLayout(1,5));
@@ -136,7 +137,14 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 				super.windowClosing(e);
 				int selectedOption = JOptionPane.showOptionDialog(null, "Willst du das Spiel speichern?", "Beenden", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE, null, new String[]{"Speichern", "Beenden", "Abbrechen"}, "Speichern");
 				if(selectedOption == 0){
-					speichern();
+					try
+					{
+						speichern();
+					} catch (RemoteException e1)
+					{
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
 				} 
 				else if(selectedOption == 1){
 					System.exit(0);
@@ -208,7 +216,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 			kontinente2.add(this.labelArrayKontinenteBesitzer[i]);
 		}
 		panelKontinenteTimer.add(kontinente2);
-		// panelMenu und panelKontinenteTimer zum Gesamt Nord Panel hinzuf���gen
+		// panelMenu und panelKontinenteTimer zum Gesamt Nord Panel hinzufuegen
 		nord.add(panelMenu);
 		nord.add(panelKontinenteTimer);
 		
@@ -222,7 +230,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		this.panelCharAktuellerSpieler.setPreferredSize(new Dimension((int)bAktuellerChar, this.h/100*16));
 		sued.add(this.panelCharAktuellerSpieler);
 		
-		// Textarea f���r Log
+		// Textarea fuer Log
 		logTextArea.setEditable(false);
 		
 		// Log
@@ -250,13 +258,41 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		this.setExtendedState(JFrame.MAXIMIZED_BOTH);
 		this.setVisible(true);
 		this.setResizable(false);
+		
+		// Aktualsierung erstellen
+		final ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
+		service.scheduleWithFixedDelay(new Runnable()
+		{
+			public void run()
+			{
+				try
+				{
+					aktualisieren();
+				} catch (RemoteException e)
+				{
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		},0,1,TimeUnit.SECONDS);
+	}
+	
+	private void aktualisieren() throws RemoteException
+	{
+		this.logTextArea.setText(server.getLogText() + this.getLogTextGui());
 	}
 	
 	public void actionPerformed(ActionEvent e)
 	{
 		if (e.getSource().equals(this.buttonSpeichern)) // Speichern
 		{
-			speichern();
+			try
+			{
+				speichern();
+			} catch (RemoteException e1)
+			{
+				e1.printStackTrace();
+			}
 		}
 		if (e.getSource().equals(this.buttonLaden)) // Laden
 		{
@@ -266,18 +302,16 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		{
 			if(this.aktuellerSpieler.getMission() == null)
 			{
-				logText += "\nKeine Missionen vorhanden.";
-				logTextArea.setText(logText);
+				this.setLogTextGui("Keine Missionen vorhanden.");
 			}
 			else
 			{
-				logText += "\n" + this.aktuellerSpieler.getMission();
-				logTextArea.setText(logText);
+				this.setLogTextGui(this.aktuellerSpieler.getMission().getAufgabenText());
 			}
 		}
 	}
 	
-	private void bilderEinlesen()
+	private void bilderEinlesen() throws RemoteException
 	{
 		try
 		{
@@ -358,8 +392,8 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 			}
 			// ImageIcon dem aktuellenSpieler und dem eigenenChar zuordnen
 			this.labelCharAktuellerSpieler.setIcon(this.aktuellerSpieler.getSpielerIcon());
-			this.labelEigenerChar.setIcon(this.aktuellerSpieler.getSpielerIcon());
-			// Label dem Panel hinzuf���gen
+			this.labelEigenerChar.setIcon(this.eigenerSpieler.getSpielerIcon());
+			// Label dem Panel hinzufuegen
 			this.panelCharAktuellerSpieler.add(this.labelCharAktuellerSpieler);
 			this.panelEigenerChar.add(this.labelEigenerChar);
 			// Handkarten hinzufuegen
@@ -371,21 +405,20 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		}
 		catch(IIOException e)
 		{
-			logText += "\nEin oder mehrere Bilder konnten nicht geladen werden!";
-			logTextArea.setText(logText);
+			server.setLogText("Ein oder mehrere Bilder konnten nicht geladen werden!");
 		}
 		catch(IOException e){}
 	}
 	
-	public void speichern()
+	public void speichern() throws RemoteException
 	{
 		// SpeichernDialog erstellen
-		// Erstellung eines FileFilters f���r Spielst���nde	
-        FileFilter filter = new FileNameExtensionFilter("Risiko-Spielst���nde", "ser");    
+		// Erstellung eines FileFilters fuer Spielstaende	
+        FileFilter filter = new FileNameExtensionFilter("Risiko-Spielstaende", "ser");    
         JFileChooser speichern = new JFileChooser(new File(System.getProperty("user.home")));
         // Filter wird dem JFileChooser hinzugef���gt
         speichern.addChoosableFileFilter(filter);
-        // Nur Verzeichnisse ausw���hlbar
+        // Nur Verzeichnisse auswaehlbar
         speichern.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         // Dialog zum Speichern von Dateien anzeigen
         int rueckgabeWert = speichern.showDialog(null, "Spielstand speichern");
@@ -399,15 +432,14 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
         		oos.writeObject(this.spiel);
         		oos.writeObject(this.aktuellerSpieler);
         		// Ausgabe der gespeicherten Datei
-        		logText += "\nErfolgreich gespeichert unter: " + spielstand.getPath();
+        		server.setLogText("Erfolgreich gespeichert unter: " + spielstand.getPath());
         	} catch (FileNotFoundException e1)
 			{
-				logText += "\n" + e1.getMessage();
+        		server.setLogText(e1.getMessage());
 			} catch (IOException e1)
 			{
-				logText += "\n" + e1.getMessage();
+				server.setLogText(e1.getMessage());
 			}
-        	logTextArea.setText(logText);
         }
 	}
 	
@@ -425,7 +457,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 			JSlider sliderMap = new JSlider(SwingConstants.VERTICAL, 0, 10, 0);
 			sliderMap.setBounds(100, 200, 50, 200);
 			getContentPane().add(sliderMap);
-			// Label f���r Truppenst���rke, Besitzer und Name erstellen
+			// Label f���r Truppenstaerke, Besitzer und Name erstellen
 			JPanel panelLabelFuerLand = new JPanel(new GridLayout(3, 2));
 			panelLabelFuerLand.setBounds(b/100*3,h/100*68,450,150);
 			for (int i = 0; i < landBeschreibung.length; i++)
@@ -450,7 +482,6 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 					try {
 						tooltipErstellen(e);
 					} catch (RemoteException e1) {
-						// TODO Auto-generated catch block
 						e1.printStackTrace();
 					}
 				}
@@ -736,5 +767,15 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 	public void zahl(int u) throws RemoteException {
 		System.out.println("Hallo " + u);
 		
+	}
+
+	public String getLogTextGui()
+	{
+		return logTextGui;
+	}
+
+	public void setLogTextGui(String logTextGui)
+	{
+		this.logTextGui += "\n" + logTextGui;
 	}
 }
