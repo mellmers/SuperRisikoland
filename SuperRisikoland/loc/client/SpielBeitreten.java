@@ -1,23 +1,17 @@
 package client;
 
 import inf.ServerInterface;
-import inf.RemoteInterface;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Image;
-import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
@@ -44,12 +38,11 @@ import javax.swing.SwingConstants;
 
 import cui.Spieler;
 import exc.MaximaleSpielerZahlErreichtException;
-import gui.Spielstart;
-import gui.SuperRisikolandGui;
 
 public class SpielBeitreten extends JFrame implements ActionListener, Serializable
 {
 	ServerInterface server;
+	Client client;
 	
 	private JButton buttonVerbinden= new JButton("Verbinden");
 	private JTextField textfieldName = new JTextField(), textfieldServer = new JTextField();
@@ -107,6 +100,16 @@ public class SpielBeitreten extends JFrame implements ActionListener, Serializab
 		
 		JPanel panelVerbindung = new JPanel(new FlowLayout(FlowLayout.CENTER));
 		buttonVerbinden.addActionListener(this);
+		buttonVerbinden.addKeyListener(new KeyAdapter()
+		{
+			public void keyPressed(KeyEvent e) {
+                int key = e.getKeyCode();
+                if (key == KeyEvent.VK_ENTER) 
+                {
+                	actionVerbindungStarten();
+                }
+            }
+		});
 		panelVerbindung.add(buttonVerbinden);
 		
 		this.add(panel, BorderLayout.CENTER);
@@ -194,7 +197,6 @@ public class SpielBeitreten extends JFrame implements ActionListener, Serializab
                 	try {
 						actionAuswahlBestaetigen();
 					} catch (RemoteException e1) {
-						// TODO Auto-generated catch block
 						e1.printStackTrace();
 					}
                 }
@@ -221,7 +223,6 @@ public class SpielBeitreten extends JFrame implements ActionListener, Serializab
 					aktualisieren();
 				} catch (RemoteException e)
 				{
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -311,6 +312,30 @@ public class SpielBeitreten extends JFrame implements ActionListener, Serializab
 			this.labelCharakter[i].removeMouseListener(this.mouseAdapterChars[i]);
 		}
 	}
+	
+	private void actionVerbindungStarten()
+	{
+		if(this.textfieldName.getText().trim().equals(""))
+		{
+			textfieldLeerAbfrage("Dein Name: ", this.textfieldName);
+		}
+		else if(this.textfieldServer.getText().trim().equals(""))
+		{
+			textfieldLeerAbfrage("Servername: ", this.textfieldServer);
+		}
+		else
+		{
+			try {
+				verbindungStarten();
+			} catch (RemoteException | NotBoundException e1) {
+				e1.printStackTrace();
+			} catch (MaximaleSpielerZahlErreichtException e1) {
+				e1.printStackTrace();
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+		}
+	}
 
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource().equals(this.buttonAuswahlBestaetigen))
@@ -318,35 +343,12 @@ public class SpielBeitreten extends JFrame implements ActionListener, Serializab
 			try {
 				actionAuswahlBestaetigen();
 			} catch (RemoteException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 		}
 		if (e.getSource().equals(this.buttonVerbinden)) 
 		{ 
-			if(this.textfieldName.getText().trim().equals(""))
-			{
-				textfieldLeerAbfrage("Dein Name: ", this.textfieldName);
-			}
-			else if(this.textfieldServer.getText().trim().equals(""))
-			{
-				textfieldLeerAbfrage("Servername: ", this.textfieldServer);
-			}
-			else
-			{
-				try {
-					verbindungStarten();
-				} catch (RemoteException | NotBoundException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				} catch (MaximaleSpielerZahlErreichtException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-			}
+			actionVerbindungStarten();
 		}
 		
 	}
@@ -380,9 +382,9 @@ public class SpielBeitreten extends JFrame implements ActionListener, Serializab
 	{
 		//SERVER
 		Registry registry = LocateRegistry.getRegistry("localhost",(int)port.getValue());
-		server = (ServerInterface) registry.lookup(this.textfieldServer.getText().trim());
+		this.server = (ServerInterface) registry.lookup(this.textfieldServer.getText().trim());
 		//CLIENT
-		Client client = new Client(server, this.textfieldName.getText().trim(),(int) this.port.getValue(), this.textfieldServer.getText().trim());
+		this.client = new Client(server, this.textfieldName.getText().trim(),(int) this.port.getValue(), this.textfieldServer.getText().trim());
 		registry.rebind(textfieldName.getText(), client);
 		server.addClient(textfieldName.getText(),(int)port.getValue());
 		this.dispose();

@@ -1,19 +1,18 @@
 package server;
-import inf.SpielfeldInterface;
-
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.rmi.AlreadyBoundException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.util.Vector;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -30,8 +29,6 @@ import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 
 import cui.Spieler;
-import cui.Spielfeld;
-import exc.MaximaleSpielerZahlErreichtException;
 
 
 public class Login extends JFrame implements ActionListener{
@@ -72,6 +69,16 @@ public class Login extends JFrame implements ActionListener{
 		textfieldServername.setPreferredSize(new Dimension(120, 30));
 		spinnerPort.setPreferredSize(new Dimension(120, 30));
 		buttonServerErstellen.addActionListener(this);
+		buttonServerErstellen.addKeyListener(new KeyAdapter()
+		{
+			public void keyPressed(KeyEvent e) {
+                int key = e.getKeyCode();
+                if (key == KeyEvent.VK_ENTER) 
+                {
+                	actionServerErstellen();
+                }
+			}
+		});
 
 		panel.add(labelPort);
 		panel.add(spinnerPort);
@@ -129,7 +136,6 @@ public class Login extends JFrame implements ActionListener{
 					aktualisieren();
 				} catch (RemoteException e)
 				{
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -199,52 +205,55 @@ public class Login extends JFrame implements ActionListener{
 		System.out.println("Server gestartet.");
 	}
 	
+	private void actionServerErstellen()
+	{
+		if(this.textfieldServername.getText().trim().equals(""))
+		{
+			//Popup, da kein Name eingegeben wurde
+            // Panel f�r JDialog
+            // ver�ndert den Dialog zu Textfeld mit Okay button
+            String[] options = {"OK"};
+            JPanel panel = new JPanel();
+            JLabel lbl = new JLabel("Servername: ");
+            JTextField txt = new JTextField(10);
+            panel.add(lbl);
+            panel.add(txt);
+   
+            // Dialog wiederholen bis vern�nftiger Name angegeben wurde
+            while( txt.getText().trim().equals("")){
+            	// JDialog mit entsprechendem panel starten
+            	int selectedOption = JOptionPane.showOptionDialog(null, panel, "Feld darf nicht leer sein!", JOptionPane.NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options , options[0]);
+            	
+            	// wenn okay gedr�ckt wurde
+            	if(selectedOption == 0)
+            	{
+            		this.textfieldServername.setText(txt.getText().trim());
+            	}
+            }
+		}
+		else
+		{
+			try {
+				serverErstellen();
+				this.dispose();
+				initializeLogin();
+			} catch (RemoteException e1) {
+				e1.printStackTrace();
+				System.out.println("Fehler");
+			}
+		}
+	}
+	
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource().equals(this.buttonServerErstellen)) 
 		{
-			if(this.textfieldServername.getText().trim().equals(""))
-			{
-				//Popup, da kein Name eingegeben wurde
-	            // Panel f�r JDialog
-	            // ver�ndert den Dialog zu Textfeld mit Okay button
-	            String[] options = {"OK"};
-	            JPanel panel = new JPanel();
-	            JLabel lbl = new JLabel("Servername: ");
-	            JTextField txt = new JTextField(10);
-	            panel.add(lbl);
-	            panel.add(txt);
-	   
-	            // Dialog wiederholen bis vern�nftiger Name angegeben wurde
-	            while( txt.getText().trim().equals("")){
-	            	// JDialog mit entsprechendem panel starten
-	            	int selectedOption = JOptionPane.showOptionDialog(null, panel, "Feld darf nicht leer sein!", JOptionPane.NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options , options[0]);
-	            	
-	            	// wenn okay gedr�ckt wurde
-	            	if(selectedOption == 0)
-	            	{
-	            		this.textfieldServername.setText(txt.getText().trim());
-	            	}
-	            }
-			}
-			else
-			{
-				try {
-					serverErstellen();
-					this.dispose();
-					initializeLogin();
-				} catch (RemoteException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-					System.out.println("Fehler");
-				}
-			}		
+			actionServerErstellen();		
 		}
 		if(e.getSource().equals(this.buttonNeuesSpiel))
 		{
 			try {
 				this.spielstart();
 			} catch (RemoteException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 		}
