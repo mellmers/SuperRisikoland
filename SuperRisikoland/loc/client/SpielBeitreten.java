@@ -17,6 +17,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
@@ -55,6 +56,8 @@ public class SpielBeitreten extends JFrame implements ActionListener, Serializab
 	// Variablen
 	private JLabel[] labelSpielername = {new JLabel(),new JLabel(),new JLabel(),new JLabel(),new JLabel(),new JLabel()};
 	private JLabel[] labelCharakter = {new JLabel(),new JLabel(),new JLabel(),new JLabel(),new JLabel(),new JLabel()};
+	private MouseAdapter[] mouseAdapterChars = new MouseAdapter[6];
+	private JLabel aktuellerChar;
 	private JButton buttonAuswahlBestaetigen = new JButton("Auswahl bestaetigen");
 	
 	Color colorDaisy = new Color(250,111,43);
@@ -151,7 +154,7 @@ public class SpielBeitreten extends JFrame implements ActionListener, Serializab
 		
 		for (int i = 0; i < labelCharakter.length; i++)
 		{
-			labelCharakter[i].addMouseListener(new MouseAdapter()
+			this.mouseAdapterChars[i] = new MouseAdapter()
 			{
 				public void mouseClicked(MouseEvent e)  
 			    {
@@ -164,15 +167,15 @@ public class SpielBeitreten extends JFrame implements ActionListener, Serializab
 								labelCharakter[k].setEnabled(true);
 								labelSpielername[k].setText("");
 							}
-							//labelCharakter[j].setEnabled(false);
+							aktuellerChar = labelCharakter[j];
 							spielerId = j;
 							labelSpielername[j].setText("Spieler: " + textfieldName.getText().trim());
 							buttonAuswahlBestaetigen.setEnabled(true);
 						}
 					}
-					
 			    }
-			});
+			};
+			labelCharakter[i].addMouseListener(this.mouseAdapterChars[i]);
 		}
 		
 		// Button Auswahl bestaetigen
@@ -242,6 +245,12 @@ public class SpielBeitreten extends JFrame implements ActionListener, Serializab
 	{
 		this.spieler = new Spieler(spielerId, textfieldName.getText().trim(), color[spielerId], colorChars[spielerId]);
 		server.addSpieler(this.spieler);
+		this.buttonAuswahlBestaetigen.setEnabled(false);
+		this.aktuellerChar.setEnabled(false);
+		for (int i = 0; i < this.labelCharakter.length; i++)
+		{
+			this.labelCharakter[i].removeMouseListener(this.mouseAdapterChars[i]);
+		}
 	}
 	
 	@Override
@@ -287,8 +296,8 @@ public class SpielBeitreten extends JFrame implements ActionListener, Serializab
 	public void textfieldLeerAbfrage(String labelText, JTextField tf)
 	{
 		// Popup, da kein Name eingegeben wurde
-        // Panel f�r JDialog
-        // ver�ndert den Dialog zu Textfeld mit Okay button
+        // Panel fuer JDialog
+        // veraendert den Dialog zu Textfeld mit Okay button
         String[] options = {"OK"};
         JPanel panel = new JPanel();
         JLabel lbl = new JLabel(labelText);
@@ -296,12 +305,12 @@ public class SpielBeitreten extends JFrame implements ActionListener, Serializab
         panel.add(lbl);
         panel.add(txt);
 
-        // Dialog wiederholen bis vern�nftiger Name angegeben wurde
+        // Dialog wiederholen bis vernuenftiger Name angegeben wurde
         while(txt.getText().trim().equals("")){
         	// JDialog mit entsprechendem panel starten
         	int selectedOption = JOptionPane.showOptionDialog(null, panel, "Textfeld darf nicht leer sein!", JOptionPane.NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options , options[0]);
         	
-        	// wenn okay gedr�ckt wurde
+        	// wenn okay gedrueckt wurde
         	if(selectedOption == 0)
         	{
         		tf.setText(txt.getText().trim());
