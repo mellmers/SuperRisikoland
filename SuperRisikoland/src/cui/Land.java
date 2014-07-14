@@ -61,6 +61,10 @@ public class Land extends UnicastRemoteObject implements Serializable, LandInter
 	{
 		this.truppenStaerke += menge;
 	}
+	public void setTruppenstaerkeStandard(int menge)
+	{
+		this.truppenStaerke = menge;
+	}
 	
 	public void setBesitzer(SpielerInterface s) 
 	{

@@ -52,7 +52,6 @@ public class SuperRisikolandCui
         
         // Liste aller Laender ausgeben (mit oder ohne Besitzer)
         
-        spiel.startLaenderVerteilen();
         aktuellerSpielerId = (int) (Math.random()*anzahlSpieler);
         aktuellerSpieler = spiel.getSpieler(aktuellerSpielerId);
         
