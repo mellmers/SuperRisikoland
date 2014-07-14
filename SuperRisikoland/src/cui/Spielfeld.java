@@ -32,6 +32,9 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 	private int zusatzEinheitenSerie = 4;
 	private Vector<SuperRisikoLandGuiInterface> clients = new Vector<SuperRisikoLandGuiInterface>();
 	
+	private int zuVerteilendeEinheitenGui;
+	private int verteilteEinheitenGui;
+	
 	private ServerInterface server;
 	
 	public Spielfeld(ServerInterface server, Vector<Spieler> alleSpieler, int spielVariante) throws RemoteException
@@ -80,6 +83,12 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 	public Spieler getSpieler(int spielerId)
 	{
 		return this.spieler.elementAt(spielerId);
+	}
+	
+	public int getZuVerteilendeEinheitenGui(Spieler aktuellerSpieler) throws RemoteException
+	{
+		zuVerteilendeEinheitenGui = this.laenderZaehlen(aktuellerSpieler) + this.zusatzEinheitenKontinente(aktuellerSpieler) + this.checkSerie(aktuellerSpieler) - this.verteilteEinheitenGui;
+		return zuVerteilendeEinheitenGui;
 	}
 	
 	// Setter
@@ -704,13 +713,16 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 		return verWuerfel;
 	}
 
-	public int serieEinsetzen(Spieler aktuellerSpieler)
+	public int serieEinsetzen(Spieler aktuellerSpieler, boolean gui)
 	{
 		int[] handkartenId = new int[3];
-		for ( int i = 0; i < 3; i++)
+		if(!gui)
 		{
-			IO.println(i+1 + ". Handkarte:");
-			handkartenId[i] = IO.readInt();
+			for ( int i = 0; i < 3; i++)
+			{
+				IO.println(i+1 + ". Handkarte:");
+				handkartenId[i] = IO.readInt();
+			}
 		}
 		if(aktuellerSpieler.istSerie(handkartenId[0], handkartenId[1], handkartenId[2]))
 		{
@@ -737,97 +749,136 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 				return this.zusatzEinheitenSerie;
 			}
 		}
-		
+		return 0;
+	}
+	
+	public int checkSerie(Spieler aktuellerSpieler) throws RemoteException // nur für Gui
+	{
+		if(aktuellerSpieler.getAnzahlHandkarten() == 5)
+		{
+			server.setLogText(aktuellerSpieler.getName() + " muss seine Handkarten einsetzen und eine Serie einloesen!");
+		}
+		else
+		{
+			//Popup, ob spieler serie einloesen moechte
+			// JDialog mit entsprechendem panel starten
+        	int selectedOption = JOptionPane.showOptionDialog(null, "Moechtest du eine Serie einloesen?", "Serie einloesen?", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null, null);
+        	// wenn okay gedrueckt wurde
+        	if(selectedOption == 0)
+        	{
+        		int zwischenSpeicherZusatzTruppenSerie = this.serieEinsetzen(aktuellerSpieler, true); // TODO Handkarten uebergeben
+        		return zwischenSpeicherZusatzTruppenSerie;
+        	}
+		}
 		return 0;
 	}
 
 	public boolean neueArmeen(Spieler aktuellerSpieler, boolean gui, int landId, int einheiten) throws RemoteException
-		{	
+	{	
+		int zwischenSpeicherZusatzTruppenSerie = 0;
+		
+		if(!gui) // nur CUI
+		{
 			aktuellerSpieler.handkartenAusgeben();
 			
-			int zwischenSpeicherZusatzTruppenSerie = 0;
 			if(aktuellerSpieler.getAnzahlHandkarten() == 5)
 			{
-				server.setLogText(aktuellerSpieler.getName() + " muss seine Handkarten einsetzen und eine Serie einloesen!");
 				IO.println(aktuellerSpieler.getName() + " muss seine Handkarten einsetzen und eine Serie einloesen!");
-				zwischenSpeicherZusatzTruppenSerie = this.serieEinsetzen(aktuellerSpieler);
+				zwischenSpeicherZusatzTruppenSerie = this.serieEinsetzen(aktuellerSpieler, gui);
 			}
 			else
 			{
-				if(!gui) // nur CUI
+				IO.println("Moechtest du eine Serie einloesen? (j/n)");
+				if(IO.readChar() == 'j')
 				{
-					IO.println("Moechtest du eine Serie einloesen? (j/n)");
-					if(IO.readChar() == 'j')
-					{
-						zwischenSpeicherZusatzTruppenSerie = this.serieEinsetzen(aktuellerSpieler);
-					}
-				}
-				else
-				{
-					//Popup, ob spieler serie einloesen moechte
-					// JDialog mit entsprechendem panel starten
-	            	int selectedOption = JOptionPane.showOptionDialog(null, "Moechtest du eine Serie einloesen?", "Serie einloesen?", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null, null);
-	            	// wenn okay gedrueckt wurde
-	            	if(selectedOption == 0)
-	            	{
-	            		zwischenSpeicherZusatzTruppenSerie = this.serieEinsetzen(aktuellerSpieler);
-	            	}
+					zwischenSpeicherZusatzTruppenSerie = this.serieEinsetzen(aktuellerSpieler, gui);
 				}
 			}
-			int zuVerteilendeEinheiten = this.laenderZaehlen(aktuellerSpieler) + this.zusatzEinheitenKontinente(aktuellerSpieler) + zwischenSpeicherZusatzTruppenSerie;
-			
+		}
+		/*else // GUI
+		{
+			if(aktuellerSpieler.getAnzahlHandkarten() == 5)
+			{
+				server.setLogText(aktuellerSpieler.getName() + " muss seine Handkarten einsetzen und eine Serie einloesen!");
+			}
+			else
+			{
+				//Popup, ob spieler serie einloesen moechte
+				// JDialog mit entsprechendem panel starten
+	        	int selectedOption = JOptionPane.showOptionDialog(null, "Moechtest du eine Serie einloesen?", "Serie einloesen?", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null, null);
+	        	// wenn okay gedrueckt wurde
+	        	if(selectedOption == 0)
+	        	{
+	        		zwischenSpeicherZusatzTruppenSerie = this.serieEinsetzen(aktuellerSpieler, gui);
+	        	}
+			}
+		}*/
+		
+		if(!gui)
+		{
+			int zuVerteilendeEinheiten = 0;
+			zuVerteilendeEinheiten = this.laenderZaehlen(aktuellerSpieler) + this.zusatzEinheitenKontinente(aktuellerSpieler) + zwischenSpeicherZusatzTruppenSerie;
 			while (zuVerteilendeEinheiten > 0)
 			{
-				server.setLogText(aktuellerSpieler.getName() + " muss " + zuVerteilendeEinheiten + " Einheiten verteilen.");
+				//server.setLogText(aktuellerSpieler.getName() + " muss " + zuVerteilendeEinheiten + " Einheiten verteilen.");
 		    	IO.println(aktuellerSpieler.getName() + " muss nun " + zuVerteilendeEinheiten + " Einheiten verteilen.\n"
 		    			+ "Geben Sie die ID Ihres Landes ein, in dem Einheiten stationiert werden sollen.");
 		    	
-		    	if(!gui) // nur CUI
-				{
-		    		landId = IO.readInt();
-			    	while (landId < 0 || landId > 41)
-			    	{
-			    		IO.println("Falsche Eingabe!\nLandID:");
-			    		landId = IO.readInt();
-			    	}
-			       	IO.println("Wie viele Einheiten sollen stationiert werden?");
-			       	einheiten = IO.readInt();
-			       	while (einheiten < 0 || einheiten > zuVerteilendeEinheiten)
-			       	{
-			       		IO.println("Falsche Eingabe! Es koennen maximal " + zuVerteilendeEinheiten+ " Einheiten stationiert werden!/nWie viele Einheiten sollen stationiert werden?");
-			       		einheiten = IO.readInt();
-			        }
-				}
-		    	else // GUI
+	    		landId = IO.readInt();
+		    	while (landId < 0 || landId > 41)
 		    	{
-		    		if(landId == 0)
-		    		{
-		    			server.setLogText("Du musst ein Land auswaehlen und dann bestaetigen!");
-		    			return false;
-		    		}
-		    		else if(einheiten == 0)
-		    		{
-		    			server.setLogText("Du musst mindestens eine Einheit auswaehlen und dann bestaetigen!");
-		    			return false;
-		    		}
+		    		IO.println("Falsche Eingabe!\nLandID:");
+		    		landId = IO.readInt();
 		    	}
-		        if(aktuellerSpieler.meinLand(this.laender[landId]))
-		        {
-		        	this.laender[landId].setTruppenstaerke(einheiten);
-			       	zuVerteilendeEinheiten -= einheiten;
-			       	IO.println(this.laender[landId].getTruppenstaerke() + " Einheiten auf " + this.laender[landId].getName());
-			       	server.setLogText(this.laender[landId].getTruppenstaerke() + " Einheiten auf " + this.laender[landId].getName());
-			       	return true;
-		    	}
-		        else
-		        {
-		        	server.setLogText("Dieses Land gehoert dir nicht!");
-		    		IO.println("Dieses Land gehoert dir nicht!");
-		    		return false;
-		        }
-	    	}
-			return false;
+		       	IO.println("Wie viele Einheiten sollen stationiert werden?");
+		       	einheiten = IO.readInt();
+		       	while (einheiten < 0 || einheiten > zuVerteilendeEinheiten)
+		       	{
+		       		IO.println("Falsche Eingabe! Es koennen maximal " + zuVerteilendeEinheiten+ " Einheiten stationiert werden!/nWie viele Einheiten sollen stationiert werden?");
+		       		einheiten = IO.readInt();
+		       	}
+		       	// Abfrage, ob einheiten verteilt werden koennen
+	       		if(aktuellerSpieler.meinLand(this.laender[landId]))
+	            {
+	            	this.laender[landId].setTruppenstaerke(einheiten);
+	    	       	zuVerteilendeEinheiten -= einheiten;
+	    	       	IO.println(this.laender[landId].getTruppenstaerke() + " Einheiten auf " + this.laender[landId].getName());
+	    	       	return true;
+	        	}
+	       		else
+	       		{
+	        		IO.println("Dieses Land gehoert dir nicht!");
+	        		return false;
+	            }
+			}
 		}
+		else // GUI
+		{
+	    	/*else // GUI
+	    	{
+	    		if(landId == 0)
+	    		{
+	    			server.setLogText("Du musst ein Land auswaehlen und dann bestaetigen!");
+	    			return false;
+	    		}
+	    		else if(einheiten == 0)
+	    		{
+	    			server.setLogText("Du musst mindestens eine Einheit auswaehlen und dann bestaetigen!");
+	    			return false;
+	    		}
+	    	}*/
+	        
+        	this.laender[landId].setTruppenstaerke(einheiten);
+	       	this.verteilteEinheitenGui += einheiten;
+	       	//server.setLogText(this.laender[landId].getTruppenstaerke() + " Einheiten auf " + this.laender[landId].getName()); TODO ADD!!!
+	       	System.out.println("Einheiten " + this.laender[landId].getTruppenstaerke() );
+	       	if(this.zuVerteilendeEinheitenGui == 0)
+	       	{
+	       		return true;
+	       	}
+		}
+		return false;
+	}
 	
 	public int zusatzEinheitenKontinente(Spieler spieler)
 	{

@@ -76,7 +76,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 	private String logTextGui = "";
 	private JTextArea logTextArea = new JTextArea();
 	public static Color aktuellerFarbcode =  new Color(0,0,0);
-	private JLabel labelStatus = new JLabel("Armeen eintauschen", SwingConstants.CENTER);
+	private JLabel labelStatus = new JLabel("Armeen verteilen", SwingConstants.CENTER);
 	private JButton buttonSpeichern = new JButton("Speichern");
 	private JButton buttonLaden = new JButton("neues Spiel/Laden");
 	private JButton buttonMission = new JButton("Mission anzeigen");
@@ -112,6 +112,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		spieler.add(new Spieler(1, "Peter", "Rot", new Color(250,0,0)));
 		spieler.add(new Spieler(2, "Franz", "Gruen", new Color(0,250,0)));
 		aktuellerSpieler = spieler.get(0);
+		eigenerSpieler = spieler.get(1);
 		spiel = new Spielfeld(null, spieler, 1);
 		// Bildschirmgroesse auslesen und Breite und Hoehe abspeichern
 		this.screen = Toolkit.getDefaultToolkit().getScreenSize();
@@ -203,8 +204,8 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		kontinente1.setPreferredSize(new Dimension(this.b/100*30, this.h/100*8));
 		for(int i = 0; i < 3; i++)
 		{
-			this.labelArrayKontinente[i].setFont(new Font(null, Font.BOLD, 18));
-			this.labelArrayKontinenteBesitzer[i].setFont(new Font(null, Font.BOLD, 22));
+			this.labelArrayKontinente[i].setFont(new Font(null, Font.BOLD, this.b/106));
+			this.labelArrayKontinenteBesitzer[i].setFont(new Font(null, Font.BOLD, this.b/87));
 			kontinente1.add(this.labelArrayKontinente[i]);
 			kontinente1.add(this.labelArrayKontinenteBesitzer[i]);
 		}
@@ -220,7 +221,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		this.buttonPhaseBeenden.setPreferredSize(new Dimension(this.b/100*15, this.h/100*4));
 		this.buttonPhaseBeenden.addActionListener(this);
 		this.buttonPhaseBeenden.setEnabled(false);
-		this.labelVerbleibendeZeit.setFont(new Font(null, Font.BOLD, 24));
+		this.labelVerbleibendeZeit.setFont(new Font(null, Font.BOLD, this.b/80));
 		this.labelVerbleibendeZeit.setPreferredSize(new Dimension(this.b/100*15, this.h/100*4));
 		this.buttonBestaetigung.setPreferredSize(new Dimension(this.b/100*15, this.h/100*4));
 		this.buttonBestaetigung.addActionListener(this);
@@ -238,8 +239,8 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		for(int i = 3; i < 6; i++)
 		{
 			this.labelArrayKontinente[i].setAlignmentX(RIGHT_ALIGNMENT);
-			this.labelArrayKontinente[i].setFont(new Font(null, Font.BOLD, 18));
-			this.labelArrayKontinenteBesitzer[i].setFont(new Font(null, Font.BOLD, 22));
+			this.labelArrayKontinente[i].setFont(new Font(null, Font.BOLD, this.b/106));
+			this.labelArrayKontinenteBesitzer[i].setFont(new Font(null, Font.BOLD, this.b/87));
 			kontinente2.add(this.labelArrayKontinente[i]);
 			kontinente2.add(this.labelArrayKontinenteBesitzer[i]);
 		}
@@ -319,6 +320,8 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		{
 			switch(this.labelStatus.getText())
 			{
+			case "Serie eintauschen":
+				break;
 			case "Armeen verteilen":
 				this.labelStatus.setText("Befreiung");
 				break;
@@ -330,7 +333,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 				this.labelStatus.setText("Umverteilen");
 				break;
 			case "Umverteilen":
-				this.labelStatus.setText("Armeen verteilen");
+				this.labelStatus.setText("Serie eintauschen");
 				break;
 			default:
 				break;
@@ -340,13 +343,20 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		{
 			switch(this.labelStatus.getText())
 			{
-			case "Armeen eintauschen":
+			case "Serie eintauschen":
+				break;
+			case "Armeen verteilen":
 				try
 				{
-					if(!this.spiel.neueArmeen(aktuellerSpieler, true, aktuellesLandId , this.sliderMap.getValue()))
+					if(aktuellerSpieler.meinLand(aktuellesLand) && this.sliderMap.getValue() > 0 && this.sliderMap.getValue() <= spiel.getZuVerteilendeEinheitenGui(aktuellerSpieler))
 					{
-						System.out.println("Fehler");
+						if(!this.spiel.neueArmeen(aktuellerSpieler, true, aktuellesLandId , this.sliderMap.getValue()))
+						{
+							this.buttonPhaseBeenden.setEnabled(true);
+						}
+						repaint();
 					}
+					
 				} catch (RemoteException e1)
 				{
 					e1.printStackTrace();
@@ -464,16 +474,19 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 			this.iiCharakter[4] = new ImageIcon(imgWaluigi);
 			this.iiCharakter[5] = new ImageIcon(imgWario);
 			// ImageIcon dem Spieler zuordnen
-			/*for (int i = 0; i < this.spiel.getAnzahlSpieler(); i++)
+			for (int i = 0; i < this.spiel.getAnzahlSpieler(); i++)
 			{
 				if(this.spiel.getSpieler(i) != null)
 				{
 					this.spiel.getSpieler(i).setSpielerIcon(this.iiCharakter[this.spiel.getSpieler(i).getSpielerID()]);
 				}
-			}*/
+			}
 			// ImageIcon dem aktuellenSpieler und dem eigenenChar zuordnen
-			//this.labelCharAktuellerSpieler.setIcon(this.aktuellerSpieler.getSpielerIcon());
-			//this.labelEigenerChar.setIcon(this.eigenerSpieler.getSpielerIcon());
+			this.labelCharAktuellerSpieler.setIcon(this.aktuellerSpieler.getSpielerIcon());
+			this.labelEigenerChar.setIcon(this.eigenerSpieler.getSpielerIcon());
+			// Label durchsichtig machen
+			this.labelCharAktuellerSpieler.setOpaque(false);
+			this.labelEigenerChar.setOpaque(false);
 			// Label dem Panel hinzufuegen
 			this.panelCharAktuellerSpieler.add(this.labelCharAktuellerSpieler);
 			this.panelEigenerChar.add(this.labelEigenerChar);
@@ -528,15 +541,15 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 	{
 		// Variablen der Map
 		JLabel[] landBeschreibung = {new JLabel("Truppenstaerke: ", SwingConstants.RIGHT), new JLabel("Land: ", SwingConstants.RIGHT), new JLabel("Besitzer: ", SwingConstants.RIGHT)};
-		final JLabel landTruppenstaerke = new JLabel("");
-		final JLabel landname = new JLabel("");
-		final JLabel landBesitzer = new JLabel("");
+		final JLabel landTruppenstaerke = new JLabel(""), landTruppenstaerke2 = new JLabel("");
+		final JLabel landname = new JLabel(""), landname2 = new JLabel("");
+		final JLabel landBesitzer = new JLabel(""), landBesitzer2 = new JLabel("");
 		
 		public riskoMap()
 		{
 			// Slider fuer Truppenauswahl, etc erstellen
-			sliderMap = new JSlider(SwingConstants.VERTICAL, 0, 20, 0);
-			sliderMap.setBounds(100, 200, 50, 200);
+			sliderMap = new JSlider(SwingConstants.HORIZONTAL, 0, 50, 0);
+			sliderMap.setBounds(b/100*2, h/100*82, b/3, h/25);
 			// Die Abstände zwischen den Teilmarkierungen werden festgelegt
 			sliderMap.setMajorTickSpacing(5);
 			sliderMap.setMinorTickSpacing(1);
@@ -546,10 +559,13 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 			sliderMap.setPaintTicks(true);
 			// Zeichnen der Labels wird aktiviert
 			sliderMap.setPaintLabels(true);
+			// slidermap background durchsichtig
+			sliderMap.setOpaque(false);
 			getContentPane().add(sliderMap);
 			// Label fuer Truppenstaerke, Besitzer und Name erstellen
-			JPanel panelLabelFuerLand = new JPanel(new GridLayout(3, 2));
-			panelLabelFuerLand.setBounds(b/100*3,h/100*68,450,150);
+			JPanel panelLabelFuerLand = new JPanel(new GridLayout(3, 3));
+			panelLabelFuerLand.setBounds(-b/100*2,h/100*65,b/100*33,h/8);
+			panelLabelFuerLand.setOpaque(false);
 			for (int i = 0; i < landBeschreibung.length; i++)
 			{
 				landBeschreibung[i].setFont(new Font(null, Font.BOLD, 20));
@@ -557,12 +573,18 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 			landTruppenstaerke.setFont(new Font(null, Font.BOLD, 20));
 			landname.setFont(new Font(null, Font.BOLD, 20));
 			landBesitzer.setFont(new Font(null, Font.BOLD, 20));
+			landTruppenstaerke2.setFont(new Font(null, Font.BOLD, 20));
+			landname2.setFont(new Font(null, Font.BOLD, 20));
+			landBesitzer2.setFont(new Font(null, Font.BOLD, 20));
 			panelLabelFuerLand.add(landBeschreibung[0]);
 			panelLabelFuerLand.add(landTruppenstaerke);
+			panelLabelFuerLand.add(landTruppenstaerke2);
 			panelLabelFuerLand.add(landBeschreibung[1]);
 			panelLabelFuerLand.add(landname);
+			panelLabelFuerLand.add(landname2);
 			panelLabelFuerLand.add(landBeschreibung[2]);
 			panelLabelFuerLand.add(landBesitzer);
+			panelLabelFuerLand.add(landBesitzer2);
 			getContentPane().add(panelLabelFuerLand);
 			
 			this.addMouseMotionListener(new MouseMotionAdapter()
@@ -592,95 +614,95 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 					
 					/*logText += "\nX: " + x + " Y: " + y;
 					logText += "\nRot: " + aktuellerFarbcode.getRed();
-					logText += "\nGr���n: " + aktuellerFarbcode.getGreen();
+					logText += "\nGruen: " + aktuellerFarbcode.getGreen();
 					logText += "\nBlau: " + aktuellerFarbcode.getBlue();*/
 					
 					// Farbcode abspeichern/abfragen welches Land es ist
 					try{
 						if(aktuellerFarbcode.getRed() == 10){
-							setLandBeschreibung(0);
+							setLandBeschreibung(0,e);
 						}else if(aktuellerFarbcode.getRed() == 20){
-							setLandBeschreibung(1);
+							setLandBeschreibung(1,e);
 						} else if(aktuellerFarbcode.getRed() == 30){
-							setLandBeschreibung(2);
+							setLandBeschreibung(2,e);
 						}else if(aktuellerFarbcode.getRed() == 40){
-							setLandBeschreibung(3);
+							setLandBeschreibung(3,e);
 						}else if(aktuellerFarbcode.getRed() == 50){
-							setLandBeschreibung(4);
+							setLandBeschreibung(4,e);
 						}else if(aktuellerFarbcode.getRed() == 60){
-							setLandBeschreibung(5);
+							setLandBeschreibung(5,e);
 						}else if(aktuellerFarbcode.getRed() == 70){
-							setLandBeschreibung(6);
+							setLandBeschreibung(6,e);
 						}else if(aktuellerFarbcode.getRed() == 80){
-							setLandBeschreibung(7);
+							setLandBeschreibung(7,e);
 						}else if(aktuellerFarbcode.getRed() == 90){
-							setLandBeschreibung(8);
+							setLandBeschreibung(8,e);
 						}else if(aktuellerFarbcode.getRed() == 240){
-							setLandBeschreibung(9);
+							setLandBeschreibung(9,e);
 						}else if(aktuellerFarbcode.getRed() == 220){
-							setLandBeschreibung(10);
+							setLandBeschreibung(10,e);
 						}else if(aktuellerFarbcode.getRed() == 230){
-							setLandBeschreibung(11);
+							setLandBeschreibung(11,e);
 						}else if(aktuellerFarbcode.getRed() == 250){
-							setLandBeschreibung(12);
+							setLandBeschreibung(12,e);
 						}else if(aktuellerFarbcode.getGreen() == 10){
-							setLandBeschreibung(13);
+							setLandBeschreibung(13,e);
 						}else if(aktuellerFarbcode.getGreen() == 70){
-							setLandBeschreibung(14);
+							setLandBeschreibung(14,e);
 						}else if(aktuellerFarbcode.getGreen() == 20){
-							setLandBeschreibung(15);
+							setLandBeschreibung(15,e);
 						}else if(aktuellerFarbcode.getGreen() == 40){
-							setLandBeschreibung(16);
+							setLandBeschreibung(16,e);
 						}else if(aktuellerFarbcode.getGreen() == 60){
-							setLandBeschreibung(17);
+							setLandBeschreibung(17,e);
 						}else if(aktuellerFarbcode.getGreen() == 30){
-							setLandBeschreibung(18);
+							setLandBeschreibung(18,e);
 						}else if(aktuellerFarbcode.getGreen() == 50){
-							setLandBeschreibung(19);
+							setLandBeschreibung(19,e);
 						}else if(aktuellerFarbcode.getGreen() == 250){
-							setLandBeschreibung(20);
+							setLandBeschreibung(20,e);
 						}else if(aktuellerFarbcode.getGreen() == 240){
-							setLandBeschreibung(21);
+							setLandBeschreibung(21,e);
 						}else if(aktuellerFarbcode.getGreen() == 220){
-							setLandBeschreibung(22);
+							setLandBeschreibung(22,e);
 						}else if(aktuellerFarbcode.getGreen() == 230){
-							setLandBeschreibung(23);
+							setLandBeschreibung(23,e);
 						}else if(aktuellerFarbcode.getGreen() == 210){
-							setLandBeschreibung(24);
+							setLandBeschreibung(24,e);
 						}else if(aktuellerFarbcode.getGreen() == 200){
-							setLandBeschreibung(25);
+							setLandBeschreibung(25,e);
 						}else if(aktuellerFarbcode.getBlue() == 50){
-							setLandBeschreibung(26);
+							setLandBeschreibung(26,e);
 						}else if(aktuellerFarbcode.getBlue() == 60){
-							setLandBeschreibung(27);
+							setLandBeschreibung(27,e);
 						}else if(aktuellerFarbcode.getBlue() == 90){
-							setLandBeschreibung(28);
+							setLandBeschreibung(28,e);
 						}else if(aktuellerFarbcode.getBlue() == 100){
-							setLandBeschreibung(29);
+							setLandBeschreibung(29,e);
 						}else if(aktuellerFarbcode.getBlue() == 80){
-							setLandBeschreibung(30);
+							setLandBeschreibung(30,e);
 						}else if(aktuellerFarbcode.getBlue() == 70){
-							setLandBeschreibung(31);
+							setLandBeschreibung(31,e);
 						}else if(aktuellerFarbcode.getBlue() == 110){
-							setLandBeschreibung(32);
+							setLandBeschreibung(32,e);
 						}else if(aktuellerFarbcode.getBlue() == 20){
-							setLandBeschreibung(33);
+							setLandBeschreibung(33,e);
 						}else if(aktuellerFarbcode.getBlue() == 40){
-							setLandBeschreibung(34);
+							setLandBeschreibung(34,e);
 						}else if(aktuellerFarbcode.getBlue() == 10){
-							setLandBeschreibung(35);
+							setLandBeschreibung(35,e);
 						}else if(aktuellerFarbcode.getBlue() == 30){
-							setLandBeschreibung(36);
+							setLandBeschreibung(36,e);
 						}else if(aktuellerFarbcode.getBlue() == 120){
-							setLandBeschreibung(37);
+							setLandBeschreibung(37,e);
 						}else if(aktuellerFarbcode.getBlue() == 250){
-							setLandBeschreibung(38);
+							setLandBeschreibung(38,e);
 						}else if(aktuellerFarbcode.getBlue() == 240){
-							setLandBeschreibung(39);
+							setLandBeschreibung(39,e);
 						}else if(aktuellerFarbcode.getBlue() == 230){
-							setLandBeschreibung(40);
+							setLandBeschreibung(40,e);
 						}else if(aktuellerFarbcode.getBlue() == 220){
-							setLandBeschreibung(41);
+							setLandBeschreibung(41,e);
 						}else if(aktuellerFarbcode.getRed() == 238){  //aktuellesLand null setzen, wenn auf kein Land geklickt wird
 							landTruppenstaerke.setText("");
 							landname.setText("");
@@ -842,25 +864,35 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 					+ l.getName() + "<br>" + landBeschreibung[2].getText() + besitzer +"</html>");
 		}
 		
-		private void setLandBeschreibung(int landId) throws RemoteException
+		private void setLandBeschreibung(int landId, MouseEvent e) throws RemoteException
 		{
 			aktuellesLand = (Land) spiel.getLand(landId);
 			aktuellesLandId = landId;
-			landTruppenstaerke.setForeground(aktuellesLand.getBesitzer().getColorSpieler());
-			landname.setForeground(aktuellesLand.getBesitzer().getColorSpieler());
-			landBesitzer.setForeground(aktuellesLand.getBesitzer().getColorSpieler());
-			landTruppenstaerke.setText(""+ aktuellesLand.getTruppenstaerke());
-			landname.setText(aktuellesLand.getName());
-			if(aktuellesLand.getBesitzer() != null)
+			if(e.getButton() == 3)
 			{
-				landBesitzer.setText(aktuellesLand.getBesitzer().getName());
-			} else { landBesitzer.setText("kein Besitzer"); }
+				landTruppenstaerke2.setForeground(aktuellesLand.getBesitzer().getColorSpieler());
+				landname2.setForeground(aktuellesLand.getBesitzer().getColorSpieler());
+				landBesitzer2.setForeground(aktuellesLand.getBesitzer().getColorSpieler());
+				landTruppenstaerke2.setText(""+ aktuellesLand.getTruppenstaerke());
+				landname2.setText(aktuellesLand.getName());
+				if(aktuellesLand.getBesitzer() != null)
+				{
+					landBesitzer2.setText(aktuellesLand.getBesitzer().getName());
+				} else { landBesitzer2.setText("kein Besitzer"); }
+			}
+			else
+			{
+				landTruppenstaerke.setForeground(aktuellesLand.getBesitzer().getColorSpieler());
+				landname.setForeground(aktuellesLand.getBesitzer().getColorSpieler());
+				landBesitzer.setForeground(aktuellesLand.getBesitzer().getColorSpieler());
+				landTruppenstaerke.setText(""+ aktuellesLand.getTruppenstaerke());
+				landname.setText(aktuellesLand.getName());
+				if(aktuellesLand.getBesitzer() != null)
+				{
+					landBesitzer.setText(aktuellesLand.getBesitzer().getName());
+				} else { landBesitzer.setText("kein Besitzer"); }
+			}
 		}
-	}
-
-	public void zahl(int u) throws RemoteException {
-		System.out.println("Hallo " + u);
-		
 	}
 
 	public String getLogTextGui()
