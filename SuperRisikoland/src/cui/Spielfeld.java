@@ -101,9 +101,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 	
 	public int getZuVerteilendeEinheitenGui(SpielerInterface aktuellerSpieler) throws RemoteException
 	{
-		System.out.println("gzvE 1"); //TODO
 		zuVerteilendeEinheitenGui = this.laenderZaehlen(  aktuellerSpieler) + this.zusatzEinheitenKontinente(   aktuellerSpieler) + this.checkSerie(   aktuellerSpieler) - this.verteilteEinheitenGui;
-		System.out.println("gzvE 2"); //TODO
 		return zuVerteilendeEinheitenGui;
 	}
 	

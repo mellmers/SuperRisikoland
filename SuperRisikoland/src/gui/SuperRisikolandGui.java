@@ -225,7 +225,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		JPanel panelMissionTimerStatus = new JPanel();
 		panelMissionTimerStatus.setLayout(new GridLayout(2,1));
 		JPanel panelPhase = new JPanel(new GridLayout(1,2)), panelZeitBestaetigung = new JPanel(new GridLayout(1,2));
-		labelStatus.setFont(new Font(null, Font.BOLD, 24));
+		labelStatus.setFont(new Font(null, Font.BOLD, this.b/80));
 		labelStatus.setForeground(Color.red);
 		labelStatus.setPreferredSize(new Dimension(this.b/100*15, this.h/100*4));
 		this.buttonPhaseBeenden.setPreferredSize(new Dimension(this.b/100*15, this.h/100*4));
@@ -638,7 +638,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		{
 			// Slider fuer Truppenauswahl, etc erstellen
 			sliderMap = new JSlider(SwingConstants.HORIZONTAL, 0, 50, 0);
-			sliderMap.setBounds(b/100*2, h/100*82, b/3, h/25);
+			sliderMap.setBounds(b/100*2, h/100*65, b/100*30, h/100*20);
 			// Die Abstände zwischen den Teilmarkierungen werden festgelegt
 			sliderMap.setMajorTickSpacing(5);
 			sliderMap.setMinorTickSpacing(1);
@@ -653,18 +653,18 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 			getContentPane().add(sliderMap);
 			// Label fuer Truppenstaerke, Besitzer und Name erstellen
 			JPanel panelLabelFuerLand = new JPanel(new GridLayout(3, 3));
-			panelLabelFuerLand.setBounds(-b/100*2,h/100*65,b/100*33,h/8);
+			panelLabelFuerLand.setBounds(0,h/100*60,b/100*33,h/8);
 			panelLabelFuerLand.setOpaque(false);
 			for (int i = 0; i < landBeschreibung.length; i++)
 			{
-				landBeschreibung[i].setFont(new Font(null, Font.BOLD, 20));
+				landBeschreibung[i].setFont(new Font(null, Font.BOLD, b/96));
 			}
-			landTruppenstaerke.setFont(new Font(null, Font.BOLD, 20));
-			landname.setFont(new Font(null, Font.BOLD, 20));
-			landBesitzer.setFont(new Font(null, Font.BOLD, 20));
-			landTruppenstaerke2.setFont(new Font(null, Font.BOLD, 20));
-			landname2.setFont(new Font(null, Font.BOLD, 20));
-			landBesitzer2.setFont(new Font(null, Font.BOLD, 20));
+			landTruppenstaerke.setFont(new Font(null, Font.BOLD, b/96));
+			landname.setFont(new Font(null, Font.BOLD, b/96));
+			landBesitzer.setFont(new Font(null, Font.BOLD, b/96));
+			landTruppenstaerke2.setFont(new Font(null, Font.BOLD, b/96));
+			landname2.setFont(new Font(null, Font.BOLD, b/96));
+			landBesitzer2.setFont(new Font(null, Font.BOLD, b/96));
 			panelLabelFuerLand.add(landBeschreibung[0]);
 			panelLabelFuerLand.add(landTruppenstaerke);
 			panelLabelFuerLand.add(landTruppenstaerke2);
