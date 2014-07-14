@@ -20,7 +20,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionAdapter;
+import java.awt.event.MouseMotionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
@@ -63,9 +65,6 @@ import cui.Spielfeld;
 
 public class SuperRisikolandGui extends JFrame implements ActionListener, Serializable, SuperRisikoLandGuiInterface
 {
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 8931464798393030135L;
 	// Variablen
 	private Dimension screen;
@@ -101,10 +100,19 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 	private SpielfeldInterface spiel;
 	// TODO private Spielfeld spiel;
 	private Land aktuellesLand;
-	private int aktuellesLandId;
-	Object[] kreise = new Object[42];
+	private Land aktuellesLandRK;
+	private int aktuellesLandId;	
 	
+	private JPanel panelMap;
+	
+	// Variablen der Map
+	JLabel[] landBeschreibung = {new JLabel("Truppenstaerke: ", SwingConstants.RIGHT), new JLabel("Land: ", SwingConstants.RIGHT), new JLabel("Besitzer: ", SwingConstants.RIGHT)};
+	final JLabel landTruppenstaerke = new JLabel(""), landTruppenstaerke2 = new JLabel("");
+	final JLabel landname = new JLabel(""), landname2 = new JLabel("");
+	final JLabel landBesitzer = new JLabel(""), landBesitzer2 = new JLabel("");
 	JSlider sliderMap;
+	
+	Object[] kreise = new Object[42];
 		
 	public SuperRisikolandGui() throws RemoteException
 	{
@@ -251,7 +259,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		nord.add(panelKontinenteTimer);
 		
 		// Mitte - Karte
-		JPanel mitte = new riskoMap();
+		panelMap = new riskoMap();
 		
 		// Unten - Spielinfos
 		//groessen:
@@ -285,7 +293,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		
 		// Ausrichtung der Panels
 		this.add(nord, BorderLayout.NORTH);
-		this.add(mitte, BorderLayout.CENTER);
+		this.add(panelMap, BorderLayout.CENTER);
 		this.add(sued, BorderLayout.SOUTH);
 		
 		// Fenster anzeigen
@@ -293,7 +301,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		this.setVisible(true);
 		this.setResizable(false);
 		
-		// Aktualsierung erstellen
+		// Aktualisierung erstellen
 		final ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
 		service.scheduleWithFixedDelay(new Runnable()
 		{
@@ -312,8 +320,35 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 	
 	private void aktualisieren() throws RemoteException
 	{
-		this.logTextArea.setText(server.getLogText() + this.getLogTextGui());
+		//this.logTextArea.setText(server.getLogText() + this.getLogTextGui());
+		
+		// Land 1 aktualisieren
+		if(aktuellesLand != null)
+		{
+			landTruppenstaerke.setForeground(aktuellesLand.getBesitzer().getColorSpieler());
+			landname.setForeground(aktuellesLand.getBesitzer().getColorSpieler());
+			landBesitzer.setForeground(aktuellesLand.getBesitzer().getColorSpieler());
+			landTruppenstaerke.setText(""+ aktuellesLand.getTruppenstaerke());
+			landname.setText(aktuellesLand.getName());
+			if(aktuellesLand.getBesitzer() != null)
+			{
+				landBesitzer.setText(aktuellesLand.getBesitzer().getName());
+			} else { landBesitzer.setText("kein Besitzer"); }
+		}
+		if(aktuellesLandRK != null)
+		{
+			landTruppenstaerke2.setForeground(aktuellesLandRK.getBesitzer().getColorSpieler());
+			landname2.setForeground(aktuellesLandRK.getBesitzer().getColorSpieler());
+			landBesitzer2.setForeground(aktuellesLandRK.getBesitzer().getColorSpieler());
+			landTruppenstaerke2.setText(""+ aktuellesLandRK.getTruppenstaerke());
+			landname2.setText(aktuellesLandRK.getName());
+			if(aktuellesLandRK.getBesitzer() != null)
+			{
+				landBesitzer2.setText(aktuellesLandRK.getBesitzer().getName());
+			} else { landBesitzer2.setText("kein Besitzer"); }
+		}
 	}
+
 	public void besitzerAktualisieren() throws RemoteException
 	{
 		for(int i = 0 ; i < labelIcons.length ; i++)
@@ -358,11 +393,12 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 				{
 					if(aktuellerSpieler.meinLand(aktuellesLand) && this.sliderMap.getValue() > 0 && this.sliderMap.getValue() <= spiel.getZuVerteilendeEinheitenGui(aktuellerSpieler))
 					{
-						if(!this.spiel.neueArmeen((SpielerInterface) aktuellerSpieler, true, aktuellesLandId , this.sliderMap.getValue()))
+						if(this.spiel.neueArmeen((SpielerInterface) aktuellerSpieler, true, aktuellesLandId , this.sliderMap.getValue()))
+
 						{
 							this.buttonPhaseBeenden.setEnabled(true);
+							this.buttonBestaetigung.setEnabled(false);
 						}
-						repaint();
 					}
 					
 				} catch (RemoteException e1)
@@ -559,14 +595,10 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 	}
 	
 	public class riskoMap extends JPanel
-	{
-		// Variablen der Map
-		JLabel[] landBeschreibung = {new JLabel("Truppenstaerke: ", SwingConstants.RIGHT), new JLabel("Land: ", SwingConstants.RIGHT), new JLabel("Besitzer: ", SwingConstants.RIGHT)};
-		final JLabel landTruppenstaerke = new JLabel(""), landTruppenstaerke2 = new JLabel("");
-		final JLabel landname = new JLabel(""), landname2 = new JLabel("");
-		final JLabel landBesitzer = new JLabel(""), landBesitzer2 = new JLabel("");
-		
+
+	{		
 		public riskoMap() throws RemoteException
+
 		{
 			// Slider fuer Truppenauswahl, etc erstellen
 			sliderMap = new JSlider(SwingConstants.HORIZONTAL, 0, 50, 0);
@@ -610,133 +642,9 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 			// BesitzerIcons auf den Laendern erscheinen lassen
 			besitzerBildAnzeigen();
 			
-			this.addMouseMotionListener(new MouseMotionAdapter()
-			{
-				public void mouseMoved(MouseEvent e)
-				{
-					try {
-						tooltipErstellen(e);
-					} catch (RemoteException e1) {
-						e1.printStackTrace();
-					}
-				}
-			});
-			this.addMouseListener(new MouseAdapter()
-			{
-				public void mouseClicked(MouseEvent e)
-				{
-					int x = 0, y = 0;
-					try
-					{
-						x = (int) e.getX();
-						y = (int) e.getY();
-						aktuellerFarbcode = new Color(map.getRGB(x, y));
-					}
-					catch(ArrayIndexOutOfBoundsException  ex){}
-					catch(NullPointerException nex){}
-					
-					/*logText += "\nX: " + x + " Y: " + y;
-					logText += "\nRot: " + aktuellerFarbcode.getRed();
-					logText += "\nGruen: " + aktuellerFarbcode.getGreen();
-					logText += "\nBlau: " + aktuellerFarbcode.getBlue();*/
 
-					
-					// Farbcode abspeichern/abfragen welches Land es ist
-					try{
-						if(aktuellerFarbcode.getRed() == 10){
-							setLandBeschreibung(0,e);
-						}else if(aktuellerFarbcode.getRed() == 20){
-							setLandBeschreibung(1,e);
-						} else if(aktuellerFarbcode.getRed() == 30){
-							setLandBeschreibung(2,e);
-						}else if(aktuellerFarbcode.getRed() == 40){
-							setLandBeschreibung(3,e);
-						}else if(aktuellerFarbcode.getRed() == 50){
-							setLandBeschreibung(4,e);
-						}else if(aktuellerFarbcode.getRed() == 60){
-							setLandBeschreibung(5,e);
-						}else if(aktuellerFarbcode.getRed() == 70){
-							setLandBeschreibung(6,e);
-						}else if(aktuellerFarbcode.getRed() == 80){
-							setLandBeschreibung(7,e);
-						}else if(aktuellerFarbcode.getRed() == 90){
-							setLandBeschreibung(8,e);
-						}else if(aktuellerFarbcode.getRed() == 240){
-							setLandBeschreibung(9,e);
-						}else if(aktuellerFarbcode.getRed() == 220){
-							setLandBeschreibung(10,e);
-						}else if(aktuellerFarbcode.getRed() == 230){
-							setLandBeschreibung(11,e);
-						}else if(aktuellerFarbcode.getRed() == 250){
-							setLandBeschreibung(12,e);
-						}else if(aktuellerFarbcode.getGreen() == 10){
-							setLandBeschreibung(13,e);
-						}else if(aktuellerFarbcode.getGreen() == 70){
-							setLandBeschreibung(14,e);
-						}else if(aktuellerFarbcode.getGreen() == 20){
-							setLandBeschreibung(15,e);
-						}else if(aktuellerFarbcode.getGreen() == 40){
-							setLandBeschreibung(16,e);
-						}else if(aktuellerFarbcode.getGreen() == 60){
-							setLandBeschreibung(17,e);
-						}else if(aktuellerFarbcode.getGreen() == 30){
-							setLandBeschreibung(18,e);
-						}else if(aktuellerFarbcode.getGreen() == 50){
-							setLandBeschreibung(19,e);
-						}else if(aktuellerFarbcode.getGreen() == 250){
-							setLandBeschreibung(20,e);
-						}else if(aktuellerFarbcode.getGreen() == 240){
-							setLandBeschreibung(21,e);
-						}else if(aktuellerFarbcode.getGreen() == 220){
-							setLandBeschreibung(22,e);
-						}else if(aktuellerFarbcode.getGreen() == 230){
-							setLandBeschreibung(23,e);
-						}else if(aktuellerFarbcode.getGreen() == 210){
-							setLandBeschreibung(24,e);
-						}else if(aktuellerFarbcode.getGreen() == 200){
-							setLandBeschreibung(25,e);
-						}else if(aktuellerFarbcode.getBlue() == 50){
-							setLandBeschreibung(26,e);
-						}else if(aktuellerFarbcode.getBlue() == 60){
-							setLandBeschreibung(27,e);
-						}else if(aktuellerFarbcode.getBlue() == 90){
-							setLandBeschreibung(28,e);
-						}else if(aktuellerFarbcode.getBlue() == 100){
-							setLandBeschreibung(29,e);
-						}else if(aktuellerFarbcode.getBlue() == 80){
-							setLandBeschreibung(30,e);
-						}else if(aktuellerFarbcode.getBlue() == 70){
-							setLandBeschreibung(31,e);
-						}else if(aktuellerFarbcode.getBlue() == 110){
-							setLandBeschreibung(32,e);
-						}else if(aktuellerFarbcode.getBlue() == 20){
-							setLandBeschreibung(33,e);
-						}else if(aktuellerFarbcode.getBlue() == 40){
-							setLandBeschreibung(34,e);
-						}else if(aktuellerFarbcode.getBlue() == 10){
-							setLandBeschreibung(35,e);
-						}else if(aktuellerFarbcode.getBlue() == 30){
-							setLandBeschreibung(36,e);
-						}else if(aktuellerFarbcode.getBlue() == 120){
-							setLandBeschreibung(37,e);
-						}else if(aktuellerFarbcode.getBlue() == 250){
-							setLandBeschreibung(38,e);
-						}else if(aktuellerFarbcode.getBlue() == 240){
-							setLandBeschreibung(39,e);
-						}else if(aktuellerFarbcode.getBlue() == 230){
-							setLandBeschreibung(40,e);
-						}else if(aktuellerFarbcode.getBlue() == 220){
-							setLandBeschreibung(41,e);
-						}else if(aktuellerFarbcode.getRed() == 238){  //aktuellesLand null setzen, wenn auf kein Land geklickt wird
-							landTruppenstaerke.setText("");
-							landname.setText("");
-							landBesitzer.setText("");
-						}
-					} catch (RemoteException e1) {
-						e1.printStackTrace();
-					}
-				}
-			});
+			this.addMouseMotionListener(new MouseMotionAdapterMap());
+			this.addMouseListener(new MouseAdapterMap());
 		}
 		
 		public void paint(Graphics g)
@@ -745,12 +653,9 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 			//Graphics2D g2 = (Graphics2D) g;
 			//renderSettings(g2);
 			createMap(b, h/100*69);
-			g.drawImage(map, 0, 0, this);
-			//Graphics2D circle = (Graphics2D) g;
-			//circle.fillOval(5, 5, 20, 20);
-			//kreiseVerteilen(g);
-			
+			g.drawImage(map, 0, 0, this);			
 		}
+		
 		public void besitzerBildAnzeigen() throws RemoteException
 		{
 			int abstandVonOben = 1080/100*8;
@@ -821,8 +726,146 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 			g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 			g.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
 		}
+	}
+	
+	public class MouseMotionAdapterMap implements MouseMotionListener
+	{
+		public void mouseDragged(MouseEvent e){}
+
+		public void mouseMoved(MouseEvent e)
+		{
+			try {
+				tooltipErstellen(e);
+			} catch (RemoteException e1) {
+				e1.printStackTrace();
+			}
+		}
+	}
+	
+	private void tooltipErstellen(MouseEvent e) throws RemoteException
+	{
+		int x = 0, y = 0;
+		try
+		{
+			x = (int) e.getX();
+			y = (int) e.getY();
+			aktuellerFarbcode = new Color(map.getRGB(x, y));
+		}
+		catch(ArrayIndexOutOfBoundsException  ex){}
+		catch(NullPointerException nex){}
 		
-		private void tooltipErstellen(MouseEvent e) throws RemoteException
+		/*logText += "\nX: " + x + " Y: " + y;
+		logText += "\nRot: " + aktuellerFarbcode.getRed();
+		logText += "\nGr���n: " + aktuellerFarbcode.getGreen();
+		logText += "\nBlau: " + aktuellerFarbcode.getBlue();*/
+		
+		// Tooltip Einstellungen
+		ToolTipManager.sharedInstance().setInitialDelay(500); // 0,5 Sekunden Verzoegerung bis Tooltip angezeigt wird
+		
+		// Farbcode abspeichern/abfragen welches Land es ist und Tooltip setzen
+		if(aktuellerFarbcode.getRed() == 10){
+			setTooltip(0);
+		}else if(aktuellerFarbcode.getRed() == 20){
+			setTooltip(1);
+		} else if(aktuellerFarbcode.getRed() == 30){
+			setTooltip(2);
+		}else if(aktuellerFarbcode.getRed() == 40){
+			setTooltip(3);
+		}else if(aktuellerFarbcode.getRed() == 50){
+			setTooltip(4);
+		}else if(aktuellerFarbcode.getRed() == 60){
+			setTooltip(5);
+		}else if(aktuellerFarbcode.getRed() == 70){
+			setTooltip(6);
+		}else if(aktuellerFarbcode.getRed() == 80){
+			setTooltip(7);
+		}else if(aktuellerFarbcode.getRed() == 90){
+			setTooltip(8);
+		}else if(aktuellerFarbcode.getRed() == 240){
+			setTooltip(9);
+		}else if(aktuellerFarbcode.getRed() == 220){
+			setTooltip(10);
+		}else if(aktuellerFarbcode.getRed() == 230){
+			setTooltip(11);
+		}else if(aktuellerFarbcode.getRed() == 250){
+			setTooltip(12);
+		}else if(aktuellerFarbcode.getGreen() == 10){
+			setTooltip(13);
+		}else if(aktuellerFarbcode.getGreen() == 70){
+			setTooltip(14);
+		}else if(aktuellerFarbcode.getGreen() == 20){
+			setTooltip(15);
+		}else if(aktuellerFarbcode.getGreen() == 40){
+			setTooltip(16);
+		}else if(aktuellerFarbcode.getGreen() == 60){
+			setTooltip(17);
+		}else if(aktuellerFarbcode.getGreen() == 30){
+			setTooltip(18);
+		}else if(aktuellerFarbcode.getGreen() == 50){
+			setTooltip(19);
+		}else if(aktuellerFarbcode.getGreen() == 250){
+			setTooltip(20);
+		}else if(aktuellerFarbcode.getGreen() == 240){
+			setTooltip(21);
+		}else if(aktuellerFarbcode.getGreen() == 220){
+			setTooltip(22);
+		}else if(aktuellerFarbcode.getGreen() == 230){
+			setTooltip(23);
+		}else if(aktuellerFarbcode.getGreen() == 210){
+			setTooltip(24);
+		}else if(aktuellerFarbcode.getGreen() == 200){
+			setTooltip(25);
+		}else if(aktuellerFarbcode.getBlue() == 50){
+			setTooltip(26);
+		}else if(aktuellerFarbcode.getBlue() == 60){
+			setTooltip(27);
+		}else if(aktuellerFarbcode.getBlue() == 90){
+			setTooltip(28);
+		}else if(aktuellerFarbcode.getBlue() == 100){
+			setTooltip(29);
+		}else if(aktuellerFarbcode.getBlue() == 80){
+			setTooltip(30);
+		}else if(aktuellerFarbcode.getBlue() == 70){
+			setTooltip(31);
+		}else if(aktuellerFarbcode.getBlue() == 110){
+			setTooltip(32);
+		}else if(aktuellerFarbcode.getBlue() == 20){
+			setTooltip(33);
+		}else if(aktuellerFarbcode.getBlue() == 40){
+			setTooltip(34);
+		}else if(aktuellerFarbcode.getBlue() == 10){
+			setTooltip(35);
+		}else if(aktuellerFarbcode.getBlue() == 30){
+			setTooltip(36);
+		}else if(aktuellerFarbcode.getBlue() == 120){
+			setTooltip(37);
+		}else if(aktuellerFarbcode.getBlue() == 250){
+			setTooltip(38);
+		}else if(aktuellerFarbcode.getBlue() == 240){
+			setTooltip(39);
+		}else if(aktuellerFarbcode.getBlue() == 230){
+			setTooltip(40);
+		}else if(aktuellerFarbcode.getBlue() == 220){
+			setTooltip(41);
+		}else if(aktuellerFarbcode.getRed() == 238){  //Tooltip ausblenden, wenn man mit dem Cursor auf keinem Land ist
+			panelMap.setToolTipText("");
+		}
+	}
+	
+	private void setTooltip(int landId) throws RemoteException
+	{
+		Land l = (Land) spiel.getLand(landId);
+		String besitzer = l.getBesitzer() != null ? l.getBesitzer().getName() : "kein Besitzer";
+		Color cBesitzer = l.getBesitzer() != null ? l.getBesitzer().getColorSpieler() : Color.white;
+		UIManager.put("ToolTip.background", cBesitzer);
+		UIManager.put("ToolTip.border", BorderFactory.createLineBorder(Color.red));
+		panelMap.setToolTipText("<html>" + landBeschreibung[0].getText() + l.getTruppenstaerke() + "<br>" + landBeschreibung[1].getText() 
+				+ l.getName() + "<br>" + landBeschreibung[2].getText() + besitzer +"</html>");
+	}
+	
+	public class MouseAdapterMap implements MouseListener
+	{
+		public void mouseClicked(MouseEvent e)
 		{
 			int x = 0, y = 0;
 			try
@@ -836,144 +879,145 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 			
 			/*logText += "\nX: " + x + " Y: " + y;
 			logText += "\nRot: " + aktuellerFarbcode.getRed();
-			logText += "\nGr���n: " + aktuellerFarbcode.getGreen();
+			logText += "\nGruen: " + aktuellerFarbcode.getGreen();
 			logText += "\nBlau: " + aktuellerFarbcode.getBlue();*/
+
 			
-			// Tooltip Einstellungen
-			ToolTipManager.sharedInstance().setInitialDelay(500); // 0,5 Sekunden Verz���gerung bis Tooltip angezeigt wird
-			
-			// Farbcode abspeichern/abfragen welches Land es ist und Tooltip setzen
-			if(aktuellerFarbcode.getRed() == 10){
-				setTooltip(0);
-			}else if(aktuellerFarbcode.getRed() == 20){
-				setTooltip(1);
-			} else if(aktuellerFarbcode.getRed() == 30){
-				setTooltip(2);
-			}else if(aktuellerFarbcode.getRed() == 40){
-				setTooltip(3);
-			}else if(aktuellerFarbcode.getRed() == 50){
-				setTooltip(4);
-			}else if(aktuellerFarbcode.getRed() == 60){
-				setTooltip(5);
-			}else if(aktuellerFarbcode.getRed() == 70){
-				setTooltip(6);
-			}else if(aktuellerFarbcode.getRed() == 80){
-				setTooltip(7);
-			}else if(aktuellerFarbcode.getRed() == 90){
-				setTooltip(8);
-			}else if(aktuellerFarbcode.getRed() == 240){
-				setTooltip(9);
-			}else if(aktuellerFarbcode.getRed() == 220){
-				setTooltip(10);
-			}else if(aktuellerFarbcode.getRed() == 230){
-				setTooltip(11);
-			}else if(aktuellerFarbcode.getRed() == 250){
-				setTooltip(12);
-			}else if(aktuellerFarbcode.getGreen() == 10){
-				setTooltip(13);
-			}else if(aktuellerFarbcode.getGreen() == 70){
-				setTooltip(14);
-			}else if(aktuellerFarbcode.getGreen() == 20){
-				setTooltip(15);
-			}else if(aktuellerFarbcode.getGreen() == 40){
-				setTooltip(16);
-			}else if(aktuellerFarbcode.getGreen() == 60){
-				setTooltip(17);
-			}else if(aktuellerFarbcode.getGreen() == 30){
-				setTooltip(18);
-			}else if(aktuellerFarbcode.getGreen() == 50){
-				setTooltip(19);
-			}else if(aktuellerFarbcode.getGreen() == 250){
-				setTooltip(20);
-			}else if(aktuellerFarbcode.getGreen() == 240){
-				setTooltip(21);
-			}else if(aktuellerFarbcode.getGreen() == 220){
-				setTooltip(22);
-			}else if(aktuellerFarbcode.getGreen() == 230){
-				setTooltip(23);
-			}else if(aktuellerFarbcode.getGreen() == 210){
-				setTooltip(24);
-			}else if(aktuellerFarbcode.getGreen() == 200){
-				setTooltip(25);
-			}else if(aktuellerFarbcode.getBlue() == 50){
-				setTooltip(26);
-			}else if(aktuellerFarbcode.getBlue() == 60){
-				setTooltip(27);
-			}else if(aktuellerFarbcode.getBlue() == 90){
-				setTooltip(28);
-			}else if(aktuellerFarbcode.getBlue() == 100){
-				setTooltip(29);
-			}else if(aktuellerFarbcode.getBlue() == 80){
-				setTooltip(30);
-			}else if(aktuellerFarbcode.getBlue() == 70){
-				setTooltip(31);
-			}else if(aktuellerFarbcode.getBlue() == 110){
-				setTooltip(32);
-			}else if(aktuellerFarbcode.getBlue() == 20){
-				setTooltip(33);
-			}else if(aktuellerFarbcode.getBlue() == 40){
-				setTooltip(34);
-			}else if(aktuellerFarbcode.getBlue() == 10){
-				setTooltip(35);
-			}else if(aktuellerFarbcode.getBlue() == 30){
-				setTooltip(36);
-			}else if(aktuellerFarbcode.getBlue() == 120){
-				setTooltip(37);
-			}else if(aktuellerFarbcode.getBlue() == 250){
-				setTooltip(38);
-			}else if(aktuellerFarbcode.getBlue() == 240){
-				setTooltip(39);
-			}else if(aktuellerFarbcode.getBlue() == 230){
-				setTooltip(40);
-			}else if(aktuellerFarbcode.getBlue() == 220){
-				setTooltip(41);
-			}else if(aktuellerFarbcode.getRed() == 238){  //Tooltip ausblenden, wenn man mit dem Cursor auf keinem Land ist
-				this.setToolTipText("");
+			// Farbcode abspeichern/abfragen welches Land es ist
+			try{
+				if(aktuellerFarbcode.getRed() == 10){
+					setLandBeschreibung(0,e);
+				}else if(aktuellerFarbcode.getRed() == 20){
+					setLandBeschreibung(1,e);
+				} else if(aktuellerFarbcode.getRed() == 30){
+					setLandBeschreibung(2,e);
+				}else if(aktuellerFarbcode.getRed() == 40){
+					setLandBeschreibung(3,e);
+				}else if(aktuellerFarbcode.getRed() == 50){
+					setLandBeschreibung(4,e);
+				}else if(aktuellerFarbcode.getRed() == 60){
+					setLandBeschreibung(5,e);
+				}else if(aktuellerFarbcode.getRed() == 70){
+					setLandBeschreibung(6,e);
+				}else if(aktuellerFarbcode.getRed() == 80){
+					setLandBeschreibung(7,e);
+				}else if(aktuellerFarbcode.getRed() == 90){
+					setLandBeschreibung(8,e);
+				}else if(aktuellerFarbcode.getRed() == 240){
+					setLandBeschreibung(9,e);
+				}else if(aktuellerFarbcode.getRed() == 220){
+					setLandBeschreibung(10,e);
+				}else if(aktuellerFarbcode.getRed() == 230){
+					setLandBeschreibung(11,e);
+				}else if(aktuellerFarbcode.getRed() == 250){
+					setLandBeschreibung(12,e);
+				}else if(aktuellerFarbcode.getGreen() == 10){
+					setLandBeschreibung(13,e);
+				}else if(aktuellerFarbcode.getGreen() == 70){
+					setLandBeschreibung(14,e);
+				}else if(aktuellerFarbcode.getGreen() == 20){
+					setLandBeschreibung(15,e);
+				}else if(aktuellerFarbcode.getGreen() == 40){
+					setLandBeschreibung(16,e);
+				}else if(aktuellerFarbcode.getGreen() == 60){
+					setLandBeschreibung(17,e);
+				}else if(aktuellerFarbcode.getGreen() == 30){
+					setLandBeschreibung(18,e);
+				}else if(aktuellerFarbcode.getGreen() == 50){
+					setLandBeschreibung(19,e);
+				}else if(aktuellerFarbcode.getGreen() == 250){
+					setLandBeschreibung(20,e);
+				}else if(aktuellerFarbcode.getGreen() == 240){
+					setLandBeschreibung(21,e);
+				}else if(aktuellerFarbcode.getGreen() == 220){
+					setLandBeschreibung(22,e);
+				}else if(aktuellerFarbcode.getGreen() == 230){
+					setLandBeschreibung(23,e);
+				}else if(aktuellerFarbcode.getGreen() == 210){
+					setLandBeschreibung(24,e);
+				}else if(aktuellerFarbcode.getGreen() == 200){
+					setLandBeschreibung(25,e);
+				}else if(aktuellerFarbcode.getBlue() == 50){
+					setLandBeschreibung(26,e);
+				}else if(aktuellerFarbcode.getBlue() == 60){
+					setLandBeschreibung(27,e);
+				}else if(aktuellerFarbcode.getBlue() == 90){
+					setLandBeschreibung(28,e);
+				}else if(aktuellerFarbcode.getBlue() == 100){
+					setLandBeschreibung(29,e);
+				}else if(aktuellerFarbcode.getBlue() == 80){
+					setLandBeschreibung(30,e);
+				}else if(aktuellerFarbcode.getBlue() == 70){
+					setLandBeschreibung(31,e);
+				}else if(aktuellerFarbcode.getBlue() == 110){
+					setLandBeschreibung(32,e);
+				}else if(aktuellerFarbcode.getBlue() == 20){
+					setLandBeschreibung(33,e);
+				}else if(aktuellerFarbcode.getBlue() == 40){
+					setLandBeschreibung(34,e);
+				}else if(aktuellerFarbcode.getBlue() == 10){
+					setLandBeschreibung(35,e);
+				}else if(aktuellerFarbcode.getBlue() == 30){
+					setLandBeschreibung(36,e);
+				}else if(aktuellerFarbcode.getBlue() == 120){
+					setLandBeschreibung(37,e);
+				}else if(aktuellerFarbcode.getBlue() == 250){
+					setLandBeschreibung(38,e);
+				}else if(aktuellerFarbcode.getBlue() == 240){
+					setLandBeschreibung(39,e);
+				}else if(aktuellerFarbcode.getBlue() == 230){
+					setLandBeschreibung(40,e);
+				}else if(aktuellerFarbcode.getBlue() == 220){
+					setLandBeschreibung(41,e);
+				}else if(aktuellerFarbcode.getRed() == 238){  //aktuellesLand null setzen, wenn auf kein Land geklickt wird
+					landTruppenstaerke.setText("");
+					landname.setText("");
+					landBesitzer.setText("");
+				}
+			} catch (RemoteException e1) {
+				e1.printStackTrace();
 			}
 		}
-		
-		private void setTooltip(int landId) throws RemoteException
+
+		public void mousePressed(MouseEvent e){}
+		public void mouseReleased(MouseEvent e){}
+		public void mouseEntered(MouseEvent e){}
+		public void mouseExited(MouseEvent e){}
+	}
+	
+	private void setLandBeschreibung(int landId, MouseEvent e) throws RemoteException
+	{
+		aktuellesLandId = landId;
+		if(e.getButton() == 3)
 		{
-			Land l = (Land) spiel.getLand(landId);
-			String besitzer = l.getBesitzer() != null ? l.getBesitzer().getName() : "kein Besitzer";
-			Color cBesitzer = l.getBesitzer() != null ? l.getBesitzer().getColorSpieler() : Color.white;
-			UIManager.put("ToolTip.background", cBesitzer);
-			UIManager.put("ToolTip.border", BorderFactory.createLineBorder(Color.red));
-			this.setToolTipText("<html>" + landBeschreibung[0].getText() + l.getTruppenstaerke() + "<br>" + landBeschreibung[1].getText() 
-					+ l.getName() + "<br>" + landBeschreibung[2].getText() + besitzer +"</html>");
+			aktuellesLandRK = (Land) spiel.getLand(landId);
+			landTruppenstaerke2.setForeground(aktuellesLandRK.getBesitzer().getColorSpieler());
+			landname2.setForeground(aktuellesLandRK.getBesitzer().getColorSpieler());
+			landBesitzer2.setForeground(aktuellesLandRK.getBesitzer().getColorSpieler());
+			landTruppenstaerke2.setText(""+ aktuellesLandRK.getTruppenstaerke());
+			landname2.setText(aktuellesLandRK.getName());
+			if(aktuellesLandRK.getBesitzer() != null)
+			{
+				landBesitzer2.setText(aktuellesLandRK.getBesitzer().getName());
+			} else { landBesitzer2.setText("kein Besitzer"); }
 		}
-		
-		private void setLandBeschreibung(int landId, MouseEvent e) throws RemoteException
+		else
 		{
 			aktuellesLand = (Land) spiel.getLand(landId);
-			aktuellesLandId = landId;
-			if(e.getButton() == 3)
+			landTruppenstaerke.setForeground(aktuellesLand.getBesitzer().getColorSpieler());
+			landname.setForeground(aktuellesLand.getBesitzer().getColorSpieler());
+			landBesitzer.setForeground(aktuellesLand.getBesitzer().getColorSpieler());
+			landTruppenstaerke.setText(""+ aktuellesLand.getTruppenstaerke());
+			landname.setText(aktuellesLand.getName());
+			if(aktuellesLand.getBesitzer() != null)
 			{
-				landTruppenstaerke2.setForeground(aktuellesLand.getBesitzer().getColorSpieler());
-				landname2.setForeground(aktuellesLand.getBesitzer().getColorSpieler());
-				landBesitzer2.setForeground(aktuellesLand.getBesitzer().getColorSpieler());
-				landTruppenstaerke2.setText(""+ aktuellesLand.getTruppenstaerke());
-				landname2.setText(aktuellesLand.getName());
-				if(aktuellesLand.getBesitzer() != null)
-				{
-					landBesitzer2.setText(aktuellesLand.getBesitzer().getName());
-				} else { landBesitzer2.setText("kein Besitzer"); }
-			}
-			else
-			{
-				landTruppenstaerke.setForeground(aktuellesLand.getBesitzer().getColorSpieler());
-				landname.setForeground(aktuellesLand.getBesitzer().getColorSpieler());
-				landBesitzer.setForeground(aktuellesLand.getBesitzer().getColorSpieler());
-				landTruppenstaerke.setText(""+ aktuellesLand.getTruppenstaerke());
-				landname.setText(aktuellesLand.getName());
-				if(aktuellesLand.getBesitzer() != null)
-				{
-					landBesitzer.setText(aktuellesLand.getBesitzer().getName());
-				} else { landBesitzer.setText("kein Besitzer"); }
-			}
+				landBesitzer.setText(aktuellesLand.getBesitzer().getName());
+			} else { landBesitzer.setText("kein Besitzer"); }
 		}
 	}
 
+	// Getter und Setter
+	
 	public String getLogTextGui()
 	{
 		return logTextGui;
