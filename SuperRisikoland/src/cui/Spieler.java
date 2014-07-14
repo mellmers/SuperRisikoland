@@ -1,27 +1,31 @@
 package cui;
 import gui.SuperRisikolandGui;
+import inf.KontinentInterface;
 import inf.LandInterface;
+import inf.MissionInterface;
 import inf.SpielerInterface;
 
 import java.awt.Color;
 import java.io.Serializable;
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.Vector;
 
 import javax.swing.ImageIcon;
 
 
-public class Spieler implements Serializable, SpielerInterface
+public class Spieler extends UnicastRemoteObject implements Serializable, SpielerInterface
 {
 	private String name;
-	private Vector<Land> laender = new Vector<Land>();
-	private Vector<Land> handkarten = new Vector<Land>();
-	private Mission mission;
+	private Vector<LandInterface> laender = new Vector<LandInterface>();
+	private Vector<LandInterface> handkarten = new Vector<LandInterface>();
+	private MissionInterface mission;
 	private String spielerfarbe;
 	private ImageIcon spielerIcon;
 	private int spielerID;
 	private Color colorSpieler;
 
-	public Spieler (int spielerID, String spielername, String spielerfarbe, Color c) 
+	public Spieler (int spielerID, String spielername, String spielerfarbe, Color c) throws RemoteException
 	{
 		this.name = spielername;
 		this.spielerfarbe = spielerfarbe;
@@ -50,21 +54,21 @@ public class Spieler implements Serializable, SpielerInterface
 		return this.handkarten.size();
 	}
 	
-	public int getLaenderEinheiten(int id)
+	public int getLaenderEinheiten(int id) throws RemoteException
 	{
 		return this.laender.elementAt(id).getTruppenstaerke();
 	}
 	
-	public void landHinzufuegen(Land land)
+	public void landHinzufuegen(LandInterface land)
 	{
 		this.laender.add(land);
 	}
-	public void landEntfernen(Land land)
+	public void landEntfernen(LandInterface land)
 	{
 		this.laender.removeElement(land);
 	}
 	
-	public void handkartenHinzufuegen(Land land)
+	public void handkartenHinzufuegen(LandInterface land)
 	{
 		this.handkarten.add(land);
 	}
@@ -75,16 +79,19 @@ public class Spieler implements Serializable, SpielerInterface
 	}
 	
 	
-	public boolean meinLand(LandInterface land)
+	public boolean meinLand(LandInterface land) throws RemoteException
 	{
-		if(laender.contains((Land) land))
+		for(int i = 0 ; i < laender.size() ; i++)
 		{
-			return true;
+			if(laender.elementAt(i).getName().equals(land.getName()))
+			{
+				return true;
+			}
 		}
 		return false;
 	}
 	
-	public Kontinent getBesitzLandKontinent(int landNummer)
+	public KontinentInterface getBesitzLandKontinent(int landNummer) throws RemoteException
 	{
 		return this.laender.elementAt(landNummer).getKontinent();
 	}
@@ -94,7 +101,7 @@ public class Spieler implements Serializable, SpielerInterface
 		return this.name;
 	}
 	
-	public void handkartenAusgeben()
+	public void handkartenAusgeben() throws RemoteException
 	{
 		for(int i = 0 ; i < this.handkarten.size(); i++)
 		{
@@ -102,7 +109,7 @@ public class Spieler implements Serializable, SpielerInterface
 		}
 	}
 	
-	public boolean istSerie(int hkEins, int hkZwei, int hkDrei)
+	public boolean istSerie(int hkEins, int hkZwei, int hkDrei) throws RemoteException
 	{
 		if((this.handkarten.elementAt(hkEins).getEinheit() == this.handkarten.elementAt(hkZwei).getEinheit() && this.handkarten.elementAt(hkEins).getEinheit() == this.handkarten.elementAt(hkDrei).getEinheit()) 
 				|| this.handkarten.elementAt(hkEins).getEinheit() != this.handkarten.elementAt(hkZwei).getEinheit() && this.handkarten.elementAt(hkEins).getEinheit() != this.handkarten.elementAt(hkDrei).getEinheit() && this.handkarten.elementAt(hkZwei).getEinheit() != this.handkarten.elementAt(hkDrei).getEinheit() )
@@ -115,12 +122,14 @@ public class Spieler implements Serializable, SpielerInterface
 		return false;
 	}
 
-	public Mission getMission() {
+	public MissionInterface getMission() throws RemoteException
+	{
 		return mission;
 	}
 
-	public void setMission(Mission mission) {
-		this.mission = mission;
+	public void setMission(MissionInterface missionInterface) throws RemoteException
+	{
+		this.mission = missionInterface;
 	}
 
 	public String getSpielerfarbe()
@@ -147,4 +156,7 @@ public class Spieler implements Serializable, SpielerInterface
 	{
 		return colorSpieler;
 	}
+
+
+
 }

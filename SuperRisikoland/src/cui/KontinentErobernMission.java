@@ -1,15 +1,20 @@
 package cui;
 
+import inf.KontinentInterface;
+import inf.MissionInterface;
+import inf.SpielfeldInterface;
+
 import java.io.Serializable;
+import java.rmi.RemoteException;
 
-public class KontinentErobernMission extends Mission implements Serializable
+public class KontinentErobernMission extends Mission implements Serializable, MissionInterface
 {
-	private Kontinent ersterKontinent;
-	private Kontinent zweiterKontinent;
+	private KontinentInterface ersterKontinent;
+	private KontinentInterface zweiterKontinent;
 	private int zusaetzlicherKontinent;
-	private Spielfeld spiel;
+	private SpielfeldInterface spiel;
 
-	public KontinentErobernMission(int ersterKontinent, int zweiterKontinent, int zusatzKontinent, Spielfeld spiel)
+	public KontinentErobernMission(int ersterKontinent, int zweiterKontinent, int zusatzKontinent, SpielfeldInterface spiel) throws RemoteException
 	{
 		this.ersterKontinent = spiel.getKontinent(ersterKontinent);
 		this.zweiterKontinent = spiel.getKontinent(zweiterKontinent);
@@ -17,18 +22,19 @@ public class KontinentErobernMission extends Mission implements Serializable
 		this.spiel = spiel;
 	}
 	
-	public void setAufgabenText()
+
+	public void setAufgabenText() throws RemoteException
 	{
 		this.aufgabenText = "Erobern Sie " + this.ersterKontinent.getName() + " und " + this.zweiterKontinent.getName() + (this.zusaetzlicherKontinent == 0 ? "." : ", sowie einen zusaetzlichen Kontinent ihrer Wahl.");
 	}
 	
-	public void setMissionErfuelltText()
+	public void setMissionErfuelltText() throws RemoteException
 	{
 		this.missionErfuelltText = this.besitzer.getName() + " hat die beiden Kontinente " + this.ersterKontinent.getName() + " und " + this.zweiterKontinent.getName() + (this.zusaetzlicherKontinent == 0 ? "" : ", sowie einen zusaetzlichen Kontinent ihrer Wahl") + " erobert und somit seine Mission erfuellt";
 	}
 	
 	
-	public boolean missionErfuellt()
+	public boolean missionErfuellt() throws RemoteException
 	{
 		if((zusaetzlicherKontinent == 1 && zufallsKontinentAbfragen(this.spiel) && kontinentAbfragen(this.ersterKontinent) && kontinentAbfragen(this.zweiterKontinent)) || (this.zusaetzlicherKontinent == 0 && kontinentAbfragen(this.ersterKontinent) && kontinentAbfragen(this.zweiterKontinent)))
 		{
@@ -37,7 +43,7 @@ public class KontinentErobernMission extends Mission implements Serializable
 		return false;
 	}
 	
-	public boolean kontinentAbfragen(Kontinent kontinent)
+	public boolean kontinentAbfragen(KontinentInterface kontinent) throws RemoteException
 	{
 		int kontinentZaehler = 0;
 	
@@ -56,21 +62,21 @@ public class KontinentErobernMission extends Mission implements Serializable
 		return false;
 	}
 	
-	public boolean zufallsKontinentAbfragen(Spielfeld spiel)
+	public boolean zufallsKontinentAbfragen(SpielfeldInterface spiel2) throws RemoteException
 	{
 		for( int i = 0 ; i < 6 ; i++)
 		{
 			int kontinentZaehler = 0;
-			if(spiel.getKontinent(i) != this.ersterKontinent && spiel.getKontinent(i) != this.zweiterKontinent)
+			if(spiel2.getKontinent(i) != this.ersterKontinent && spiel2.getKontinent(i) != this.zweiterKontinent)
 			{
 				for( int j = 0 ; j < super.besitzer.getLaenderAnzahl() ; j++)
 				{
-					if(super.besitzer.getBesitzLandKontinent(j) == spiel.getKontinent(i))
+					if(super.besitzer.getBesitzLandKontinent(j) == spiel2.getKontinent(i))
 					{
 						kontinentZaehler ++;
 					}
 				}
-				if(kontinentZaehler == spiel.getKontinent(i).getAnzahlLaender())
+				if(kontinentZaehler == spiel2.getKontinent(i).getAnzahlLaender())
 				{
 					return true;
 				}

@@ -1,5 +1,6 @@
 package server;
 
+import java.awt.Color;
 import java.io.Serializable;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -26,10 +27,10 @@ public class Server extends UnicastRemoteObject implements ServerInterface, Seri
 	 */
 	private static final long serialVersionUID = 5627619432737445454L;
 	private Vector<ClientInterface> clients = new Vector<ClientInterface>();
-	private Vector<Spieler> spieler = new Vector<Spieler>();
+	private Vector<SpielerInterface> spieler = new Vector<SpielerInterface>();
 	
 	private String servername;
-	Spielfeld spiel;
+	SpielfeldInterface spiel;
 	private int spielVariante;
 	// Ausgelagerte Variablen
 	private SpielerInterface aktuellerSpieler;
@@ -58,31 +59,28 @@ public class Server extends UnicastRemoteObject implements ServerInterface, Seri
 		return false;
 	}
 
-	public void addSpieler(SpielerInterface spieler) throws RemoteException
+	public void addSpieler(int id, String name, String farbe, Color c) throws RemoteException
 	{
-		if(!this.spieler.contains((Spieler) spieler))
-		{
-			this.spieler.add((Spieler) spieler);
-			System.out.println("Spieler " + spieler.getName() + " hat seinen Charakter ausgewaehlt.");
-		}
+			this.spieler.add(new Spieler(id, name, farbe, c));
+			System.out.println("Spieler " + name + " hat seinen Charakter ausgewaehlt.");
 	}
 	
-	public ClientInterface getClient(int index)
+	public ClientInterface getClient(int index) throws RemoteException
 	{
 		return this.clients.elementAt(index);
 	}
 	
-	public SpielerInterface getSpieler(int index)
+	public SpielerInterface getSpieler(int index) throws RemoteException
 	{
 		return this.spieler.elementAt(index);
 	}
 	
-	public int getAlleClients()
+	public int getAlleClients() throws RemoteException
 	{
 		return this.clients.size();
 	}
 	
-	public int getAlleSpielerAnzahl()
+	public int getAlleSpielerAnzahl() throws RemoteException
 	{
 		return this.spieler.size();
 		
@@ -93,15 +91,16 @@ public class Server extends UnicastRemoteObject implements ServerInterface, Seri
 		int rndZahl = (int) (Math.random()*this.spieler.size()); // Randomzahl zwischen 0 und der Spieleranzahl
 		aktuellerSpieler = this.getSpieler(rndZahl);
 		spiel = new Spielfeld(this, this.spieler, spielVariante);
+		System.out.println(spiel);
 		setLogText(aktuellerSpieler.getName() + " ist nun an der Reihe.");
 	}
 
 	public SpielfeldInterface getSpielfeldInterface() throws RemoteException
 	{
-		return (SpielfeldInterface) this.spiel;
+		return this.spiel;
 	}
 	
-	public SpielerInterface getAktuellerSpieler()
+	public SpielerInterface getAktuellerSpieler() throws RemoteException
 	{
 		return this.aktuellerSpieler;
 	}
@@ -114,5 +113,10 @@ public class Server extends UnicastRemoteObject implements ServerInterface, Seri
 	public String getLogText() throws RemoteException
 	{
 		return this.logText;
+	}
+	
+	public void updateClients()
+	{
+		
 	}
 }

@@ -2,6 +2,7 @@ package client;
 
 import inf.ClientInterface;
 import inf.ServerInterface;
+import inf.SpielerInterface;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -48,7 +49,7 @@ public class SpielBeitreten extends JFrame implements ActionListener, Serializab
 	ClientInterface client;
 	
 	private JButton buttonVerbinden= new JButton("Verbinden");
-	private JTextField textfieldName = new JTextField(), textfieldServer = new JTextField();
+	private JTextField textfieldName = new JTextField(), textfieldServer = new JTextField("Servername");
 	private JSpinner port = new JSpinner(new SpinnerNumberModel(9999, 1000, 9999, 1));
 	
 	// zweites Frame
@@ -69,7 +70,7 @@ public class SpielBeitreten extends JFrame implements ActionListener, Serializab
 	private Color[] colorChars = {this.colorDaisy, this.colorLuigi, this.colorMario, this.colorPeach, this.colorWaluigi, this.colorWario};
 	private String[] color = {"Orange","Gruen","Rot","Pink","Lila","Gelb"};
 	
-	Spieler spieler;
+	SpielerInterface spieler;
 	int spielerId;
 	JFrame spielBeitreten;
 	
@@ -302,8 +303,7 @@ public class SpielBeitreten extends JFrame implements ActionListener, Serializab
 	
 	private void actionAuswahlBestaetigen() throws RemoteException
 	{
-		this.spieler = new Spieler(spielerId, textfieldName.getText().trim(), color[spielerId], colorChars[spielerId]);
-		server.addSpieler(this.spieler);
+		server.addSpieler(spielerId, textfieldName.getText().trim(), color[spielerId], colorChars[spielerId]);
 		this.buttonAuswahlBestaetigen.setEnabled(false);
 		this.aktuellerChar.setEnabled(false);
 		for (int i = 0; i < this.labelCharakter.length; i++)

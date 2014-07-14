@@ -1,5 +1,7 @@
 package gui;
 
+import inf.SpielerInterface;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -293,7 +295,7 @@ public class NeuesSpiel extends JFrame implements ActionListener
 		}
 		// aktuellerSpieler wird Random festgelegt
 		int rndZahl = (int) (Math.random()*this.anzahlSpieler); // Randomzahl zwischen 0 und der Spieleranzahl
-		Spieler aktuellerSpieler = spiel.getSpieler(rndZahl);
+		SpielerInterface aktuellerSpieler = spiel.getSpieler(rndZahl);
 		// Gui wird aufgerufen
 		//new SuperRisikolandGui(spiel, aktuellerSpieler, false);
 		dispose();

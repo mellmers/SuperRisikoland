@@ -1,15 +1,19 @@
 package cui;
 
-import java.io.Serializable;
+import inf.KontinentInterface;
 
-public class Kontinent implements Serializable
+import java.io.Serializable;
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
+
+public class Kontinent extends UnicastRemoteObject  implements Serializable, KontinentInterface
 {
 
 	private String name;
 	private int anzahlLaender;
 	private int zusatzTruppen;
 
-	public Kontinent(String name, int anzLaender, int zusatz) {
+	public Kontinent(String name, int anzLaender, int zusatz) throws RemoteException {
 		this.name = name;
 		this.anzahlLaender = anzLaender;
 		this.zusatzTruppen = zusatz;

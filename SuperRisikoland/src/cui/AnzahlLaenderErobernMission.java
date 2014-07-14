@@ -1,23 +1,26 @@
 package cui;
 
-import java.io.Serializable;
+import inf.MissionInterface;
 
-public class AnzahlLaenderErobernMission extends Mission implements Serializable
+import java.io.Serializable;
+import java.rmi.RemoteException;
+
+public class AnzahlLaenderErobernMission extends Mission implements Serializable, MissionInterface
 {
 
 	private int anzahlLaender;
 	
-	public AnzahlLaenderErobernMission(int anzahlLaender)
+	public AnzahlLaenderErobernMission(int anzahlLaender)  throws RemoteException
 	{
 		this.anzahlLaender = anzahlLaender;
 	}
 	
-	public void setAufgabenText()
+	public void setAufgabenText() throws RemoteException
 	{
 		this.aufgabenText = "Erobern Sie " + this.anzahlLaender + " Laender Ihrer Wahl" + (this.anzahlLaender == 18 ? " und besetzen Sie jedes dieser Laender mit mindestens 2 Einheiten." : ".");
 	}
 	
-	public boolean missionErfuellt()
+	public boolean missionErfuellt() throws RemoteException
 	{
 		if(this.anzahlLaender == 24 && this.erforderteLaenderAnzahl())
 		{
@@ -41,12 +44,12 @@ public class AnzahlLaenderErobernMission extends Mission implements Serializable
 		return false;
 	}
 	
-	public void setMissionErfuelltText()
+	public void setMissionErfuelltText() throws RemoteException
 	{
 		this.missionErfuelltText = super.besitzer.getName() + " hat " + this.anzahlLaender + " Laender erobert" + (this.anzahlLaender == 18 ? ", sowie jedes dieser Laender mit mindestens 2 Einheiten besetzt" : "") + " und somit seine Mission erfuellt.";
 	}
 	
-	public boolean erforderteLaenderAnzahl()
+	public boolean erforderteLaenderAnzahl() throws RemoteException
 	{
 		if(super.besitzer.getLaenderAnzahl() >= this.anzahlLaender)
 		{

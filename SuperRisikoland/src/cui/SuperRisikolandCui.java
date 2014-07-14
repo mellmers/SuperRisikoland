@@ -1,5 +1,7 @@
 package cui;
 
+import inf.SpielerInterface;
+
 import java.rmi.RemoteException;
 import java.util.Vector;
 
@@ -10,9 +12,9 @@ public class SuperRisikolandCui
 		// Spielvariblen, die nicht gespeichert werden muessen
 		int anzahlSpieler;
         int spielVariante;
-        Spieler aktuellerSpieler;
+        SpielerInterface aktuellerSpieler;
         int aktuellerSpielerId;
-        Vector<Spieler> alleSpieler = new Vector<Spieler>();
+        Vector<SpielerInterface> alleSpieler = new Vector<SpielerInterface>();
         // vTest
         // Benutzereingabe: Anzahl der Spieler
 		

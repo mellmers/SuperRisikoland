@@ -3,6 +3,9 @@ package cui;
 
 import exc.MaximaleSpielerZahlErreichtException;
 import gui.SuperRisikolandGui;
+import inf.KontinentInterface;
+import inf.LandInterface;
+import inf.MissionInterface;
 import inf.ServerInterface;
 import inf.SpielerInterface;
 import inf.SpielfeldInterface;
@@ -22,13 +25,14 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 {
 	private int spielvariante;
 	
-	private Kontinent[] kontinente = new Kontinent[7];
-	private Land[] laender = new Land[44];
-	private Vector<Land> ausgeteilteKarten = new Vector<Land>();
+	private KontinentInterface[] kontinente = new KontinentInterface[7];
+	private LandInterface[] laender = new LandInterface[44];
+	private Vector<LandInterface> ausgeteilteKarten = new Vector<LandInterface>();
 	private int anzahlSpieler;
-	private Vector<Spieler> spieler = new Vector<Spieler>();
+	private Vector<SpielerInterface> spieler = new Vector<SpielerInterface>();
 	private int maxSpieler = 7;
-	private Vector<Land> eroberteLaender = new Vector<Land>();
+	private Vector<MissionInterface> missionen;
+	private Vector<LandInterface> eroberteLaender = new Vector<LandInterface>();
 	private int eingetauschteSerien = 0;
 	private int zusatzEinheitenSerie = 4;
 	private Vector<SuperRisikoLandGuiInterface> clients = new Vector<SuperRisikoLandGuiInterface>();
@@ -38,7 +42,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 	
 	private ServerInterface server;
 	
-	public Spielfeld(ServerInterface server, Vector<Spieler> alleSpieler, int spielVariante) throws RemoteException
+	public Spielfeld(ServerInterface server, Vector<SpielerInterface> alleSpieler, int spielVariante) throws RemoteException
 	{
 		this.server = server;
 		this.spieler = alleSpieler;
@@ -60,13 +64,22 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 		// Missionen werden erstellt
 		if(spielVariante == 1)
 		{
-			new Mission().missionenErstellen(this); // Missionen werden erstellt und im Spielerobjekt abgespeichert
+			missionen = new Mission().missionenErstellen(this);
+			for(int i = 0 ; i < this.getAnzahlSpieler() ; i++)
+	  		{
+	  			int zufallsMission = (int) (Math.random()*missionen.size());
+	  			((Spieler) this.getSpieler(i)).setMission(missionen.elementAt(zufallsMission));
+	  			this.getSpieler(i).getMission().setBesitzer(this.getSpieler(i));
+	  			this.getSpieler(i).getMission().setAufgabenText();
+	  			this.getSpieler(i).getMission().setMissionErfuelltText();
+	  			missionen.remove(zufallsMission);
+	  		}// Missionen werden erstellt und im Spielerobjekt abgespeichert
 		}
 		// 14x Soldat, 14x Pferd, 14x Kanone  + 2 "Joker" (Pferd, Soldat oder Kanone)
 	}
 	
 	// Getter
-	public Kontinent getKontinent(int kontinentId)
+	public KontinentInterface getKontinent(int kontinentId) throws RemoteException
 	{
 		return this.kontinente[kontinentId];
 	}
@@ -76,30 +89,32 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 		return eroberteLaender.size();
 	}
 	
-	public Land getLand(int laenderId)
+	public LandInterface getLand(int laenderId) throws RemoteException
 	{
 		return this.laender[laenderId];
 	}
 	
-	public Spieler getSpieler(int spielerId)
+	public SpielerInterface getSpieler(int spielerId) throws RemoteException
 	{
 		return this.spieler.elementAt(spielerId);
 	}
 	
 	public int getZuVerteilendeEinheitenGui(SpielerInterface aktuellerSpieler) throws RemoteException
 	{
-		zuVerteilendeEinheitenGui = this.laenderZaehlen((Spieler)aktuellerSpieler) + this.zusatzEinheitenKontinente((Spieler) aktuellerSpieler) + this.checkSerie((Spieler) aktuellerSpieler) - this.verteilteEinheitenGui;
+		System.out.println("gzvE 1"); //TODO
+		zuVerteilendeEinheitenGui = this.laenderZaehlen(  aktuellerSpieler) + this.zusatzEinheitenKontinente(   aktuellerSpieler) + this.checkSerie(   aktuellerSpieler) - this.verteilteEinheitenGui;
+		System.out.println("gzvE 2"); //TODO
 		return zuVerteilendeEinheitenGui;
 	}
 	
 	// Setter
 	
-	public void setEroberteLaenderNull()
+	public void setEroberteLaenderNull() throws RemoteException
 	{
 		this.eroberteLaender.clear();
 	}
 	
-	public void kontinenteEinlesen()
+	public void kontinenteEinlesen() throws RemoteException
 	{
 		kontinente[0] = new Kontinent ("Nord-Amerika", 9, 5);
 		kontinente[1] = new Kontinent ("Sued-Amerika", 4, 2);
@@ -110,7 +125,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 		kontinente[6] = new Kontinent ("Joker", 2, 0);
 	}
 	
-	public void laenderEinlesen()
+	public void laenderEinlesen() throws RemoteException
 	{
 		laender[0] = new Land(kontinente[0], "Alaska", "Soldat", 3, new Color(10,0,0));
 		laender[1] = new Land(kontinente[0], "Nordwest-Territorium", "Kanone", 4, new Color(20,0,0));
@@ -158,216 +173,216 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 		laender[43] = new Land(kontinente[6], "Joker", "Joker", 0, null);
 	}
 		
-	public void nachbarnVerteilen()
+	public void nachbarnVerteilen() throws RemoteException
 	{
-		laender[0].nachbarLaender[0] = laender[1];
-		laender[0].nachbarLaender[1] = laender[3];
-		laender[0].nachbarLaender[2] = laender[29];
+		laender[0].setNachbarLand(0, laender[1]);
+		laender[0].setNachbarLand(1, laender[3]);
+		laender[0].setNachbarLand(2, laender[29]);
 
-		laender[1].nachbarLaender[0] = laender[2];
-		laender[1].nachbarLaender[1] = laender[3];
-		laender[1].nachbarLaender[2] = laender[4];
-		laender[1].nachbarLaender[3] = laender[0];
+		laender[1].setNachbarLand(0, laender[2]);
+		laender[1].setNachbarLand(1, laender[3]);
+		laender[1].setNachbarLand(2, laender[4]);
+		laender[1].setNachbarLand(3, laender[0]);
 
-		laender[2].nachbarLaender[0] = laender[1];
-		laender[2].nachbarLaender[1] = laender[4];
-		laender[2].nachbarLaender[2] = laender[5];
-		laender[2].nachbarLaender[3] = laender[13];
+		laender[2].setNachbarLand(0, laender[1]);
+		laender[2].setNachbarLand(1, laender[4]);
+		laender[2].setNachbarLand(2, laender[5]);
+		laender[2].setNachbarLand(3, laender[13]);
 
-		laender[3].nachbarLaender[0] = laender[0];
-		laender[3].nachbarLaender[1] = laender[1];
-		laender[3].nachbarLaender[2] = laender[4];
-		laender[3].nachbarLaender[3] = laender[6];
+		laender[3].setNachbarLand(0, laender[0]);
+		laender[3].setNachbarLand(1, laender[1]);
+		laender[3].setNachbarLand(2, laender[4]);
+		laender[3].setNachbarLand(3, laender[6]);
 
-		laender[4].nachbarLaender[0] = laender[1];
-		laender[4].nachbarLaender[1] = laender[2];
-		laender[4].nachbarLaender[2] = laender[3];
-		laender[4].nachbarLaender[3] = laender[5];
-		laender[4].nachbarLaender[4] = laender[6];
-		laender[4].nachbarLaender[5] = laender[7];
+		laender[4].setNachbarLand(0, laender[1]);
+		laender[4].setNachbarLand(1, laender[2]);
+		laender[4].setNachbarLand(2, laender[3]);
+		laender[4].setNachbarLand(3, laender[5]);
+		laender[4].setNachbarLand(4, laender[6]);
+		laender[4].setNachbarLand(5, laender[7]);
 
-		laender[5].nachbarLaender[0] = laender[7];
-		laender[5].nachbarLaender[1] = laender[4];
-		laender[5].nachbarLaender[2] = laender[2];
+		laender[5].setNachbarLand(0, laender[7]);
+		laender[5].setNachbarLand(1, laender[4]);
+		laender[5].setNachbarLand(2, laender[2]);
 
-		laender[6].nachbarLaender[0] = laender[3];
-		laender[6].nachbarLaender[1] = laender[4];
-		laender[6].nachbarLaender[2] = laender[7];
-		laender[6].nachbarLaender[3] = laender[8];
+		laender[6].setNachbarLand(0, laender[3]);
+		laender[6].setNachbarLand(1, laender[4]);
+		laender[6].setNachbarLand(2, laender[7]);
+		laender[6].setNachbarLand(3, laender[8]);
 
-		laender[7].nachbarLaender[0] = laender[6];
-		laender[7].nachbarLaender[1] = laender[5];
-		laender[7].nachbarLaender[2] = laender[4];
-		laender[7].nachbarLaender[3] = laender[8];
+		laender[7].setNachbarLand(0, laender[6]);
+		laender[7].setNachbarLand(1, laender[5]);
+		laender[7].setNachbarLand(2, laender[4]);
+		laender[7].setNachbarLand(3, laender[8]);
 
-		laender[8].nachbarLaender[0] = laender[7];
-		laender[8].nachbarLaender[1] = laender[6];
-		laender[8].nachbarLaender[2] = laender[9];
+		laender[8].setNachbarLand(0, laender[7]);
+		laender[8].setNachbarLand(1, laender[6]);
+		laender[8].setNachbarLand(2, laender[9]);
 
-		laender[9].nachbarLaender[0] = laender[8];
-		laender[9].nachbarLaender[1] = laender[10];
-		laender[9].nachbarLaender[2] = laender[11];
+		laender[9].setNachbarLand(0, laender[8]);
+		laender[9].setNachbarLand(1, laender[10]);
+		laender[9].setNachbarLand(2, laender[11]);
 
-		laender[10].nachbarLaender[0] = laender[9];
-		laender[10].nachbarLaender[1] = laender[11];
-		laender[10].nachbarLaender[2] = laender[12];
+		laender[10].setNachbarLand(0, laender[9]);
+		laender[10].setNachbarLand(1, laender[11]);
+		laender[10].setNachbarLand(2, laender[12]);
 
-		laender[11].nachbarLaender[0] = laender[9];
-		laender[11].nachbarLaender[1] = laender[10];
-		laender[11].nachbarLaender[2] = laender[12];
-		laender[11].nachbarLaender[3] = laender[20];
+		laender[11].setNachbarLand(0, laender[9]);
+		laender[11].setNachbarLand(1, laender[10]);
+		laender[11].setNachbarLand(2, laender[12]);
+		laender[11].setNachbarLand(3, laender[20]);
 
-		laender[12].nachbarLaender[0] = laender[11];
-		laender[12].nachbarLaender[1] = laender[10];
+		laender[12].setNachbarLand(0, laender[11]);
+		laender[12].setNachbarLand(1, laender[10]);
 
-		laender[13].nachbarLaender[0] = laender[2];
-		laender[13].nachbarLaender[1] = laender[15];
-		laender[13].nachbarLaender[2] = laender[14];
+		laender[13].setNachbarLand(0, laender[2]);
+		laender[13].setNachbarLand(1, laender[15]);
+		laender[13].setNachbarLand(2, laender[14]);
 
-		laender[14].nachbarLaender[0] = laender[13];
-		laender[14].nachbarLaender[1] = laender[15];
-		laender[14].nachbarLaender[2] = laender[16];
-		laender[14].nachbarLaender[3] = laender[17];
+		laender[14].setNachbarLand(0, laender[13]);
+		laender[14].setNachbarLand(1, laender[15]);
+		laender[14].setNachbarLand(2, laender[16]);
+		laender[14].setNachbarLand(3, laender[17]);
 
-		laender[15].nachbarLaender[0] = laender[13];
-		laender[15].nachbarLaender[1] = laender[14];
-		laender[15].nachbarLaender[2] = laender[16];
-		laender[15].nachbarLaender[3] = laender[18];
+		laender[15].setNachbarLand(0, laender[13]);
+		laender[15].setNachbarLand(1, laender[14]);
+		laender[15].setNachbarLand(2, laender[16]);
+		laender[15].setNachbarLand(3, laender[18]);
 
-		laender[16].nachbarLaender[0] = laender[15];
-		laender[16].nachbarLaender[1] = laender[14];
-		laender[16].nachbarLaender[2] = laender[18];
-		laender[16].nachbarLaender[3] = laender[19];
-		laender[16].nachbarLaender[4] = laender[17];
+		laender[16].setNachbarLand(0, laender[15]);
+		laender[16].setNachbarLand(1, laender[14]);
+		laender[16].setNachbarLand(2, laender[18]);
+		laender[16].setNachbarLand(3, laender[19]);
+		laender[16].setNachbarLand(4, laender[17]);
 
-		laender[17].nachbarLaender[0] = laender[14];
-		laender[17].nachbarLaender[1] = laender[16];
-		laender[17].nachbarLaender[2] = laender[19];
-		laender[17].nachbarLaender[3] = laender[35];
-		laender[17].nachbarLaender[4] = laender[33];
-		laender[17].nachbarLaender[5] = laender[26];
+		laender[17].setNachbarLand(0, laender[14]);
+		laender[17].setNachbarLand(1, laender[16]);
+		laender[17].setNachbarLand(2, laender[19]);
+		laender[17].setNachbarLand(3, laender[35]);
+		laender[17].setNachbarLand(4, laender[33]);
+		laender[17].setNachbarLand(5, laender[26]);
 
-		laender[18].nachbarLaender[0] = laender[15];
-		laender[18].nachbarLaender[1] = laender[16];
-		laender[18].nachbarLaender[2] = laender[19];
-		laender[18].nachbarLaender[3] = laender[20];
+		laender[18].setNachbarLand(0, laender[15]);
+		laender[18].setNachbarLand(1, laender[16]);
+		laender[18].setNachbarLand(2, laender[19]);
+		laender[18].setNachbarLand(3, laender[20]);
 
-		laender[19].nachbarLaender[0] = laender[16];
-		laender[19].nachbarLaender[1] = laender[17];
-		laender[19].nachbarLaender[2] = laender[18];
-		laender[19].nachbarLaender[3] = laender[20];
-		laender[19].nachbarLaender[4] = laender[21];
-		laender[19].nachbarLaender[5] = laender[35];
+		laender[19].setNachbarLand(0, laender[16]);
+		laender[19].setNachbarLand(1, laender[17]);
+		laender[19].setNachbarLand(2, laender[18]);
+		laender[19].setNachbarLand(3, laender[20]);
+		laender[19].setNachbarLand(4, laender[21]);
+		laender[19].setNachbarLand(5, laender[35]);
 
-		laender[20].nachbarLaender[0] = laender[11];
-		laender[20].nachbarLaender[1] = laender[21];
-		laender[20].nachbarLaender[2] = laender[22];
-		laender[20].nachbarLaender[3] = laender[18];
-		laender[20].nachbarLaender[4] = laender[19];
-		laender[20].nachbarLaender[5] = laender[23];
+		laender[20].setNachbarLand(0, laender[11]);
+		laender[20].setNachbarLand(1, laender[21]);
+		laender[20].setNachbarLand(2, laender[22]);
+		laender[20].setNachbarLand(3, laender[18]);
+		laender[20].setNachbarLand(4, laender[19]);
+		laender[20].setNachbarLand(5, laender[23]);
 
-		laender[21].nachbarLaender[0] = laender[19];
-		laender[21].nachbarLaender[1] = laender[20];
-		laender[21].nachbarLaender[2] = laender[23];
-		laender[21].nachbarLaender[3] = laender[35];
+		laender[21].setNachbarLand(0, laender[19]);
+		laender[21].setNachbarLand(1, laender[20]);
+		laender[21].setNachbarLand(2, laender[23]);
+		laender[21].setNachbarLand(3, laender[35]);
 
-		laender[22].nachbarLaender[0] = laender[20];
-		laender[22].nachbarLaender[1] = laender[23];
-		laender[22].nachbarLaender[2] = laender[24];
+		laender[22].setNachbarLand(0, laender[20]);
+		laender[22].setNachbarLand(1, laender[23]);
+		laender[22].setNachbarLand(2, laender[24]);
 		
-		laender[23].nachbarLaender[0] = laender[20];
-		laender[23].nachbarLaender[1] = laender[21];
-		laender[23].nachbarLaender[2] = laender[22];
-		laender[23].nachbarLaender[3] = laender[24];
-		laender[23].nachbarLaender[4] = laender[25];
+		laender[23].setNachbarLand(0, laender[20]);
+		laender[23].setNachbarLand(1, laender[21]);
+		laender[23].setNachbarLand(2, laender[22]);
+		laender[23].setNachbarLand(3, laender[24]);
+		laender[23].setNachbarLand(4, laender[25]);
 
-		laender[24].nachbarLaender[0] = laender[22];
-		laender[24].nachbarLaender[1] = laender[23];
-		laender[24].nachbarLaender[2] = laender[25];
+		laender[24].setNachbarLand(0, laender[22]);
+		laender[24].setNachbarLand(1, laender[23]);
+		laender[24].setNachbarLand(2, laender[25]);
 
-		laender[25].nachbarLaender[0] = laender[23];
-		laender[25].nachbarLaender[1] = laender[24];
+		laender[25].setNachbarLand(0, laender[23]);
+		laender[25].setNachbarLand(1, laender[24]);
 
-		laender[26].nachbarLaender[0] = laender[17];
-		laender[26].nachbarLaender[1] = laender[33];
-		laender[26].nachbarLaender[2] = laender[34];
-		laender[26].nachbarLaender[3] = laender[27];
+		laender[26].setNachbarLand(0, laender[17]);
+		laender[26].setNachbarLand(1, laender[33]);
+		laender[26].setNachbarLand(2, laender[34]);
+		laender[26].setNachbarLand(3, laender[27]);
 
-		laender[27].nachbarLaender[0] = laender[26];
-		laender[27].nachbarLaender[1] = laender[28];
-		laender[27].nachbarLaender[2] = laender[30];
-		laender[27].nachbarLaender[3] = laender[34];
-		laender[27].nachbarLaender[4] = laender[31];
+		laender[27].setNachbarLand(0, laender[26]);
+		laender[27].setNachbarLand(1, laender[28]);
+		laender[27].setNachbarLand(2, laender[30]);
+		laender[27].setNachbarLand(3, laender[34]);
+		laender[27].setNachbarLand(4, laender[31]);
 
-		laender[28].nachbarLaender[0] = laender[27];
-		laender[28].nachbarLaender[1] = laender[29];
-		laender[28].nachbarLaender[2] = laender[30];
+		laender[28].setNachbarLand(0, laender[27]);
+		laender[28].setNachbarLand(1, laender[29]);
+		laender[28].setNachbarLand(2, laender[30]);
 
-		laender[29].nachbarLaender[0] = laender[28];
-		laender[29].nachbarLaender[1] = laender[30];
-		laender[29].nachbarLaender[2] = laender[31];
-		laender[29].nachbarLaender[3] = laender[32];
-		laender[29].nachbarLaender[4] = laender[0];
+		laender[29].setNachbarLand(0, laender[28]);
+		laender[29].setNachbarLand(1, laender[30]);
+		laender[29].setNachbarLand(2, laender[31]);
+		laender[29].setNachbarLand(3, laender[32]);
+		laender[29].setNachbarLand(4, laender[0]);
 
-		laender[30].nachbarLaender[0] = laender[27];
-		laender[30].nachbarLaender[1] = laender[28];
-		laender[30].nachbarLaender[2] = laender[29];
-		laender[30].nachbarLaender[3] = laender[31];
+		laender[30].setNachbarLand(0, laender[27]);
+		laender[30].setNachbarLand(1, laender[28]);
+		laender[30].setNachbarLand(2, laender[29]);
+		laender[30].setNachbarLand(3, laender[31]);
 
-		laender[31].nachbarLaender[0] = laender[27];
-		laender[31].nachbarLaender[1] = laender[29];
-		laender[31].nachbarLaender[2] = laender[30];
-		laender[31].nachbarLaender[3] = laender[32];
-		laender[31].nachbarLaender[4] = laender[34];
+		laender[31].setNachbarLand(0, laender[27]);
+		laender[31].setNachbarLand(1, laender[29]);
+		laender[31].setNachbarLand(2, laender[30]);
+		laender[31].setNachbarLand(3, laender[32]);
+		laender[31].setNachbarLand(4, laender[34]);
 
-		laender[32].nachbarLaender[0] = laender[29];
-		laender[32].nachbarLaender[1] = laender[31];
+		laender[32].setNachbarLand(0, laender[29]);
+		laender[32].setNachbarLand(1, laender[31]);
 
-		laender[33].nachbarLaender[0] = laender[17];
-		laender[33].nachbarLaender[1] = laender[26];
-		laender[33].nachbarLaender[2] = laender[34];
-		laender[33].nachbarLaender[3] = laender[35];
-		laender[33].nachbarLaender[4] = laender[36];
+		laender[33].setNachbarLand(0, laender[17]);
+		laender[33].setNachbarLand(1, laender[26]);
+		laender[33].setNachbarLand(2, laender[34]);
+		laender[33].setNachbarLand(3, laender[35]);
+		laender[33].setNachbarLand(4, laender[36]);
 
-		laender[34].nachbarLaender[0] = laender[26];
-		laender[34].nachbarLaender[1] = laender[27];
-		laender[34].nachbarLaender[2] = laender[31];
-		laender[34].nachbarLaender[3] = laender[33];
-		laender[34].nachbarLaender[4] = laender[36];
-		laender[34].nachbarLaender[5] = laender[37];
+		laender[34].setNachbarLand(0, laender[26]);
+		laender[34].setNachbarLand(1, laender[27]);
+		laender[34].setNachbarLand(2, laender[31]);
+		laender[34].setNachbarLand(3, laender[33]);
+		laender[34].setNachbarLand(4, laender[36]);
+		laender[34].setNachbarLand(5, laender[37]);
 
-		laender[35].nachbarLaender[0] = laender[17];
-		laender[35].nachbarLaender[1] = laender[19];
-		laender[35].nachbarLaender[2] = laender[21];
-		laender[35].nachbarLaender[3] = laender[33];
-		laender[35].nachbarLaender[4] = laender[36];
+		laender[35].setNachbarLand(0, laender[17]);
+		laender[35].setNachbarLand(1, laender[19]);
+		laender[35].setNachbarLand(2, laender[21]);
+		laender[35].setNachbarLand(3, laender[33]);
+		laender[35].setNachbarLand(4, laender[36]);
 
-		laender[36].nachbarLaender[0] = laender[33];
-		laender[36].nachbarLaender[1] = laender[34];
-		laender[36].nachbarLaender[2] = laender[35];
-		laender[36].nachbarLaender[3] = laender[37];
+		laender[36].setNachbarLand(0, laender[33]);
+		laender[36].setNachbarLand(1, laender[34]);
+		laender[36].setNachbarLand(2, laender[35]);
+		laender[36].setNachbarLand(3, laender[37]);
 
-		laender[37].nachbarLaender[0] = laender[34];
-		laender[37].nachbarLaender[1] = laender[36];
-		laender[37].nachbarLaender[2] = laender[38];
+		laender[37].setNachbarLand(0, laender[34]);
+		laender[37].setNachbarLand(1, laender[36]);
+		laender[37].setNachbarLand(2, laender[38]);
 		
-		laender[38].nachbarLaender[0] = laender[37];
-		laender[38].nachbarLaender[1] = laender[39];
-		laender[38].nachbarLaender[2] = laender[40];
+		laender[38].setNachbarLand(0, laender[37]);
+		laender[38].setNachbarLand(1, laender[39]);
+		laender[38].setNachbarLand(2, laender[40]);
 
-		laender[39].nachbarLaender[0] = laender[38];
-		laender[39].nachbarLaender[1] = laender[40];
-		laender[39].nachbarLaender[2] = laender[41];
+		laender[39].setNachbarLand(0, laender[38]);
+		laender[39].setNachbarLand(1, laender[40]);
+		laender[39].setNachbarLand(2, laender[41]);
 
-		laender[40].nachbarLaender[0] = laender[38];
-		laender[40].nachbarLaender[1] = laender[39];
-		laender[40].nachbarLaender[2] = laender[41];
+		laender[40].setNachbarLand(0, laender[38]);
+		laender[40].setNachbarLand(1, laender[39]);
+		laender[40].setNachbarLand(2, laender[41]);
 
-		laender[41].nachbarLaender[0] = laender[39];
-		laender[41].nachbarLaender[1] = laender[40];
+		laender[41].setNachbarLand(0, laender[39]);
+		laender[41].setNachbarLand(1, laender[40]);
 	}
 	
-	public void gesamtLaenderListeAusgeben()
+	public void gesamtLaenderListeAusgeben() throws RemoteException
 	{
 		for (int i = 0; i < 42; i++)
 		{
@@ -375,7 +390,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 		}
 	}
 	
-	public void abfrageSollGesamtLaenderListeAusgegebenWerden()
+	public void abfrageSollGesamtLaenderListeAusgegebenWerden() throws RemoteException
 	{
 		IO.println("Laenderliste ausgeben? (wenn gewuenscht, dann 'l' eingeben)");
 		char c = IO.readChar();
@@ -385,7 +400,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 		}
 	}
 
-	public boolean spielerErstellen(int spielerID, String spielername, String spielerfarbe, Color c)
+	public boolean spielerErstellen(int spielerID, String spielername, String spielerfarbe, Color c) throws RemoteException
 	{
 		// TODO If-Clause weg, weil man durch Gui nicht mehr als 6 Spieler auswaehlen kann
 		if(this.spieler.size() < this.maxSpieler)
@@ -397,7 +412,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 		return false;
 	}
 
-	public void startLaenderVerteilen()
+	public void startLaenderVerteilen() throws RemoteException
 	{
 		int aufteilen = 42/this.anzahlSpieler;
 		int rest = 42%this.anzahlSpieler;
@@ -418,7 +433,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 		this.ausgeteilteKarten.clear();
 	}
 	
-	public void getStartKarte(Spieler s) 
+	public void getStartKarte(SpielerInterface spielerInterface) throws RemoteException 
 	{
 		int i;
 		do
@@ -426,23 +441,23 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 			i = (int) (Math.random()*42);
 		}while(this.ausgeteilteKarten.contains(laender[i]));
 		this.ausgeteilteKarten.add(laender[i]);
-		this.laender[i].setBesitzer(s);
-		s.landHinzufuegen(this.laender[i]);
+		this.laender[i].setBesitzer(spielerInterface);
+		spielerInterface.landHinzufuegen(this.laender[i]);
 		this.laender[i].setTruppenstaerke(1);
 	}
 	
-	public void getKarte(Spieler s) 
+	public void getKarte(SpielerInterface aktuellerSpieler) throws RemoteException 
 	{
 		int i;
 		do
 		{
 			i = (int) (Math.random()*44);
 		}while(this.ausgeteilteKarten.contains(laender[i]));
-		this.ausgeteilteKarten.add(laender[i]);
-		s.handkartenHinzufuegen(laender[i]);
+		this.ausgeteilteKarten.add(  laender[i]);
+		aktuellerSpieler.handkartenHinzufuegen(laender[i]);
 	}
 
-	public boolean sindNachbarn(int landIndex1, int landIndex2)
+	public boolean sindNachbarn(int landIndex1, int landIndex2) throws RemoteException
 	{
 		if(this.laender[landIndex1].istNachbar(this.laender[landIndex2]))
 		{
@@ -453,7 +468,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 	}
 	
 	// Spiel-Funktionen
-	public void einheitenNachKampfNachziehen(int start, int ziel)
+	public void einheitenNachKampfNachziehen(int start, int ziel) throws RemoteException
 	{
 		int menge;
 		if(this.laender[start].getBesitzer() == this.laender[ziel].getBesitzer())
@@ -487,7 +502,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 		}
 	}
 	
-	public void einheitenNachziehen(int start, int ziel)
+	public void einheitenNachziehen(int start, int ziel) throws RemoteException
 	{
 		int menge;
 		if(this.laender[start].getBesitzer() == this.laender[ziel].getBesitzer())
@@ -509,19 +524,19 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 		}
 	}
 	
-	public void setBenutzteEinheitenNull()
+	public void setBenutzteEinheitenNull() throws RemoteException
 	{
 		for(int i = 0 ; i < this.laender.length ; i++)
 		{
 			this.laender[i].setBenutzteEinheiten(0);
 		}
 	}
-	public int laenderZaehlen(Spieler s)
+	public int laenderZaehlen(SpielerInterface aktuellerSpieler) throws RemoteException
 	{
 		int anzLaender = 0;
 		for(int i = 0; i < 43; i++)
 		{
-			if(this.laender[i].getBesitzer() == s)
+			if(this.laender[i].getBesitzer() == aktuellerSpieler)
 			{
 				anzLaender++;
 			}
@@ -535,7 +550,8 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 		return anzLaender;
 	}
 
-	public void befreien(Spieler angreifer, int angTruppen, int verTruppen, int angId, int verId) {
+	public void befreien(SpielerInterface aktuellerSpieler, int angTruppen, int verTruppen, int angId, int verId) throws RemoteException 
+	{
 			if (this.laender[angId].getTruppenstaerke() > 1 && this.laender[angId].istNachbar(this.laender[verId]) && angTruppen < this.laender[angId].getTruppenstaerke() && verTruppen <= this.laender[verId].getTruppenstaerke() && verTruppen > 0 && verTruppen < 3 && angTruppen > 0 && angTruppen < 4 && this.laender[verId].getBesitzer() != this.laender[angId].getBesitzer()) 
 			{
 				int[] angWuerfel = new int[3];
@@ -570,13 +586,13 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 				}
 				if(angTruppen<2 || verTruppen<2)
 				{
-					befreienAuswertung(angreifer, angTruppen, angWuerfel, verWuerfel, 1, angId, verId);
+					befreienAuswertung(aktuellerSpieler, angTruppen, angWuerfel, verWuerfel, 1, angId, verId);
 				}
 				else 
 				{
 					
-					befreienAuswertung(angreifer, angTruppen, angWuerfel, verWuerfel, 1, angId, verId);
-					befreienAuswertung(angreifer, angTruppen, angWuerfel, verWuerfel, 2, angId, verId);
+					befreienAuswertung(aktuellerSpieler, angTruppen, angWuerfel, verWuerfel, 1, angId, verId);
+					befreienAuswertung(aktuellerSpieler, angTruppen, angWuerfel, verWuerfel, 2, angId, verId);
 				}
 			}
 			else
@@ -585,7 +601,8 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 			}
 		}
 		
-	public void befreienAuswertung(Spieler angreifer,int angTruppen, int[] angWuerfel, int[] verWuerfel, int anzRunden, int angId, int verId) {
+	public void befreienAuswertung(SpielerInterface aktuellerSpieler,int angTruppen, int[] angWuerfel, int[] verWuerfel, int anzRunden, int angId, int verId) throws RemoteException 
+	{
 				int hoechsteZahlAng = 0;
 				int hoechsteZahlVer = 0;
 				System.out.println(angWuerfel[0]);
@@ -622,10 +639,10 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 					if (this.laender[verId].getTruppenstaerke() == 0) 
 					{
 						this.laender[verId].getBesitzer().landEntfernen(this.laender[verId]);
-						this.laender[verId].setBesitzer(angreifer);
+						this.laender[verId].setBesitzer(aktuellerSpieler);
 						this.laender[verId].setTruppenstaerke(angTruppen);
 						this.laender[angId].setTruppenstaerke(-1*angTruppen);
-						angreifer.landHinzufuegen(this.laender[verId]);
+						aktuellerSpieler.landHinzufuegen(this.laender[verId]);
 						
 						// benutzte einheiten im angegriffenen Land erhoehen und im angreifenden senken
 						this.laender[verId].setBenutzteEinheiten(angTruppen);
@@ -643,10 +660,10 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 						
 						// TODO mission erfuellt?
 						
-						this.missionErfuelltUndGewonnen(angreifer);
+						this.missionErfuelltUndGewonnen(aktuellerSpieler);
 						
 						// Welteroberung
-						if(this.welteroberung(angreifer))
+						if(this.welteroberung(aktuellerSpieler))
 						{
 							// TODO Spielende, Siegfenster einblenden
 						}
@@ -658,7 +675,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 
 				    	}
 				    	
-				    	this.eroberteLaender.add(this.laender[verId]);
+				    	this.eroberteLaender.add(  this.laender[verId]);
 					}
 					// Ende Eroberung
 				}
@@ -675,29 +692,29 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 				}
 		}
 	
-	public void missionErfuelltUndGewonnen(Spieler spieler)
+	public void missionErfuelltUndGewonnen(SpielerInterface aktuellerSpieler) throws RemoteException
 	{
 		// Hat angreifer seine Mission erfuellt?
-		if(spieler.getMission().missionErfuellt())
+		if(aktuellerSpieler.getMission().missionErfuellt())
 		{
-			IO.println(spieler.getMission().getMissionErfuelltText() + "");
-			IO.println(spieler.getName() + " hat das Spiel gewonnen.");
+			IO.println(aktuellerSpieler.getMission().getMissionErfuelltText() + "");
+			IO.println(aktuellerSpieler.getName() + " hat das Spiel gewonnen.");
 		}
 			
 		// Wurde eine Mission eines anderen Spielers erfuellt?
 		
 		for(int t = 0 ; t < this.anzahlSpieler ; t++)
 		{
-			if(this.getSpieler(t).getMission().missionErfuellt() && this.getSpieler(t) != spieler)
+			if(this.getSpieler(t).getMission().missionErfuellt() && this.getSpieler(t) != aktuellerSpieler)
 			{
 				IO.println(this.getSpieler(t).getMission().getMissionErfuelltText());
-				IO.println((spieler.getMission().missionErfuellt() ? "Leider hat " + this.getSpieler(t).getName() + "trotzdem nicht gewonnen, da " + spieler.getName() + " seine Mission im eigenen Zug erfuellt hat." : this.getSpieler(t).getName() + " hat das Spiel gewonnen."));
+				IO.println((aktuellerSpieler.getMission().missionErfuellt() ? "Leider hat " + this.getSpieler(t).getName() + "trotzdem nicht gewonnen, da " + aktuellerSpieler.getName() + " seine Mission im eigenen Zug erfuellt hat." : this.getSpieler(t).getName() + " hat das Spiel gewonnen."));
 			}
 
 		}
 	}
 		
-	public int wuerfeln() 
+	public int wuerfeln()
 		{
 			return (int) (Math.random()*6+1);
 		}
@@ -714,7 +731,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 		return verWuerfel;
 	}
 
-	public int serieEinsetzen(Spieler aktuellerSpieler, boolean gui)
+	public int serieEinsetzen(SpielerInterface aktuellerSpieler, boolean gui) throws RemoteException
 	{
 		int[] handkartenId = new int[3];
 		if(!gui)
@@ -753,8 +770,8 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 		return 0;
 	}
 	
-	public int checkSerie(Spieler aktuellerSpieler) throws RemoteException // nur für Gui
-	{
+	public int checkSerie(SpielerInterface aktuellerSpieler) throws RemoteException // nur für Gui
+	{/*
 		if(aktuellerSpieler.getAnzahlHandkarten() == 5)
 		{
 			server.setLogText(aktuellerSpieler.getName() + " muss seine Handkarten einsetzen und eine Serie einloesen!");
@@ -770,7 +787,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
         		int zwischenSpeicherZusatzTruppenSerie = this.serieEinsetzen(aktuellerSpieler, true); // TODO Handkarten uebergeben
         		return zwischenSpeicherZusatzTruppenSerie;
         	}
-		}
+		}*/
 		return 0;
 	}
 
@@ -785,21 +802,21 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 			if(aktuellerSpieler.getAnzahlHandkarten() == 5)
 			{
 				IO.println(aktuellerSpieler.getName() + " muss seine Handkarten einsetzen und eine Serie einloesen!");
-				zwischenSpeicherZusatzTruppenSerie = this.serieEinsetzen((Spieler) aktuellerSpieler, gui);
+				zwischenSpeicherZusatzTruppenSerie = this.serieEinsetzen( aktuellerSpieler, gui);
 			}
 			else
 			{
 				IO.println("Moechtest du eine Serie einloesen? (j/n)");
 				if(IO.readChar() == 'j')
 				{
-					zwischenSpeicherZusatzTruppenSerie = this.serieEinsetzen((Spieler) aktuellerSpieler, gui);
+					zwischenSpeicherZusatzTruppenSerie = this.serieEinsetzen(aktuellerSpieler, gui);
 				}
 			}
 		}
 		if(!gui)
 		{
 			int zuVerteilendeEinheiten = 0;
-			zuVerteilendeEinheiten = this.laenderZaehlen((Spieler) aktuellerSpieler) + this.zusatzEinheitenKontinente((Spieler) aktuellerSpieler) + zwischenSpeicherZusatzTruppenSerie;
+			zuVerteilendeEinheiten = this.laenderZaehlen(aktuellerSpieler) + this.zusatzEinheitenKontinente(   aktuellerSpieler) + zwischenSpeicherZusatzTruppenSerie;
 			while (zuVerteilendeEinheiten > 0)
 			{
 				IO.println(aktuellerSpieler.getName() + " muss nun " + zuVerteilendeEinheiten + " Einheiten verteilen.\n"
@@ -819,7 +836,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 		       		einheiten = IO.readInt();
 		       	}
 		       	// Abfrage, ob einheiten verteilt werden koennen
-	       		if(aktuellerSpieler.meinLand(this.laender[landId]))
+	       		if((   aktuellerSpieler).meinLand(this.laender[landId]))
 	            {
 	            	this.laender[landId].setTruppenstaerke(einheiten);
 	    	       	zuVerteilendeEinheiten -= einheiten;
@@ -838,7 +855,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
         	this.laender[landId].setTruppenstaerke(einheiten);
 	       	this.verteilteEinheitenGui += einheiten;
 	       	this.zuVerteilendeEinheitenGui -= einheiten;
-	       	//server.setLogText(aktuellerSpieler.getName() + " hat " + this.laender[landId].getTruppenstaerke() + " Einheiten auf " + this.laender[landId].getName() + " stationiert."); TODO ADD!!!
+	       	server.setLogText(aktuellerSpieler.getName() + " hat " + einheiten + " Einheiten auf " + this.laender[landId].getName() + " stationiert.");
 	       	if(this.zuVerteilendeEinheitenGui == 0)
 	       	{
 	       		return true;
@@ -847,28 +864,28 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 		return false;
 	}
 	
-	public int zusatzEinheitenKontinente(Spieler spieler)
+	public int zusatzEinheitenKontinente(SpielerInterface aktuellerSpieler) throws RemoteException
 	{
 		int zusatzEinheiten = 0;
 		for(int i = 0 ; i < 6 ; i++)
 		{
 			int laenderImBesitz = 0;
-			for(int j = 0 ; j < spieler.getLaenderAnzahl() ; j++){
-				if(spieler.getBesitzLandKontinent(j) == kontinente[i])
+			for(int j = 0 ; j < aktuellerSpieler.getLaenderAnzahl() ; j++){
+				if(aktuellerSpieler.getBesitzLandKontinent(j) == kontinente[i])
 				{
 					laenderImBesitz++;	
 				}
 			}
 			if(laenderImBesitz == kontinente[i].getAnzahlLaender())
 			{
-				IO.println("Spieler " + spieler.getName() + " ist im Beitz von ganz " + kontinente[i].getName() + " und bekommt " + kontinente[i].getZusatzTruppen() + " zusaetzliche Einheiten.");
+				IO.println("Spieler " + aktuellerSpieler.getName() + " ist im Beitz von ganz " + kontinente[i].getName() + " und bekommt " + kontinente[i].getZusatzTruppen() + " zusaetzliche Einheiten.");
 				zusatzEinheiten += kontinente[i].getZusatzTruppen();
 			}
 		}
 		return zusatzEinheiten;
 	}
 
-	public boolean landWurdeVerwendet(int land)
+	public boolean landWurdeVerwendet(int land) throws RemoteException
 	{
 		if(this.eroberteLaender.contains(this.laender[land]))
 		{
@@ -878,7 +895,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 		return false;
 	}
 	
-	public boolean welteroberung(Spieler aktuellerSpieler)
+	public boolean welteroberung(SpielerInterface aktuellerSpieler) throws RemoteException
 	{
 		if (aktuellerSpieler.getLaenderAnzahl() == 42)
 		{
@@ -924,4 +941,5 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 	{
 		return this.server;
 	}
+
 }

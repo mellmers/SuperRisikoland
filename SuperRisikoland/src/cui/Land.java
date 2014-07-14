@@ -1,23 +1,27 @@
 package cui;
 
+import inf.KontinentInterface;
 import inf.LandInterface;
 import inf.SpielerInterface;
 
 import java.awt.Color;
 import java.io.Serializable;
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
+import java.util.Vector;
 
-public class Land implements Serializable, LandInterface
+public class Land extends UnicastRemoteObject implements Serializable, LandInterface
 {
-	private Kontinent kontinent;
+	private KontinentInterface kontinent;
 	private String name;
 	private String einheit;
 	private int truppenStaerke;
-	private Spieler besitzer;
-	Land[] nachbarLaender;
+	private SpielerInterface besitzer;
+	private LandInterface [] nachbarLaender;
 	private int benutzteEinheiten = 0;
 	private Color farbcode;
 	
-	public Land(Kontinent kontinent, String name, String einheit, int anzahlNachbarLaender, Color farbe)
+	public Land(KontinentInterface kontinent, String name, String einheit, int anzahlNachbarLaender, Color farbe) throws RemoteException
 	{
 		this.kontinent = kontinent;
 		this.name = name;
@@ -37,7 +41,7 @@ public class Land implements Serializable, LandInterface
 		return this.truppenStaerke;
 	}
 	
-	public Spieler getBesitzer()
+	public SpielerInterface getBesitzer()
 	{
 		return this.besitzer;
 	}
@@ -47,7 +51,7 @@ public class Land implements Serializable, LandInterface
 		return this.einheit;
 	}
 
-	public Kontinent getKontinent() 
+	public KontinentInterface getKontinent() 
 	{
 		return kontinent;
 	}
@@ -58,17 +62,22 @@ public class Land implements Serializable, LandInterface
 		this.truppenStaerke += menge;
 	}
 	
-	public void setBesitzer(Spieler s) 
+	public void setBesitzer(SpielerInterface s) 
 	{
 		this.besitzer = s;
 	}
 	
+	public void setNachbarLand(int landId, LandInterface land)
+	{
+		this.nachbarLaender[landId] = land;
+	}
+	
 	// Funktionen
-	public boolean istNachbar(Land n)
+	public boolean istNachbar(LandInterface n) throws RemoteException
 	{
 		for(int i = 0; i < this.nachbarLaender.length; i++)
 		{
-			if(n.equals(this.nachbarLaender[i]))
+			if(n.getName().equals(this.nachbarLaender[i].getName()))
 			{
 				return true;
 			}

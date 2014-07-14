@@ -1,22 +1,27 @@
 package cui;
 
+import inf.MissionInterface;
+import inf.SpielerInterface;
+import inf.SpielfeldInterface;
+
 import java.io.Serializable;
 import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.Vector;
 
-public class Mission implements Serializable
+public class Mission extends UnicastRemoteObject  implements Serializable, MissionInterface
 {
 	protected String aufgabenText;
 	protected String missionErfuelltText;
-	protected Spieler besitzer;
+	protected SpielerInterface besitzer;
 	
-	public Mission(){
+	public Mission() throws RemoteException{
 		
 	}
 	
-	public Vector<Mission> missionenErstellen(Spielfeld spiel) throws RemoteException
+	public Vector<MissionInterface> missionenErstellen(SpielfeldInterface spiel) throws RemoteException
 	{
-		Vector<Mission> missionen = new Vector<Mission>();
+		Vector<MissionInterface> missionen = new Vector<MissionInterface>();
 		missionen.add(new AnzahlLaenderErobernMission(24));
   		missionen.add(new AnzahlLaenderErobernMission(18));
   		missionen.add(new KontinentErobernMission(1, 2, 1, spiel));
@@ -30,11 +35,12 @@ public class Mission implements Serializable
   			missionen.add(( spieler < spiel.getAnzahlSpieler()) ? new SpielerVernichtenMission(spiel, spieler) : new AnzahlLaenderErobernMission(24));
   		}
   		
+  		
   		// Missionen verteilen
-  		for(int i = 0 ; i < spiel.getAnzahlSpieler() ; i++)
+  		/*for(int i = 0 ; i < spiel.getAnzahlSpieler() ; i++)
   		{
   			int zufallsMission = (int) (Math.random()*missionen.size());
-  			spiel.getSpieler(i).setMission(missionen.elementAt(zufallsMission));
+  			((Spieler) spiel.getSpieler(i)).setMission(missionen.elementAt(zufallsMission));
   			spiel.getSpieler(i).getMission().setBesitzer(spiel.getSpieler(i));
   			spiel.getSpieler(i).getMission().setAufgabenText();
   			spiel.getSpieler(i).getMission().setMissionErfuelltText();
@@ -46,11 +52,11 @@ public class Mission implements Serializable
   		for(int i = 0 ; i < spiel.getAnzahlSpieler() ; i++)
     	{
     		IO.println(spiel.getSpieler(i).getName() + "'s Mission:  " + spiel.getSpieler(i).getMission().getAufgabenText());
-    	}
+    	}*/
 		return missionen;
 	}
 	
-	protected void setBesitzer(Spieler besitzer)
+	public void setBesitzer(SpielerInterface besitzer)
 	{
 		this.besitzer = besitzer;
 	}
@@ -66,16 +72,17 @@ public class Mission implements Serializable
 	}
 
 
-	public boolean missionErfuellt() {
+	public boolean missionErfuellt() throws RemoteException {
 		return false;
 	}
 	
-	public void setAufgabenText()
+	public void setAufgabenText() throws RemoteException
 	{
 		
 	}
 
-	public void setMissionErfuelltText() {
+	public void setMissionErfuelltText() throws RemoteException {
 
 	}
+
 }

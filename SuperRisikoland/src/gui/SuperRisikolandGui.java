@@ -1,5 +1,6 @@
 package gui;
 
+import inf.LandInterface;
 import inf.ServerInterface;
 import inf.SpielerInterface;
 import inf.SpielfeldInterface;
@@ -95,12 +96,12 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 	private JLabel[] labelIcons = new JLabel[42];
 	private JLabel labelCharAktuellerSpieler = new JLabel(""), labelEigenerChar = new JLabel("");
 	
-	private Spieler aktuellerSpieler, eigenerSpieler;
+	private SpielerInterface aktuellerSpieler, eigenerSpieler;
 	private ServerInterface server;
 	private SpielfeldInterface spiel;
 	// TODO private Spielfeld spiel;
-	private Land aktuellesLand;
-	private Land aktuellesLandRK;
+	private LandInterface aktuellesLand;
+	private LandInterface aktuellesLandRK;
 	private int aktuellesLandId;	
 	
 	private JPanel panelMap;
@@ -117,7 +118,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 	public SuperRisikolandGui() throws RemoteException
 	{
 		super();
-		Vector<Spieler> spieler = new Vector<Spieler>();
+		Vector<SpielerInterface> spieler = new Vector<SpielerInterface>();
 		spieler.add(new Spieler(0, "Hans", "Blau", new Color(0,0,250)));
 		spieler.add(new Spieler(1, "Peter", "Rot", new Color(250,0,0)));
 		spieler.add(new Spieler(2, "Franz", "Gruen", new Color(0,250,0)));
@@ -130,7 +131,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		this.h = (int) screen.getHeight();
 		initialize();
 	}
-	public SuperRisikolandGui(ServerInterface server, Spieler aktSpieler, Spieler eigenerSpieler, boolean geladen)  throws RemoteException
+	public SuperRisikolandGui(ServerInterface server, SpielerInterface aktSpieler, SpielerInterface eigenerSpieler, boolean geladen)  throws RemoteException
 	{
 		super();
 		
@@ -145,7 +146,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 			server.setLogText("Spielfeld mit " + spiel.getAnzahlSpieler() + " Spielern und Spielvariante " + spiel.getSpielvariante() + " geladen.");
 			for (int i = 0; i < spiel.getAnzahlSpieler(); i++)
 			{
-				Spieler s = (Spieler) spiel.getSpieler(i);
+				SpielerInterface s =  spiel.getSpieler(i);
 				server.setLogText("Spieler " + s.getName() + " mit der Farbe " + s.getSpielerfarbe() +" und mit SpielerID " + s.getSpielerID() + " wurde geladen.");
 			}
 		}
@@ -162,7 +163,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		this.panelHandkarten = new JPanel(new GridLayout(1,5));
 		this.panelEigenerChar = new JPanel();
 		bilderEinlesen(); // Bilder werden eingelesen und abgespeichert
-		this.setTitle("Super Risikoland");
+		this.setTitle("Super Risikoland von " + eigenerSpieler.getName());
 		
 		this.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 		this.addWindowListener(new WindowAdapter()
@@ -316,11 +317,44 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 				}
 			}
 		},0,1,TimeUnit.SECONDS);
+		// Aktualisierung der Phase
+		final ScheduledExecutorService phase = Executors.newSingleThreadScheduledExecutor();
+		phase.scheduleWithFixedDelay(new Runnable()
+		{
+			public void run()
+			{
+				try {
+					aktualisierenPhase();
+				} catch (RemoteException e) {
+					e.printStackTrace();
+				}
+			}
+		},0,30,TimeUnit.SECONDS);
 	}
 	
-	private void aktualisieren() throws RemoteException
+	protected void aktualisierenPhase() throws RemoteException 
 	{
-		//this.logTextArea.setText(server.getLogText() + this.getLogTextGui());
+		switch(this.labelStatus.getText())
+		{
+		case "Serie eintauschen":
+			break;
+		case "Armeen verteilen":
+			this.setLogTextGui(aktuellerSpieler.getName() + " muss nun " + spiel.getZuVerteilendeEinheitenGui(aktuellerSpieler) + " Einheiten verteilen.\n"+ "Waehle eines deiner Laender aus und bestaetige deine Eingabe.");
+			break;
+		case "Befreiung":
+			break;
+		case "Einheiten nachziehen":
+			break;
+		case "Umverteilen":
+			break;
+		default:
+			break;
+		}		
+	}
+	
+	protected void aktualisieren() throws RemoteException
+	{
+		this.logTextArea.setText(server.getLogText() + this.getLogTextGui());
 		
 		// Land 1 aktualisieren
 		if(aktuellesLand != null)
@@ -366,10 +400,8 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 			case "Serie eintauschen":
 				break;
 			case "Armeen verteilen":
-				this.labelStatus.setText("Befreiung");
 				break;
 			case "Befreiung":
-				this.labelStatus.setText("Einheiten nachziehen");
 				break;
 			case "Einheiten nachziehen":
 				this.labelStatus.setText("Befreiung");
@@ -391,13 +423,14 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 			case "Armeen verteilen":
 				try
 				{
-					if(aktuellerSpieler.meinLand(aktuellesLand) && this.sliderMap.getValue() > 0 && this.sliderMap.getValue() <= spiel.getZuVerteilendeEinheitenGui(aktuellerSpieler))
+					System.out.println("1");
+					if(aktuellerSpieler.meinLand(aktuellesLand) && this.sliderMap.getValue() > 0 && this.sliderMap.getValue() <= spiel.getZuVerteilendeEinheitenGui((SpielerInterface) aktuellerSpieler))
 					{
-						if(this.spiel.neueArmeen((SpielerInterface) aktuellerSpieler, true, aktuellesLandId , this.sliderMap.getValue()))
-
+						System.out.println("2");
+						if(this.spiel.neueArmeen((SpielerInterface)aktuellerSpieler, true, aktuellesLandId , this.sliderMap.getValue()))
 						{
-							this.buttonPhaseBeenden.setEnabled(true);
-							this.buttonBestaetigung.setEnabled(false);
+							System.out.println("3");
+							this.labelStatus.setText("Befreiung" + aktuellesLand.getTruppenstaerke());
 						}
 					}
 					
@@ -408,6 +441,10 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 				break;
 			case "Befreiung":
 				
+				if(true) // Wenn befreiung geklappt hat
+				{
+					this.labelStatus.setText("Einheiten nachziehen");
+				}
 				break;
 			case "Einheiten nachziehen":
 				
@@ -435,13 +472,12 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		}
 		if (e.getSource().equals((this.buttonMission)))
 		{
-			if(this.aktuellerSpieler.getMission() == null)
-			{
-				this.setLogTextGui("Keine Missionen vorhanden.");
-			}
-			else
-			{
-				this.setLogTextGui(this.aktuellerSpieler.getMission().getAufgabenText());
+			try {
+				
+					this.setLogTextGui(this.aktuellerSpieler.getMission().getAufgabenText());
+				
+			} catch (RemoteException e1) {
+				e1.printStackTrace();
 			}
 		}
 	}
@@ -854,7 +890,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 	
 	private void setTooltip(int landId) throws RemoteException
 	{
-		Land l = (Land) spiel.getLand(landId);
+		LandInterface l =   spiel.getLand(landId);
 		String besitzer = l.getBesitzer() != null ? l.getBesitzer().getName() : "kein Besitzer";
 		Color cBesitzer = l.getBesitzer() != null ? l.getBesitzer().getColorSpieler() : Color.white;
 		UIManager.put("ToolTip.background", cBesitzer);
@@ -990,7 +1026,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		aktuellesLandId = landId;
 		if(e.getButton() == 3)
 		{
-			aktuellesLandRK = (Land) spiel.getLand(landId);
+			aktuellesLandRK =   spiel.getLand(landId);
 			landTruppenstaerke2.setForeground(aktuellesLandRK.getBesitzer().getColorSpieler());
 			landname2.setForeground(aktuellesLandRK.getBesitzer().getColorSpieler());
 			landBesitzer2.setForeground(aktuellesLandRK.getBesitzer().getColorSpieler());
@@ -1003,7 +1039,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		}
 		else
 		{
-			aktuellesLand = (Land) spiel.getLand(landId);
+			aktuellesLand = spiel.getLand(landId);
 			landTruppenstaerke.setForeground(aktuellesLand.getBesitzer().getColorSpieler());
 			landname.setForeground(aktuellesLand.getBesitzer().getColorSpieler());
 			landBesitzer.setForeground(aktuellesLand.getBesitzer().getColorSpieler());

@@ -29,6 +29,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 
 import cui.Mission;
 import cui.Spieler;
@@ -59,9 +60,21 @@ public class Client extends UnicastRemoteObject implements ClientInterface, Seri
 		return spielername;
 	}
 	
-	public void neuesSpielStarten(SpielerInterface spieler) throws RemoteException
+	public void neuesSpielStarten(final SpielerInterface spieler) throws RemoteException
 	{
-		gui = new SuperRisikolandGui(server, (Spieler) server.getAktuellerSpieler(), (Spieler) spieler, false);
+		
+		 Thread t = new Thread(new Runnable() {
+             public void run()
+             {
+            	 try {
+					gui = new SuperRisikolandGui(server, server.getAktuellerSpieler(), spieler, false);
+				} catch (RemoteException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+             }
+         });
+         t.start();
 	}
 	public boolean istGuiGestartet()
 	{
