@@ -387,7 +387,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 			// ImageIcon erstellen
 			for (int i = 0; i < handkarten.length; i++)
 			{
-				this.iihandkarten[i] = new ImageIcon(handkarten[i]);
+				this.iihandkarten[i] = new ImageIcon(handkarten[i].getScaledInstance(this.h/100*10, this.h/100*16, Image.SCALE_SMOOTH));
 			}
 			this.iiCharakter[0] = new ImageIcon(imgDaisy);
 			this.iiCharakter[1] = new ImageIcon(imgLuigi);
@@ -622,7 +622,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 			super.paint(g);
 			//Graphics2D g2 = (Graphics2D) g;
 			//renderSettings(g2);
-			createMap(b, h/100*71);
+			createMap(b, h/100*69);
 			g.drawImage(map, 0, 0, this);
 		}
 		
