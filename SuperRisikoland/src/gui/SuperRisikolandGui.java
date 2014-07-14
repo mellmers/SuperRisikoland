@@ -1,6 +1,8 @@
 package gui;
 
 import inf.ServerInterface;
+import inf.SpielerInterface;
+import inf.SpielfeldInterface;
 import inf.SuperRisikoLandGuiInterface;
 
 import java.awt.BorderLayout;
@@ -53,6 +55,7 @@ import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
+
 import gui.Spielstart;
 import cui.Land;
 import cui.Spieler;
@@ -67,7 +70,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 	// Variablen
 	private Dimension screen;
 	private int b, h;
-	private int iconGroesse = 30;
+	private int iconGroesse;
 	
 	private String logTextGui = "";
 	private JTextArea logTextArea = new JTextArea();
@@ -95,8 +98,8 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 	
 	private Spieler aktuellerSpieler, eigenerSpieler;
 	private ServerInterface server;
-	//TODO private SpielfeldInterface spiel;
-	private Spielfeld spiel;
+	private SpielfeldInterface spiel;
+	// TODO private Spielfeld spiel;
 	private Land aktuellesLand;
 	private int aktuellesLandId;
 	Object[] kreise = new Object[42];
@@ -124,7 +127,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		super();
 		
 		this.server = server;
-		//TODO this.spiel = server.getSpielfeldInterface();
+		this.spiel = server.getSpielfeldInterface();
 		this.aktuellerSpieler = aktSpieler;
 		this.eigenerSpieler = eigenerSpieler;
 		
@@ -166,7 +169,6 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 						speichern();
 					} catch (RemoteException e1)
 					{
-						// TODO Auto-generated catch block
 						e1.printStackTrace();
 					}
 				} 
@@ -312,7 +314,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 	{
 		this.logTextArea.setText(server.getLogText() + this.getLogTextGui());
 	}
-	public void besitzerAktualisieren()
+	public void besitzerAktualisieren() throws RemoteException
 	{
 		for(int i = 0 ; i < labelIcons.length ; i++)
 		{
@@ -356,7 +358,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 				{
 					if(aktuellerSpieler.meinLand(aktuellesLand) && this.sliderMap.getValue() > 0 && this.sliderMap.getValue() <= spiel.getZuVerteilendeEinheitenGui(aktuellerSpieler))
 					{
-						if(!this.spiel.neueArmeen(aktuellerSpieler, true, aktuellesLandId , this.sliderMap.getValue()))
+						if(!this.spiel.neueArmeen((SpielerInterface) aktuellerSpieler, true, aktuellesLandId , this.sliderMap.getValue()))
 						{
 							this.buttonPhaseBeenden.setEnabled(true);
 						}
@@ -485,7 +487,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 			this.iiCharakter[3] = new ImageIcon(imgPeach);
 			this.iiCharakter[4] = new ImageIcon(imgWaluigi);
 			this.iiCharakter[5] = new ImageIcon(imgWario);
-			//Icons fuer Karte hinzufuegen
+			this.iconGroesse = (int) (b*0.015);
 			this.iiIcon[0] = new ImageIcon(iconDaisy.getScaledInstance(iconGroesse, iconGroesse, Image.SCALE_SMOOTH));
 			this.iiIcon[1] = new ImageIcon(iconLuigi.getScaledInstance(iconGroesse, iconGroesse, Image.SCALE_SMOOTH));
 			this.iiIcon[2] = new ImageIcon(iconMario.getScaledInstance(iconGroesse, iconGroesse, Image.SCALE_SMOOTH));
@@ -564,7 +566,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		final JLabel landname = new JLabel(""), landname2 = new JLabel("");
 		final JLabel landBesitzer = new JLabel(""), landBesitzer2 = new JLabel("");
 		
-		public riskoMap()
+		public riskoMap() throws RemoteException
 		{
 			// Slider fuer Truppenauswahl, etc erstellen
 			sliderMap = new JSlider(SwingConstants.HORIZONTAL, 0, 50, 0);
@@ -731,7 +733,6 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 							landBesitzer.setText("");
 						}
 					} catch (RemoteException e1) {
-						// TODO Auto-generated catch block
 						e1.printStackTrace();
 					}
 				}
@@ -750,57 +751,57 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 			//kreiseVerteilen(g);
 			
 		}
-		public void besitzerBildAnzeigen()
+		public void besitzerBildAnzeigen() throws RemoteException
 		{
-			int abstandVonOben = h/100*8;
+			int abstandVonOben = 1080/100*8;
 			for(int i = 0 ; i < labelIcons.length ; i++)
 			{
 				labelIcons[i] = new JLabel();
 				labelIcons[i].setIcon(iiIcon[spiel.getLand(i).getBesitzer().getSpielerID()]);
 				getContentPane().add(labelIcons[i]);
 			}
-			labelIcons[0].setBounds(282-iconGroesse/2, 105-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
-			labelIcons[1].setBounds(417-iconGroesse/2, 111-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
-			labelIcons[2].setBounds(747-iconGroesse/2, 79-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
-			labelIcons[3].setBounds(425-iconGroesse/2, 175-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
-			labelIcons[4].setBounds(521-iconGroesse/2, 181-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
-			labelIcons[5].setBounds(605-iconGroesse/2, 176-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
-			labelIcons[6].setBounds(444-iconGroesse/2, 243-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
-			labelIcons[7].setBounds(549-iconGroesse/2, 261-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
-			labelIcons[8].setBounds(490-iconGroesse/2, 349-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
-			labelIcons[9].setBounds(591-iconGroesse/2, 484-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
-			labelIcons[10].setBounds(613-iconGroesse/2, 409-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
-			labelIcons[11].setBounds(691-iconGroesse/2, 477-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
-			labelIcons[12].setBounds(615-iconGroesse/2, 600-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
-			labelIcons[13].setBounds(874-iconGroesse/2, 175-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
-			labelIcons[14].setBounds(890-iconGroesse/2, 244-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
-			labelIcons[15].setBounds(1021-iconGroesse/2, 169-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
-			labelIcons[16].setBounds(1012-iconGroesse/2, 245-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
-			labelIcons[17].setBounds(1117-iconGroesse/2, 220-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
-			labelIcons[18].setBounds(953-iconGroesse/2, 292-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
-			labelIcons[19].setBounds(1040-iconGroesse/2, 284-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
-			labelIcons[20].setBounds(952-iconGroesse/2, 410-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
-			labelIcons[21].setBounds(1041-iconGroesse/2, 372-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
-			labelIcons[22].setBounds(1046-iconGroesse/2, 493-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
-			labelIcons[23].setBounds(1102-iconGroesse/2, 440-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
-			labelIcons[24].setBounds(1059-iconGroesse/2, 587-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
-			labelIcons[25].setBounds(1146-iconGroesse/2, 579-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
-			labelIcons[26].setBounds(1261-iconGroesse/2, 196-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
-			labelIcons[27].setBounds(1315-iconGroesse/2, 167-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
-			labelIcons[28].setBounds(1407-iconGroesse/2, 133-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
-			labelIcons[29].setBounds(1633-iconGroesse/2, 163-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
-			labelIcons[30].setBounds(1436-iconGroesse/2, 191-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
-			labelIcons[31].setBounds(1420-iconGroesse/2, 263-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
-			labelIcons[32].setBounds(1540-iconGroesse/2, 326-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
-			labelIcons[33].setBounds(1228-iconGroesse/2, 284-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
-			labelIcons[34].setBounds(1371-iconGroesse/2, 332-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
-			labelIcons[35].setBounds(1135-iconGroesse/2, 346-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
-			labelIcons[36].setBounds(1283-iconGroesse/2, 382-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
-			labelIcons[37].setBounds(1381-iconGroesse/2, 411-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
-			labelIcons[38].setBounds(1417-iconGroesse/2, 492-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
-			labelIcons[39].setBounds(1551-iconGroesse/2, 517-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
-			labelIcons[40].setBounds(1470-iconGroesse/2, 612-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
-			labelIcons[41].setBounds(1562-iconGroesse/2, 603-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
+			labelIcons[0].setBounds(282*b/1920-iconGroesse/2, 105*h/1080-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
+			labelIcons[1].setBounds(417*b/1920-iconGroesse/2, 111*h/1080-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
+			labelIcons[2].setBounds(747*b/1920-iconGroesse/2, 79*h/1080-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
+			labelIcons[3].setBounds(425*b/1920-iconGroesse/2, 175*h/1080-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
+			labelIcons[4].setBounds(521*b/1920-iconGroesse/2, 181*h/1080-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
+			labelIcons[5].setBounds(605*b/1920-iconGroesse/2, 176*h/1080-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
+			labelIcons[6].setBounds(444*b/1920-iconGroesse/2, 243*h/1080-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
+			labelIcons[7].setBounds(549*b/1920-iconGroesse/2, 261*h/1080-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
+			labelIcons[8].setBounds(490*b/1920-iconGroesse/2, 349*h/1080-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
+			labelIcons[9].setBounds(591*b/1920-iconGroesse/2, 484*h/1080-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
+			labelIcons[10].setBounds(613*b/1920-iconGroesse/2, 409*h/1080-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
+			labelIcons[11].setBounds(691*b/1920-iconGroesse/2, 477*h/1080-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
+			labelIcons[12].setBounds(615*b/1920-iconGroesse/2, 600*h/1080-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
+			labelIcons[13].setBounds(874*b/1920-iconGroesse/2, 175*h/1080-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
+			labelIcons[14].setBounds(890*b/1920-iconGroesse/2, 244*h/1080-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
+			labelIcons[15].setBounds(1021*b/1920-iconGroesse/2, 169*h/1080-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
+			labelIcons[16].setBounds(1012*b/1920-iconGroesse/2, 245*h/1080-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
+			labelIcons[17].setBounds(1117*b/1920-iconGroesse/2, 220*h/1080-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
+			labelIcons[18].setBounds(953*b/1920-iconGroesse/2, 292*h/1080-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
+			labelIcons[19].setBounds(1040*b/1920-iconGroesse/2, 284*h/1080-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
+			labelIcons[20].setBounds(952*b/1920-iconGroesse/2, 410*h/1080-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
+			labelIcons[21].setBounds(1041*b/1920-iconGroesse/2, 372*h/1080-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
+			labelIcons[22].setBounds(1046*b/1920-iconGroesse/2, 493*h/1080-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
+			labelIcons[23].setBounds(1102*b/1920-iconGroesse/2, 440*h/1080-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
+			labelIcons[24].setBounds(1059*b/1920-iconGroesse/2, 587*h/1080-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
+			labelIcons[25].setBounds(1146*b/1920-iconGroesse/2, 579*h/1080-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
+			labelIcons[26].setBounds(1261*b/1920-iconGroesse/2, 196*h/1080-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
+			labelIcons[27].setBounds(1315*b/1920-iconGroesse/2, 167*h/1080-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
+			labelIcons[28].setBounds(1407*b/1920-iconGroesse/2, 133*h/1080-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
+			labelIcons[29].setBounds(1633*b/1920-iconGroesse/2, 163*h/1080-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
+			labelIcons[30].setBounds(1436*b/1920-iconGroesse/2, 191*h/1080-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
+			labelIcons[31].setBounds(1420*b/1920-iconGroesse/2, 263*h/1080-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
+			labelIcons[32].setBounds(1540*b/1920-iconGroesse/2, 326*h/1080-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
+			labelIcons[33].setBounds(1228*b/1920-iconGroesse/2, 284*h/1080-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
+			labelIcons[34].setBounds(1371*b/1920-iconGroesse/2, 332*h/1080-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
+			labelIcons[35].setBounds(1135*b/1920-iconGroesse/2, 346*h/1080-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
+			labelIcons[36].setBounds(1283*b/1920-iconGroesse/2, 382*h/1080-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
+			labelIcons[37].setBounds(1381*b/1920-iconGroesse/2, 411*h/1080-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
+			labelIcons[38].setBounds(1417*b/1920-iconGroesse/2, 492*h/1080-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
+			labelIcons[39].setBounds(1551*b/1920-iconGroesse/2, 517*h/1080-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
+			labelIcons[40].setBounds(1470*b/1920-iconGroesse/2, 612*h/1080-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
+			labelIcons[41].setBounds(1562*b/1920-iconGroesse/2, 603*h/1080-iconGroesse/2+abstandVonOben, iconGroesse, iconGroesse);
 		}
 		
 		private void createMap(int b, int h)

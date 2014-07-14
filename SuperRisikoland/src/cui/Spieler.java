@@ -1,5 +1,6 @@
 package cui;
 import gui.SuperRisikolandGui;
+import inf.LandInterface;
 import inf.SpielerInterface;
 
 import java.awt.Color;
@@ -74,9 +75,9 @@ public class Spieler implements Serializable, SpielerInterface
 	}
 	
 	
-	public boolean meinLand(Land land)
+	public boolean meinLand(LandInterface land)
 	{
-		if(laender.contains(land))
+		if(laender.contains((Land) land))
 		{
 			return true;
 		}

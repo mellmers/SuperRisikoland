@@ -4,6 +4,7 @@ package cui;
 import exc.MaximaleSpielerZahlErreichtException;
 import gui.SuperRisikolandGui;
 import inf.ServerInterface;
+import inf.SpielerInterface;
 import inf.SpielfeldInterface;
 import inf.SuperRisikoLandGuiInterface;
 
@@ -44,7 +45,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 		this.anzahlSpieler = this.spieler.size();
 		this.setSpielvariante(spielVariante);
 		
-		//TODO server.setLogText("Spielfeld mit " + this.anzahlSpieler + " Spielern und Spielvariante " + spielVariante + " erstellt.");
+		// TODO server.setLogText("Spielfeld mit " + this.anzahlSpieler + " Spielern und Spielvariante " + spielVariante + " erstellt.");
 		IO.println("Spielfeld mit " + anzahlSpieler + " Spielern und Spielvariante " + spielVariante + " erstellt.");
 
 		this.kontinenteEinlesen();
@@ -85,9 +86,9 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 		return this.spieler.elementAt(spielerId);
 	}
 	
-	public int getZuVerteilendeEinheitenGui(Spieler aktuellerSpieler) throws RemoteException
+	public int getZuVerteilendeEinheitenGui(SpielerInterface aktuellerSpieler) throws RemoteException
 	{
-		zuVerteilendeEinheitenGui = this.laenderZaehlen(aktuellerSpieler) + this.zusatzEinheitenKontinente(aktuellerSpieler) + this.checkSerie(aktuellerSpieler) - this.verteilteEinheitenGui;
+		zuVerteilendeEinheitenGui = this.laenderZaehlen((Spieler) aktuellerSpieler) + this.zusatzEinheitenKontinente((Spieler) aktuellerSpieler) + this.checkSerie((Spieler) aktuellerSpieler) - this.verteilteEinheitenGui;
 		return zuVerteilendeEinheitenGui;
 	}
 	
@@ -773,7 +774,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 		return 0;
 	}
 
-	public boolean neueArmeen(Spieler aktuellerSpieler, boolean gui, int landId, int einheiten) throws RemoteException
+	public boolean neueArmeen(SpielerInterface aktuellerSpieler, boolean gui, int landId, int einheiten) throws RemoteException
 	{	
 		int zwischenSpeicherZusatzTruppenSerie = 0;
 		
@@ -784,14 +785,14 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 			if(aktuellerSpieler.getAnzahlHandkarten() == 5)
 			{
 				IO.println(aktuellerSpieler.getName() + " muss seine Handkarten einsetzen und eine Serie einloesen!");
-				zwischenSpeicherZusatzTruppenSerie = this.serieEinsetzen(aktuellerSpieler, gui);
+				zwischenSpeicherZusatzTruppenSerie = this.serieEinsetzen((Spieler) aktuellerSpieler, gui);
 			}
 			else
 			{
 				IO.println("Moechtest du eine Serie einloesen? (j/n)");
 				if(IO.readChar() == 'j')
 				{
-					zwischenSpeicherZusatzTruppenSerie = this.serieEinsetzen(aktuellerSpieler, gui);
+					zwischenSpeicherZusatzTruppenSerie = this.serieEinsetzen((Spieler) aktuellerSpieler, gui);
 				}
 			}
 		}
@@ -817,7 +818,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 		if(!gui)
 		{
 			int zuVerteilendeEinheiten = 0;
-			zuVerteilendeEinheiten = this.laenderZaehlen(aktuellerSpieler) + this.zusatzEinheitenKontinente(aktuellerSpieler) + zwischenSpeicherZusatzTruppenSerie;
+			zuVerteilendeEinheiten = this.laenderZaehlen((Spieler) aktuellerSpieler) + this.zusatzEinheitenKontinente((Spieler) aktuellerSpieler) + zwischenSpeicherZusatzTruppenSerie;
 			while (zuVerteilendeEinheiten > 0)
 			{
 				//server.setLogText(aktuellerSpieler.getName() + " muss " + zuVerteilendeEinheiten + " Einheiten verteilen.");
