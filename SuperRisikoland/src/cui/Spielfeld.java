@@ -17,8 +17,6 @@ import java.util.Vector;
 
 import javax.swing.JOptionPane;
 
-import server.Server;
-
 public class Spielfeld implements SpielfeldInterface, Serializable
 {
 	private int spielvariante;
@@ -43,7 +41,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 		this.anzahlSpieler = this.spieler.size();
 		this.setSpielvariante(spielVariante);
 		
-		server.setLogText("Spielfeld mit " + this.anzahlSpieler + " Spielern und Spielvariante " + spielVariante + " erstellt.");
+		//TODO server.setLogText("Spielfeld mit " + this.anzahlSpieler + " Spielern und Spielvariante " + spielVariante + " erstellt.");
 		IO.println("Spielfeld mit " + anzahlSpieler + " Spielern und Spielvariante " + spielVariante + " erstellt.");
 
 		this.kontinenteEinlesen();
@@ -379,7 +377,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 
 	public boolean spielerErstellen(int spielerID, String spielername, String spielerfarbe, Color c)
 	{
-		// TODO If-Clause weg, weil man durch Gui nicht mehr als 6 Spieler ausw�hlen kann
+		// TODO If-Clause weg, weil man durch Gui nicht mehr als 6 Spieler auswaehlen kann
 		if(this.spieler.size() < this.maxSpieler)
 		{
 			this.spieler.add(new Spieler(spielerID, spielername, spielerfarbe, c));
@@ -571,7 +569,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 					befreienAuswertung(angreifer, angTruppen, angWuerfel, verWuerfel, 2, angId, verId);
 				}
 			}
-			else 
+			else
 			{
 				System.out.println("Angriff fehlgeschlagen!");
 			}
@@ -743,7 +741,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 		return 0;
 	}
 
-	public void neueArmeen(Spieler aktuellerSpieler, boolean gui, int landId, int einheiten) throws RemoteException
+	public boolean neueArmeen(Spieler aktuellerSpieler, boolean gui, int landId, int einheiten) throws RemoteException
 		{	
 			aktuellerSpieler.handkartenAusgeben();
 			
@@ -751,7 +749,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 			if(aktuellerSpieler.getAnzahlHandkarten() == 5)
 			{
 				server.setLogText(aktuellerSpieler.getName() + " muss seine Handkarten einsetzen und eine Serie einloesen!");
-				IO.println(aktuellerSpieler.getName() + " muss seine Handkarten einsetzen und eine Serie einl�sen!");
+				IO.println(aktuellerSpieler.getName() + " muss seine Handkarten einsetzen und eine Serie einloesen!");
 				zwischenSpeicherZusatzTruppenSerie = this.serieEinsetzen(aktuellerSpieler);
 			}
 			else
@@ -804,26 +802,31 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 		    	{
 		    		if(landId == 0)
 		    		{
-		    			server.setLogText("Du musst ein Land ausw�hlen und dann bestaetigen!");
+		    			server.setLogText("Du musst ein Land auswaehlen und dann bestaetigen!");
+		    			return false;
 		    		}
 		    		else if(einheiten == 0)
 		    		{
 		    			server.setLogText("Du musst mindestens eine Einheit auswaehlen und dann bestaetigen!");
+		    			return false;
 		    		}
 		    	}
-		        if(aktuellerSpieler.meinLand(this.laender[landId])) // else-Zweig ist in der Funktion definiert, falls false zurueck kommt
+		        if(aktuellerSpieler.meinLand(this.laender[landId]))
 		        {
 		        	this.laender[landId].setTruppenstaerke(einheiten);
 			       	zuVerteilendeEinheiten -= einheiten;
 			       	IO.println(this.laender[landId].getTruppenstaerke() + " Einheiten auf " + this.laender[landId].getName());
 			       	server.setLogText(this.laender[landId].getTruppenstaerke() + " Einheiten auf " + this.laender[landId].getName());
+			       	return true;
 		    	}
 		        else
 		        {
 		        	server.setLogText("Dieses Land gehoert dir nicht!");
 		    		IO.println("Dieses Land gehoert dir nicht!");
+		    		return false;
 		        }
 	    	}
+			return false;
 		}
 	
 	public int zusatzEinheitenKontinente(Spieler spieler)

@@ -22,6 +22,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -30,6 +31,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.rmi.RemoteException;
+import java.util.Vector;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -53,6 +55,8 @@ import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.plaf.SliderUI;
+import javax.swing.text.StyledEditorKit.ForegroundAction;
 
 import gui.Spielstart;
 import cui.Land;
@@ -72,13 +76,13 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 	private String logTextGui = "";
 	private JTextArea logTextArea = new JTextArea();
 	public static Color aktuellerFarbcode =  new Color(0,0,0);
-	public static JLabel labelStatus = new JLabel("KEIN STATUS", SwingConstants.CENTER);
+	private JLabel labelStatus = new JLabel("Armeen eintauschen", SwingConstants.CENTER);
 	private JButton buttonSpeichern = new JButton("Speichern");
 	private JButton buttonLaden = new JButton("neues Spiel/Laden");
 	private JButton buttonMission = new JButton("Mission anzeigen");
-	public static int verbleibendeZeit = 30;
+	private int verbleibendeZeit = 30;
 	private JLabel labelVerbleibendeZeit = new JLabel("verbleibende Zeit: " + verbleibendeZeit, SwingConstants.CENTER);
-	private JButton buttonPhaseBeenden = new JButton("Phase Beenden");
+	private JButton buttonPhaseBeenden = new JButton("Phase Beenden"), buttonBestaetigung = new JButton("Bestaetigung");
 	final private JLabel[] labelArrayKontinente = {new JLabel("Nord-Amerika (5 Einheiten):", SwingConstants.RIGHT), new JLabel("Sued-Amerika (2 Einheiten):", SwingConstants.RIGHT), new JLabel("Europa (5 Einheiten):", SwingConstants.RIGHT), new JLabel("Afrika (3 Einheiten):", SwingConstants.RIGHT), new JLabel("Asien (7 Einheiten):", SwingConstants.RIGHT), new JLabel("Australien (2 Einheiten):", SwingConstants.RIGHT)};
 	private JLabel[] labelArrayKontinenteBesitzer = {new JLabel("kein Besitzer", SwingConstants.CENTER), new JLabel("kein Besitzer", SwingConstants.CENTER), new JLabel("kein Besitzer", SwingConstants.CENTER), new JLabel("kein Besitzer", SwingConstants.CENTER), new JLabel("kein Besitzer", SwingConstants.CENTER), new JLabel("kein Besitzer", SwingConstants.CENTER)};
 	
@@ -93,11 +97,22 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 	
 	private Spieler aktuellerSpieler, eigenerSpieler;
 	private ServerInterface server;
-	private SpielfeldInterface spiel;
+	//TODO private SpielfeldInterface spiel;
+	private Spielfeld spiel;
+	private Land aktuellesLand;
+	private int aktuellesLandId;
+	
+	JSlider sliderMap;
 		
 	public SuperRisikolandGui() throws RemoteException
 	{
 		super();
+		Vector<Spieler> spieler = new Vector<Spieler>();
+		spieler.add(new Spieler(0, "Hans", "Blau", new Color(0,0,250)));
+		spieler.add(new Spieler(1, "Peter", "Rot", new Color(250,0,0)));
+		spieler.add(new Spieler(2, "Franz", "Gruen", new Color(0,250,0)));
+		aktuellerSpieler = spieler.get(0);
+		spiel = new Spielfeld(null, spieler, 1);
 		// Bildschirmgroesse auslesen und Breite und Hoehe abspeichern
 		this.screen = Toolkit.getDefaultToolkit().getScreenSize();
 		this.b = (int) screen.getWidth();
@@ -109,7 +124,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		super();
 		
 		this.server = server;
-		this.spiel = server.getSpielfeldInterface();
+		//TODO this.spiel = server.getSpielfeldInterface();
 		this.aktuellerSpieler = aktSpieler;
 		this.eigenerSpieler = eigenerSpieler;
 		
@@ -198,19 +213,23 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		// Status + Timer
 		JPanel panelMissionTimerStatus = new JPanel();
 		panelMissionTimerStatus.setLayout(new GridLayout(2,1));
-		JPanel panelPhase = new JPanel();
-		panelPhase.setLayout(new GridLayout(1,2));
+		JPanel panelPhase = new JPanel(new GridLayout(1,2)), panelZeitBestaetigung = new JPanel(new GridLayout(1,2));
 		labelStatus.setFont(new Font(null, Font.BOLD, 24));
 		labelStatus.setForeground(Color.red);
 		labelStatus.setPreferredSize(new Dimension(this.b/100*15, this.h/100*4));
 		this.buttonPhaseBeenden.setPreferredSize(new Dimension(this.b/100*15, this.h/100*4));
-		// Actionlistener phasebutton
+		this.buttonPhaseBeenden.addActionListener(this);
+		this.buttonPhaseBeenden.setEnabled(false);
 		this.labelVerbleibendeZeit.setFont(new Font(null, Font.BOLD, 24));
-		this.labelVerbleibendeZeit.setPreferredSize(new Dimension(this.b/100*30, this.h/100*4));
+		this.labelVerbleibendeZeit.setPreferredSize(new Dimension(this.b/100*15, this.h/100*4));
+		this.buttonBestaetigung.setPreferredSize(new Dimension(this.b/100*15, this.h/100*4));
+		this.buttonBestaetigung.addActionListener(this);
 		panelPhase.add(labelStatus);
 		panelPhase.add(this.buttonPhaseBeenden);
+		panelZeitBestaetigung.add(this.labelVerbleibendeZeit);
+		panelZeitBestaetigung.add(this.buttonBestaetigung);
 		panelMissionTimerStatus.add(panelPhase);
-		panelMissionTimerStatus.add(this.labelVerbleibendeZeit);
+		panelMissionTimerStatus.add(panelZeitBestaetigung);
 		panelKontinenteTimer.add(panelMissionTimerStatus);
 		
 		// Kontinente 2
@@ -283,7 +302,6 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 					aktualisieren();
 				} catch (RemoteException e)
 				{
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -297,6 +315,56 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 	
 	public void actionPerformed(ActionEvent e)
 	{
+		if (e.getSource().equals(this.buttonPhaseBeenden))
+		{
+			switch(this.labelStatus.getText())
+			{
+			case "Armeen verteilen":
+				this.labelStatus.setText("Befreiung");
+				break;
+			case "Befreiung":
+				this.labelStatus.setText("Einheiten nachziehen");
+				break;
+			case "Einheiten nachziehen":
+				this.labelStatus.setText("Befreiung");
+				this.labelStatus.setText("Umverteilen");
+				break;
+			case "Umverteilen":
+				this.labelStatus.setText("Armeen verteilen");
+				break;
+			default:
+				break;
+			}
+		}
+		if (e.getSource().equals(this.buttonBestaetigung))
+		{
+			switch(this.labelStatus.getText())
+			{
+			case "Armeen eintauschen":
+				try
+				{
+					if(!this.spiel.neueArmeen(aktuellerSpieler, true, aktuellesLandId , this.sliderMap.getValue()))
+					{
+						System.out.println("Fehler");
+					}
+				} catch (RemoteException e1)
+				{
+					e1.printStackTrace();
+				}
+				break;
+			case "Befreiung":
+				
+				break;
+			case "Einheiten nachziehen":
+				
+				break;
+			case "Umverteilen":
+				
+				break;
+			default:
+				break;
+			}
+		}
 		if (e.getSource().equals(this.buttonSpeichern)) // Speichern
 		{
 			try
@@ -387,7 +455,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 			// ImageIcon erstellen
 			for (int i = 0; i < handkarten.length; i++)
 			{
-				this.iihandkarten[i] = new ImageIcon(handkarten[i]);
+				this.iihandkarten[i] = new ImageIcon(handkarten[i].getScaledInstance(this.h/100*10, this.h/100*16, Image.SCALE_SMOOTH));
 			}
 			this.iiCharakter[0] = new ImageIcon(imgDaisy);
 			this.iiCharakter[1] = new ImageIcon(imgLuigi);
@@ -429,7 +497,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		// Erstellung eines FileFilters fuer Spielstaende	
         FileFilter filter = new FileNameExtensionFilter("Risiko-Spielstaende", "ser");    
         JFileChooser speichern = new JFileChooser(new File(System.getProperty("user.home")));
-        // Filter wird dem JFileChooser hinzugef���gt
+        // Filter wird dem JFileChooser hinzugefuegt
         speichern.addChoosableFileFilter(filter);
         // Nur Verzeichnisse auswaehlbar
         speichern.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -466,11 +534,20 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		
 		public riskoMap()
 		{
-			// Slider f���r Truppenauswahl, etc erstellen
-			JSlider sliderMap = new JSlider(SwingConstants.VERTICAL, 0, 10, 0);
+			// Slider fuer Truppenauswahl, etc erstellen
+			sliderMap = new JSlider(SwingConstants.VERTICAL, 0, 20, 0);
 			sliderMap.setBounds(100, 200, 50, 200);
+			// Die Abstände zwischen den Teilmarkierungen werden festgelegt
+			sliderMap.setMajorTickSpacing(5);
+			sliderMap.setMinorTickSpacing(1);
+			// Standardmarkierungen werden erzeugt 
+			sliderMap.createStandardLabels(1);
+			// Zeichnen der Markierungen wird aktiviert
+			sliderMap.setPaintTicks(true);
+			// Zeichnen der Labels wird aktiviert
+			sliderMap.setPaintLabels(true);
 			getContentPane().add(sliderMap);
-			// Label f���r Truppenstaerke, Besitzer und Name erstellen
+			// Label fuer Truppenstaerke, Besitzer und Name erstellen
 			JPanel panelLabelFuerLand = new JPanel(new GridLayout(3, 2));
 			panelLabelFuerLand.setBounds(b/100*3,h/100*68,450,150);
 			for (int i = 0; i < landBeschreibung.length; i++)
@@ -622,7 +699,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 			super.paint(g);
 			//Graphics2D g2 = (Graphics2D) g;
 			//renderSettings(g2);
-			createMap(b, h/100*71);
+			createMap(b, h/100*69);
 			g.drawImage(map, 0, 0, this);
 		}
 		
@@ -635,7 +712,6 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 			g.setColor(getContentPane().getBackground());
 			g.fillRect(0,0,b, h);
 			g.drawImage(mapIcon.getImage(), 10, 10, b, h, this);
-			System.out.println(b +"Hallo"+ h + "");
 		}
 		
 		private void renderSettings(Graphics2D g)
@@ -768,12 +844,16 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		
 		private void setLandBeschreibung(int landId) throws RemoteException
 		{
-			Land l = (Land) spiel.getLand(landId);
-			landTruppenstaerke.setText(""+ l.getTruppenstaerke());
-			landname.setText(l.getName());
-			if(l.getBesitzer() != null)
+			aktuellesLand = (Land) spiel.getLand(landId);
+			aktuellesLandId = landId;
+			landTruppenstaerke.setForeground(aktuellesLand.getBesitzer().getColorSpieler());
+			landname.setForeground(aktuellesLand.getBesitzer().getColorSpieler());
+			landBesitzer.setForeground(aktuellesLand.getBesitzer().getColorSpieler());
+			landTruppenstaerke.setText(""+ aktuellesLand.getTruppenstaerke());
+			landname.setText(aktuellesLand.getName());
+			if(aktuellesLand.getBesitzer() != null)
 			{
-				landBesitzer.setText(l.getBesitzer().getName());
+				landBesitzer.setText(aktuellesLand.getBesitzer().getName());
 			} else { landBesitzer.setText("kein Besitzer"); }
 		}
 	}
