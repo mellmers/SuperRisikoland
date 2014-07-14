@@ -32,8 +32,8 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 	private int zusatzEinheitenSerie = 4;
 	private Vector<SuperRisikoLandGuiInterface> clients = new Vector<SuperRisikoLandGuiInterface>();
 	
-	private int zuVerteilendeEinheitenGui;
-	private int verteilteEinheitenGui;
+	private int zuVerteilendeEinheitenGui = 0;
+	private int verteilteEinheitenGui = 0;
 	
 	private ServerInterface server;
 	
@@ -88,6 +88,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 	public int getZuVerteilendeEinheitenGui(Spieler aktuellerSpieler) throws RemoteException
 	{
 		zuVerteilendeEinheitenGui = this.laenderZaehlen(aktuellerSpieler) + this.zusatzEinheitenKontinente(aktuellerSpieler) + this.checkSerie(aktuellerSpieler) - this.verteilteEinheitenGui;
+		System.out.println(zuVerteilendeEinheitenGui);
 		return zuVerteilendeEinheitenGui;
 	}
 	
@@ -795,33 +796,13 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 				}
 			}
 		}
-		/*else // GUI
-		{
-			if(aktuellerSpieler.getAnzahlHandkarten() == 5)
-			{
-				server.setLogText(aktuellerSpieler.getName() + " muss seine Handkarten einsetzen und eine Serie einloesen!");
-			}
-			else
-			{
-				//Popup, ob spieler serie einloesen moechte
-				// JDialog mit entsprechendem panel starten
-	        	int selectedOption = JOptionPane.showOptionDialog(null, "Moechtest du eine Serie einloesen?", "Serie einloesen?", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null, null);
-	        	// wenn okay gedrueckt wurde
-	        	if(selectedOption == 0)
-	        	{
-	        		zwischenSpeicherZusatzTruppenSerie = this.serieEinsetzen(aktuellerSpieler, gui);
-	        	}
-			}
-		}*/
-		
 		if(!gui)
 		{
 			int zuVerteilendeEinheiten = 0;
 			zuVerteilendeEinheiten = this.laenderZaehlen(aktuellerSpieler) + this.zusatzEinheitenKontinente(aktuellerSpieler) + zwischenSpeicherZusatzTruppenSerie;
 			while (zuVerteilendeEinheiten > 0)
 			{
-				//server.setLogText(aktuellerSpieler.getName() + " muss " + zuVerteilendeEinheiten + " Einheiten verteilen.");
-		    	IO.println(aktuellerSpieler.getName() + " muss nun " + zuVerteilendeEinheiten + " Einheiten verteilen.\n"
+				IO.println(aktuellerSpieler.getName() + " muss nun " + zuVerteilendeEinheiten + " Einheiten verteilen.\n"
 		    			+ "Geben Sie die ID Ihres Landes ein, in dem Einheiten stationiert werden sollen.");
 		    	
 	    		landId = IO.readInt();
@@ -854,24 +835,10 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 		}
 		else // GUI
 		{
-	    	/*else // GUI
-	    	{
-	    		if(landId == 0)
-	    		{
-	    			server.setLogText("Du musst ein Land auswaehlen und dann bestaetigen!");
-	    			return false;
-	    		}
-	    		else if(einheiten == 0)
-	    		{
-	    			server.setLogText("Du musst mindestens eine Einheit auswaehlen und dann bestaetigen!");
-	    			return false;
-	    		}
-	    	}*/
-	        
         	this.laender[landId].setTruppenstaerke(einheiten);
 	       	this.verteilteEinheitenGui += einheiten;
-	       	//server.setLogText(this.laender[landId].getTruppenstaerke() + " Einheiten auf " + this.laender[landId].getName()); TODO ADD!!!
-	       	System.out.println("Einheiten " + this.laender[landId].getTruppenstaerke() );
+	       	this.zuVerteilendeEinheitenGui -= einheiten;
+	       	//server.setLogText(aktuellerSpieler.getName() + " hat " + this.laender[landId].getTruppenstaerke() + " Einheiten auf " + this.laender[landId].getName() + " stationiert."); TODO ADD!!!
 	       	if(this.zuVerteilendeEinheitenGui == 0)
 	       	{
 	       		return true;
