@@ -42,7 +42,7 @@ public class Mission implements Serializable
   		}
   		
   		IO.println("Missionen wurden generiert.");
-  		spiel.getServer().setLogText("Missionen wurden generiert.");
+  		//TODO spiel.getServer().setLogText("Missionen wurden generiert.");
   		for(int i = 0 ; i < spiel.getAnzahlSpieler() ; i++)
     	{
     		IO.println(spiel.getSpieler(i).getName() + "'s Mission:  " + spiel.getSpieler(i).getMission().getAufgabenText());
