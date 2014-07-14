@@ -60,9 +60,6 @@ import cui.Spielfeld;
 
 public class SuperRisikolandGui extends JFrame implements ActionListener, Serializable, SuperRisikoLandGuiInterface
 {
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 8931464798393030135L;
 	// Variablen
 	private Dimension screen;
