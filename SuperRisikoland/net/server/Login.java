@@ -187,6 +187,7 @@ public class Login extends JFrame implements ActionListener{
 			server.setLogText("Spieler " + server.getSpieler(i).getName() + " mit der Farbe " + server.getSpieler(i).getSpielerfarbe() +" und mit SpielerID " + server.getSpieler(i).getSpielerID() + " wurde erstellt.");
 		}
 	}
+	
 	public SpielerInterface getPassendenSpieler(int i) throws RemoteException
 	{
 		for(int j = 0 ; j < server.getAlleSpielerAnzahl(); j++)

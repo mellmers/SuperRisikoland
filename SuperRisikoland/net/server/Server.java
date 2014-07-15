@@ -33,7 +33,6 @@ public class Server extends UnicastRemoteObject implements ServerInterface, Seri
 	SpielfeldInterface spiel;
 	private int spielVariante;
 	// Ausgelagerte Variablen
-	private SpielerInterface aktuellerSpieler;
 	private String logText = "Server gestartet.";
 	
 	protected Server() throws RemoteException
@@ -87,24 +86,14 @@ public class Server extends UnicastRemoteObject implements ServerInterface, Seri
 	}
 	public void spielBeginnen(int spielVariante) throws RemoteException
 	{
-		// aktuellerSpieler wird Random festgelegt
-		int rndZahl = (int) (Math.random()*this.spieler.size()); // Randomzahl zwischen 0 und der Spieleranzahl
-		aktuellerSpieler = this.getSpieler(rndZahl);
 		spiel = new Spielfeld(this, this.spieler, spielVariante);
-		System.out.println(spiel);
-		setLogText(aktuellerSpieler.getName() + " ist nun an der Reihe.");
 	}
 
 	public SpielfeldInterface getSpielfeldInterface() throws RemoteException
 	{
 		return this.spiel;
 	}
-	
-	public SpielerInterface getAktuellerSpieler() throws RemoteException
-	{
-		return this.aktuellerSpieler;
-	}
-	
+
 	public void setLogText(String logText) throws RemoteException
 	{
 		this.logText += "\n" + logText;
