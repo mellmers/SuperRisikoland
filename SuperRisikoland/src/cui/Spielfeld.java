@@ -672,6 +672,13 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 						this.laender[verId].setTruppenstaerke(angTruppen);
 						this.laender[angId].setTruppenstaerke(-1*angTruppen);
 						aktuellerSpieler.landHinzufuegen(this.laender[verId]);
+						if(gui)
+						{
+							for(int i = 0 ; i < server.getAlleClients() ; i++)
+							{
+								server.getClient(i).besitzerAktualisieren();
+							}
+						}
 						
 						// benutzte einheiten im angegriffenen Land erhoehen und im angreifenden senken
 						this.laender[verId].setBenutzteEinheiten(angTruppen);
@@ -689,7 +696,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 						
 						// TODO mission erfuellt?
 						
-						this.missionErfuelltUndGewonnen(aktuellerSpieler);
+						//this.missionErfuelltUndGewonnen(aktuellerSpieler);
 						
 						// Welteroberung
 						if(this.welteroberung(aktuellerSpieler))

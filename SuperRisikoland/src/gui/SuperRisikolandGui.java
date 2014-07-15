@@ -450,7 +450,15 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 						if(aktuellerSpieler.meinLand(aktuellesLand) && !aktuellerSpieler.meinLand(aktuellesLandRK)) // Wenn befreiung möglich ist
 						{
 							spiel.befreien(aktuellerSpieler, this.sliderMap.getValue(), getVerteigerTruppen(aktuellesLandRK.getBesitzer()), aktuellesLandId, aktuellesLandRKId, true);
-							//this.labelStatus.setText("Einheiten nachziehen");
+							if(aktuellesLandRK.getBesitzer().equals(aktuellerSpieler))
+							{
+								int selectedOption = JOptionPane.showOptionDialog(null,"Moechtest du Einheiten nachziehen?", "Einheiten Nachziehen", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE, null, new String[]{"Ja","Nein"}, "Ja");
+								if(selectedOption == 0)
+								{
+									this.labelStatus.setText("Einheiten nachziehen");
+								}
+							}
+							
 						}
 					} catch (RemoteException e1) {
 						e1.printStackTrace();
@@ -656,13 +664,13 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		{
 			option = new String[]{"1"};
 		}
-		int selectedOption = JOptionPane.showOptionDialog(null, "Willst du das Spiel speichern?", "Beenden", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE, null, option, "1");
+		int selectedOption = JOptionPane.showOptionDialog(null, "Das Land " + land.getName() + ",\nwelches sich in deinem Besitz befindet,\nwird angegriffen.\nMit wie Vielen Einheiten willst du verteidigen?", "Angriff!", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE, null, option, "1");
 		return selectedOption +1;
 	}
 	
 	public int getVerteigerTruppen(SpielerInterface gegenSpieler) throws RemoteException
 	{
-		int verTruppen = server.getClient(gegenSpieler.getSpielerID()).verteidigen(aktuellesLandRK);
+		int verTruppen = server.getClientByName(gegenSpieler.getName()).verteidigen(aktuellesLandRK);
 		return verTruppen;
 	}
 	

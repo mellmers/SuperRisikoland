@@ -50,7 +50,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface, Seri
 			// evtl Client individualisieren
 			ClientInterface client = (ClientInterface) registry.lookup(name);
 			this.clients.add(client);
-			
+
 			System.out.println("Client " + client.getSpielername() + " ist beigetreten.");
 			return true;
 		}
@@ -64,14 +64,25 @@ public class Server extends UnicastRemoteObject implements ServerInterface, Seri
 			System.out.println("Spieler " + name + " hat seinen Charakter ausgewaehlt.");
 	}
 	
-	public ClientInterface getClient(int index) throws RemoteException
+	public ClientInterface getClientByName(String name) throws RemoteException
 	{
-		return this.clients.elementAt(index);
+		for(int i = 0 ; i < this.clients.size() ; i++)
+		{
+			if(this.clients.elementAt(i).getSpielername().equals(name))
+			{
+				return this.clients.elementAt(i);
+			}
+		}
+		return null;
 	}
 	
 	public SpielerInterface getSpieler(int index) throws RemoteException
 	{
 		return this.spieler.elementAt(index);
+	}
+	public ClientInterface getClient(int index) throws RemoteException
+	{
+		return this.clients.elementAt(index);
 	}
 	
 	public int getAlleClients() throws RemoteException

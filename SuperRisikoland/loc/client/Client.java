@@ -47,6 +47,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface, Seri
 	private String spielername;
 	ServerInterface server;
 	SuperRisikolandGui gui;
+	int clientId;
 	
 	public Client(ServerInterface server, String name, int port, String servername) throws RemoteException
 	{
@@ -86,5 +87,9 @@ public class Client extends UnicastRemoteObject implements ClientInterface, Seri
 	public int verteidigen(LandInterface land) throws RemoteException
 	{
 		return this.gui.verteidigen(land);
+	}
+	public void besitzerAktualisieren() throws RemoteException
+	{
+		this.gui.besitzerAktualisieren();
 	}
 }
