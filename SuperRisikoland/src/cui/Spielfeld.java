@@ -39,9 +39,6 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 	private int verteilteEinheitenGui = 0;
 	
 	private ServerInterface server;
-	private SpielerInterface aktuellerSpieler;
-	
-	private String aktuellePhase = "Serie eintauschen";
 	
 	public Spielfeld(ServerInterface server, Vector<SpielerInterface> alleSpieler, int spielVariante) throws RemoteException
 	{
@@ -53,9 +50,6 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 		//server.setLogText("Spielfeld mit " + this.anzahlSpieler + " Spielern und Spielvariante " + spielVariante + " erstellt.");
 		IO.println("Spielfeld mit " + anzahlSpieler + " Spielern und Spielvariante " + spielVariante + " erstellt.");
 		
-		// aktuellerSpieler wird Random festgelegt
-		int rndZahl = (int) (Math.random()*this.spieler.size()); // Randomzahl zwischen 0 und der Spieleranzahl
-		this.aktuellerSpieler = this.getSpieler(rndZahl);
 		//server.setLogText(this.aktuellerSpieler.getName() + " ist nun an der Reihe.");
 
 		this.kontinenteEinlesen();
@@ -126,11 +120,6 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 	public int getAnzahlSpieler() throws RemoteException
 	{
 		return this.anzahlSpieler;
-	}
-	
-	public SpielerInterface getAktuellerSpieler() throws RemoteException
-	{
-		return this.aktuellerSpieler;
 	}
 
 	public ServerInterface getServer() throws RemoteException
@@ -636,7 +625,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 			}
 			else
 			{
-				server.setLogText("Angriff von " + this.aktuellerSpieler.getName() + " ist fehlgeschlagen!");
+				server.setLogText("Angriff von " + aktuellerSpieler.getName() + " ist fehlgeschlagen!");
 				System.out.println("Angriff fehlgeschlagen!");
 			}
 		}
@@ -676,7 +665,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 				System.out.println(hoechsteZahlVer);
 				if(hoechsteZahlAng > hoechsteZahlVer) {
 					System.out.println("Runde "+ anzRunden + ": Angreifer gewinnt.");
-					server.setLogText("Runde " + anzRunden + ": " + this.aktuellerSpieler.getName() + " gewinnt.");
+					server.setLogText("Runde " + anzRunden + ": " + aktuellerSpieler.getName() + " gewinnt.");
 					this.laender[verId].setTruppenstaerke(-1);
 					// Eroberung
 					if (this.laender[verId].getTruppenstaerke() == 0) 
@@ -965,31 +954,20 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 	{
 		for(int i = 0; i < this.spieler.size(); i++)
 		{
-			if(this.aktuellerSpieler.equals(this.spieler.elementAt(i)))
+			if(server.getAktuellerSpieler().equals(this.spieler.elementAt(i)))
 			{
 				if(i == this.spieler.size()-1)
 				{
-					this.aktuellerSpieler = this.spieler.elementAt(0);
+					server.setAktuellerSpieler(this.spieler.elementAt(0));
 					return true;
 				}
 				else
 				{
-				this.aktuellerSpieler = this.spieler.elementAt(i+1);
+					server.setAktuellerSpieler(this.spieler.elementAt(i+1));
 				return true;
 				}
 			}
 		}
 		return false;
 	}
-
-	public String getAktuellePhase()  throws RemoteException
-	{
-		return aktuellePhase;
-	}
-
-	public void setAktuellePhase(String aktuellePhase) throws RemoteException
-	{
-		this.aktuellePhase = aktuellePhase;
-	}
-
 }

@@ -91,7 +91,6 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 	private JPanel panelMap;
 	private Image mainMap;
 	JLabel labelMap;
-	private String aktuellePhase;
 	
 	private ImageIcon[] iihandkarten = new ImageIcon[43];
 	private JLabel[] labelHandkarten = {new JLabel(""),new JLabel(""),new JLabel(""),new JLabel(""),new JLabel("")};
@@ -145,7 +144,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		
 		this.server = server;
 		this.spiel = server.getSpielfeldInterface();
-		this.aktuellerSpieler = spiel.getAktuellerSpieler();
+		this.aktuellerSpieler = server.getAktuellerSpieler();
 		this.eigenerSpieler = eigenerSpieler;
 		
 		if(geladen)
@@ -331,34 +330,36 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 	
 	protected void aktualisierenPhase() throws RemoteException 
 	{
-		switch(spiel.getAktuellePhase())
+		if(this.aktuellerSpieler.equals(eigenerSpieler))
 		{
-		case "Serie eintauschen":
-			this.aktuellerSpieler = spiel.getAktuellerSpieler();
-			this.labelCharAktuellerSpieler.setIcon(this.aktuellerSpieler.getSpielerIcon());
-			this.buttonPhaseBeenden.setEnabled(true);
-			break;
-		case "Armeen verteilen":
-			this.buttonPhaseBeenden.setEnabled(false);
-			break;
-		case "Befreiung":
-			this.buttonPhaseBeenden.setEnabled(true);
-			break;
-		case "Einheiten nachziehen":
-			this.buttonPhaseBeenden.setEnabled(false);
-			break;
-		case "Umverteilen":
-			this.buttonPhaseBeenden.setEnabled(true);
-			break;
-		default:
-			break;
-		}		
+			switch(server.getAktuellePhase())
+			{
+			case "Serie eintauschen":
+				this.aktuellerSpieler = server.getAktuellerSpieler();
+				this.labelCharAktuellerSpieler.setIcon(this.aktuellerSpieler.getSpielerIcon());
+				this.buttonPhaseBeenden.setEnabled(true);
+				break;
+			case "Armeen verteilen":
+				this.buttonPhaseBeenden.setEnabled(false);
+				break;
+			case "Befreiung":
+				this.buttonPhaseBeenden.setEnabled(true);
+				break;
+			case "Einheiten nachziehen":
+				this.buttonPhaseBeenden.setEnabled(false);
+				break;
+			case "Umverteilen":
+				this.buttonPhaseBeenden.setEnabled(true);
+				break;
+			default:
+				break;
+			}	
+		}
 	}
 	
 	protected void aktualisieren() throws RemoteException
 	{
-		this.aktuellerSpieler = spiel.getAktuellerSpieler();
-		this.labelCharAktuellerSpieler.setIcon(this.aktuellerSpieler.getSpielerIcon());
+		this.labelStatus.setText(server.getAktuellePhase());
 		this.logTextArea.setText(server.getLogText() + this.getLogTextGui());
 		
 		// Land 1 aktualisieren
@@ -403,11 +404,11 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 			if (e.getSource().equals(this.buttonPhaseBeenden))
 			{
 				try {
-					switch(spiel.getAktuellePhase())
+					switch(server.getAktuellePhase())
 					{
 					case "Serie eintauschen":
-						spiel.setAktuellePhase("Armeen verteilen");
-						this.labelStatus.setText(spiel.getAktuellePhase());
+						server.setAktuellePhase("Armeen verteilen");
+						this.labelStatus.setText(server.getAktuellePhase());
 						break;
 					case "Armeen verteilen":
 						break;
@@ -415,21 +416,21 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 						int selectedOption = JOptionPane.showOptionDialog(null,"Bist du sicher, dass du keine weitere Befreiung ausfuehren moechtest?", "Befreiung beenden", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, new String[]{"Ja","Nein"}, "Ja");
 						if(selectedOption == 0)
 						{
-							spiel.setAktuellePhase("Umverteilen");
-							this.labelStatus.setText(spiel.getAktuellePhase());
+							server.setAktuellePhase("Umverteilen");
+							this.labelStatus.setText(server.getAktuellePhase());
 						}
 						break;
 					case "Einheiten nachziehen":
-						spiel.setAktuellePhase("Umverteilen");
-						this.labelStatus.setText(spiel.getAktuellePhase());
+						server.setAktuellePhase("Umverteilen");
+						this.labelStatus.setText(server.getAktuellePhase());
 						break;
 					case "Umverteilen":
 						try 
 						{
 							if(spiel.naechsterSpieler())
 							{
-								spiel.setAktuellePhase("Serie eintauschen");
-								this.labelStatus.setText(spiel.getAktuellePhase());
+								server.setAktuellePhase("Serie eintauschen");
+								this.labelStatus.setText(server.getAktuellePhase());
 							}
 						} catch (RemoteException e1) 
 						{
@@ -448,7 +449,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 			if (e.getSource().equals(this.buttonBestaetigung))
 			{
 				try {
-					switch(spiel.getAktuellePhase())
+					switch(server.getAktuellePhase())
 					{
 					case "Serie eintauschen":
 						break;
@@ -461,8 +462,8 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 								{
 									if(this.spiel.neueArmeen((SpielerInterface)aktuellerSpieler, true, aktuellesLandId , this.sliderMap.getValue()))
 									{
-										spiel.setAktuellePhase("Befreiung");
-										this.labelStatus.setText(spiel.getAktuellePhase());
+										server.setAktuellePhase("Befreiung");
+										this.labelStatus.setText(server.getAktuellePhase());
 									}
 								}
 							}
@@ -483,8 +484,8 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 										int selectedOption = JOptionPane.showOptionDialog(null,"Moechtest du Einheiten nachziehen?", "Einheiten nachziehen", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, new String[]{"Ja","Nein"}, "Ja");
 										if(selectedOption == 0)
 										{
-											spiel.setAktuellePhase("Einheiten nachziehen");
-											this.labelStatus.setText(spiel.getAktuellePhase());
+											server.setAktuellePhase("Einheiten nachziehen");
+											this.labelStatus.setText(server.getAktuellePhase());
 										}
 									}	
 								}
@@ -500,8 +501,8 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 								try {
 									if(spiel.einheitenNachKampfNachziehen(aktuellesLandId, aktuellesLandRKId, this.sliderMap.getValue(), true))
 									{
-										spiel.setAktuellePhase("Befreiung");
-										this.labelStatus.setText(spiel.getAktuellePhase());
+										server.setAktuellePhase("Befreiung");
+										this.labelStatus.setText(server.getAktuellePhase());
 										System.out.println("hat geklappt");
 									}
 								} catch (RemoteException e1) {
@@ -1153,7 +1154,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 	
 	private void setLandBeschreibung(int landId, MouseEvent e) throws RemoteException
 	{
-		if(!spiel.getAktuellePhase().equals("Einheiten nachziehen"))
+		if(!server.getAktuellePhase().equals("Einheiten nachziehen"))
 		{
 			if(e.getButton() == 3)
 			{

@@ -203,7 +203,6 @@ public class Login extends JFrame implements ActionListener{
 	public void serverErstellen() throws RemoteException
 	{
 		server = new Server();
-		//Spielfeld remote = new Spielfeld(2,1);
 		Registry registry = LocateRegistry.createRegistry((int) spinnerPort.getValue());
 		registry.rebind(textfieldServername.getText().trim(), server);
 		System.out.println("Server gestartet.");
