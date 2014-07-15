@@ -88,13 +88,15 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 	private JPanel panelCharAktuellerSpieler, panelEigenerChar, panelHandkarten;
 	
 	private transient BufferedImage map;
+	private JPanel panelMap;
+	Image mainMap;
+	JLabel labelMap;
 	
 	private ImageIcon[] iihandkarten = new ImageIcon[43];
 	private JLabel[] labelHandkarten = {new JLabel(""),new JLabel(""),new JLabel(""),new JLabel(""),new JLabel("")};
 	private ImageIcon[] iiCharakter = {null,null,null,null,null,null};
 	private ImageIcon[] iiIcon = {null,null,null,null,null,null};
 	private JLabel[] labelIcons = new JLabel[42];
-	private ImageIcon mainMapIcon;
 	private JLabel labelCharAktuellerSpieler = new JLabel(""), labelEigenerChar = new JLabel("");
 	
 	private SpielerInterface aktuellerSpieler, eigenerSpieler;
@@ -105,7 +107,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 	private LandInterface aktuellesLandRK;
 	private int aktuellesLandId;	
 	
-	private JPanel panelMap;
+	
 	
 	// Variablen der Map
 	JLabel[] landBeschreibung = {new JLabel("Truppenstaerke: ", SwingConstants.RIGHT), new JLabel("Land: ", SwingConstants.RIGHT), new JLabel("Besitzer: ", SwingConstants.RIGHT)};
@@ -489,8 +491,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		{
 			//Bilder einlesen
 			// Karte
-			Image mainMap = ImageIO.read(new File("res/karte.png"));
-			mainMapIcon = new ImageIcon(mainMap.getScaledInstance(b, h/100*69, Image.SCALE_SMOOTH));
+			
 			
 			Image[] handkarten = new Image[43];
 			for (int i = 0; i < handkarten.length; i++)
@@ -558,13 +559,13 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 			{
 				this.iihandkarten[i] = new ImageIcon(handkarten[i].getScaledInstance(this.h/100*10, this.h/100*16, Image.SCALE_SMOOTH));
 			}
-			this.iiCharakter[0] = new ImageIcon(imgDaisy);
-			this.iiCharakter[1] = new ImageIcon(imgLuigi);
-			this.iiCharakter[2] = new ImageIcon(imgMario);
-			this.iiCharakter[3] = new ImageIcon(imgPeach);
-			this.iiCharakter[4] = new ImageIcon(imgWaluigi);
-			this.iiCharakter[5] = new ImageIcon(imgWario);
-			this.iconGroesse = (int) (b*0.015);
+			this.iiCharakter[0] = new ImageIcon(imgDaisy.getScaledInstance(this.h/100*16,this.h/100*15, Image.SCALE_SMOOTH));
+			this.iiCharakter[1] = new ImageIcon(imgLuigi.getScaledInstance(this.h/100*16,this.h/100*15, Image.SCALE_SMOOTH));
+			this.iiCharakter[2] = new ImageIcon(imgMario.getScaledInstance(this.h/100*16,this.h/100*15, Image.SCALE_SMOOTH));
+			this.iiCharakter[3] = new ImageIcon(imgPeach.getScaledInstance(this.h/100*16,this.h/100*15, Image.SCALE_SMOOTH));
+			this.iiCharakter[4] = new ImageIcon(imgWaluigi.getScaledInstance(this.h/100*16,this.h/100*15, Image.SCALE_SMOOTH));
+			this.iiCharakter[5] = new ImageIcon(imgWario.getScaledInstance(this.h/100*16,this.h/100*15, Image.SCALE_SMOOTH));
+			this.iconGroesse = (int) (b*0.023);
 			this.iiIcon[0] = new ImageIcon(iconDaisy.getScaledInstance(iconGroesse, iconGroesse, Image.SCALE_SMOOTH));
 			this.iiIcon[1] = new ImageIcon(iconLuigi.getScaledInstance(iconGroesse, iconGroesse, Image.SCALE_SMOOTH));
 			this.iiIcon[2] = new ImageIcon(iconMario.getScaledInstance(iconGroesse, iconGroesse, Image.SCALE_SMOOTH));
@@ -694,16 +695,23 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 			//Graphics2D g2 = (Graphics2D) g;
 			//renderSettings(g2);
 			createMap(b, h/100*69);
-			g.drawImage(map, 0, 0, this);			
+			createMainMap(b, h/100*69);
+			g.drawImage(map, 0, 0, this);
+			g.drawImage(mainMap, 0, 0, this);
+		}
+		public void createMainMap(int b, int h)
+		{
+			mainMap = new BufferedImage(b, h, BufferedImage.TYPE_INT_RGB);
+			ImageIcon mainMapIcon = new ImageIcon("res/karte.png");
+			
+			Graphics g2 = mainMap.getGraphics();
+			g2.setColor(getContentPane().getBackground());
+			g2.fillRect(0,0,b, h);
+			g2.drawImage(mainMapIcon.getImage(), 0, 10, b, h, this);
 		}
 		
 		public void besitzerBildAnzeigen() throws RemoteException
 		{
-			JLabel labelMap = new JLabel();
-			labelMap.setIcon(mainMapIcon);
-			getContentPane().add(labelMap);
-			labelMap.setBounds(5, h/100*8+10, b, h/100*69);
-			
 			int abstandVonOben = 1080/100*8;
 			for(int i = 0 ; i < labelIcons.length ; i++)
 			{
@@ -763,7 +771,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 			Graphics g = map.getGraphics();
 			g.setColor(getContentPane().getBackground());
 			g.fillRect(0,0,b, h);
-			g.drawImage(mapIcon.getImage(), 10, 10, b, h, this);
+			g.drawImage(mapIcon.getImage(), 0, 10, b, h, this);
 		}
 		
 		private void renderSettings(Graphics2D g)
