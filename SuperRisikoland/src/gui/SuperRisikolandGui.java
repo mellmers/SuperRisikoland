@@ -94,6 +94,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 	private ImageIcon[] iiCharakter = {null,null,null,null,null,null};
 	private ImageIcon[] iiIcon = {null,null,null,null,null,null};
 	private JLabel[] labelIcons = new JLabel[42];
+	private ImageIcon mainMapIcon;
 	private JLabel labelCharAktuellerSpieler = new JLabel(""), labelEigenerChar = new JLabel("");
 	
 	private SpielerInterface aktuellerSpieler, eigenerSpieler;
@@ -487,6 +488,10 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		try
 		{
 			//Bilder einlesen
+			// Karte
+			Image mainMap = ImageIO.read(new File("res/karte.png"));
+			mainMapIcon = new ImageIcon(mainMap.getScaledInstance(b, h/100*69, Image.SCALE_SMOOTH));
+			
 			Image[] handkarten = new Image[43];
 			for (int i = 0; i < handkarten.length; i++)
 			{
@@ -638,7 +643,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		{
 			// Slider fuer Truppenauswahl, etc erstellen
 			sliderMap = new JSlider(SwingConstants.HORIZONTAL, 0, 50, 0);
-			sliderMap.setBounds(b/100*2, h/100*65, b/100*30, h/100*20);
+			sliderMap.setBounds(b/100*2, h/100*65, b/100*28, h/100*20);
 			// Die Abstände zwischen den Teilmarkierungen werden festgelegt
 			sliderMap.setMajorTickSpacing(5);
 			sliderMap.setMinorTickSpacing(1);
@@ -694,6 +699,11 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		
 		public void besitzerBildAnzeigen() throws RemoteException
 		{
+			JLabel labelMap = new JLabel();
+			labelMap.setIcon(mainMapIcon);
+			getContentPane().add(labelMap);
+			labelMap.setBounds(5, h/100*8+10, b, h/100*69);
+			
 			int abstandVonOben = 1080/100*8;
 			for(int i = 0 ; i < labelIcons.length ; i++)
 			{
