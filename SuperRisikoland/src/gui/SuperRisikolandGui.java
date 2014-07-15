@@ -91,6 +91,9 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 	private JPanel panelMap;
 	private Image mainMap;
 	JLabel labelMap;
+	private MouseAdapter[] mouseAdapterCards;
+	int[] karten;
+	int zusatzEinheiten;
 	
 	private ImageIcon[] iihandkarten = new ImageIcon[43];
 	private JLabel[] labelHandkarten = {new JLabel(""),new JLabel(""),new JLabel(""),new JLabel(""),new JLabel("")};
@@ -452,6 +455,8 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 					switch(server.getAktuellePhase())
 					{
 					case "Serie eintauschen":
+						zusatzEinheiten = spiel.serieEinsetzen(aktuellerSpieler, serieEinsetzen(), true);
+						server.setLogText(aktuellerSpieler + " hat eine Serie eingetauscht und " + zusatzEinheiten + " zusaetzliche Einheiten bekommen.");
 						break;
 					case "Armeen verteilen":
 						try
@@ -1221,4 +1226,64 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 			}
 		}
 	}
+	public int[] serieEinsetzen()
+	{
+		this.karten = new int[labelHandkarten.length];
+		this.mouseAdapterCards = new MouseAdapter[labelHandkarten.length];
+		for(int i = 0; i < labelHandkarten.length ; i++)
+		{
+			this.mouseAdapterCards[i] = new MouseAdapter()
+			{
+				public void mouseClicked(MouseEvent e)  
+			    {
+					for (int j = 0; j < labelHandkarten.length; j++)
+					{
+						if(e.getSource() == labelHandkarten[j])
+						{
+							for (int k = 0; k < labelHandkarten.length; k++)
+							{
+								labelHandkarten[k].setEnabled(true);
+							}
+							for(int o = 0 ; o < iihandkarten.length ; o++)
+							{
+								try {
+
+									if(spiel.getLand(o).equals(eigenerSpieler.spielerHandkarte(j)))
+									{
+										karten[j] = o;
+									}
+								} catch (RemoteException e1) {
+									e1.printStackTrace();
+								}
+							}
+							
+						}
+					}
+			    }
+			};
+		}
+		return karten;
+	}
+	
+	/* TODO public void serieEinsetzen() throws RemoteException
+	{
+			JFrame kartenZeigen = new JFrame();
+			kartenZeigen.setSize(600, 300);
+			kartenZeigen.setResizable(false);
+			kartenZeigen.setLocationRelativeTo(null);
+			kartenZeigen.setTitle("Karten einloesen");
+			
+			kartenZeigen.setDefaultCloseOperation(EXIT_ON_CLOSE);
+			
+			kartenZeigen.setLayout(new BorderLayout());
+			
+			JPanel liste = new JPanel(new GridLayout(eigenerSpieler.getAnzahlHandkarten(), 1));
+			//JPanel[] handKartenListe = new JPanel[eigenerSpieler.getAnzahlHandkarten()];
+			for(int i = 0 ; i < eigenerSpieler.getAnzahlHandkarten() ; i++)
+			{
+				liste.add(labelHandkarten[i].getIcon());
+				//andKartenListe[i] = new JPanel(new GridLayout());
+			}
+	}*/
+	
 }

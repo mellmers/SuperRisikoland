@@ -778,7 +778,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 		return verWuerfel;
 	}
 
-	public int serieEinsetzen(SpielerInterface aktuellerSpieler, boolean gui) throws RemoteException
+	public int serieEinsetzen(SpielerInterface aktuellerSpieler, int[] karten, boolean gui) throws RemoteException
 	{
 		int[] handkartenId = new int[3];
 		if(!gui)
@@ -788,6 +788,10 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 				IO.println(i+1 + ". Handkarte:");
 				handkartenId[i] = IO.readInt();
 			}
+		}
+		else
+		{
+			handkartenId = karten;
 		}
 		if(aktuellerSpieler.istSerie(handkartenId[0], handkartenId[1], handkartenId[2]))
 		{
@@ -849,14 +853,14 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 			if(aktuellerSpieler.getAnzahlHandkarten() == 5)
 			{
 				IO.println(aktuellerSpieler.getName() + " muss seine Handkarten einsetzen und eine Serie einloesen!");
-				zwischenSpeicherZusatzTruppenSerie = this.serieEinsetzen( aktuellerSpieler, gui);
+				zwischenSpeicherZusatzTruppenSerie = this.serieEinsetzen( aktuellerSpieler,null, gui);
 			}
 			else
 			{
 				IO.println("Moechtest du eine Serie einloesen? (j/n)");
 				if(IO.readChar() == 'j')
 				{
-					zwischenSpeicherZusatzTruppenSerie = this.serieEinsetzen(aktuellerSpieler, gui);
+					zwischenSpeicherZusatzTruppenSerie = this.serieEinsetzen(aktuellerSpieler,null, gui);
 				}
 			}
 		}

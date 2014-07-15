@@ -2,67 +2,106 @@ package cui;
 
 import inf.SpielerInterface;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.rmi.RemoteException;
 import java.util.Vector;
 
 public class SuperRisikolandCui
 {
 	public static void main(String[] args) throws RemoteException
-	{		
-		// Spielvariblen, die nicht gespeichert werden muessen
-		int anzahlSpieler;
-        int spielVariante;
-        SpielerInterface aktuellerSpieler;
-        int aktuellerSpielerId;
+	{	
+		int anzahlSpieler = 0;
+        int spielVariante = 0;
+        SpielerInterface aktuellerSpieler = null;
+        int aktuellerSpielerId = 0;
         Vector<SpielerInterface> alleSpieler = new Vector<SpielerInterface>();
-        // vTest
-        // Benutzereingabe: Anzahl der Spieler
+        Spielfeld spiel = null;
 		
-		IO.println("Anzahl der Spieler? (2-6 Spieler sind moeglich)");
-		
-		anzahlSpieler = IO.readInt();
-		while (anzahlSpieler < 2 || anzahlSpieler > 6)
+		char jaNein;
+		do
 		{
-			IO.println("Anzahl der Spieler?");
-			anzahlSpieler = IO.readInt();
+			IO.println("Moechtest du einen Spielstand laden? J/N");
+			jaNein = IO.readChar();
+		}while(jaNein != 'J' && jaNein != 'N');
+		
+		if(jaNein == 'J')
+		{
+			if(jaNein == 'J'){
+	        	IO.println("Geben Sie bitte den Namen Ihres Speicherstandes an:");
+	        	String name = IO.readString();
+	        	try (final ObjectInputStream ois = new ObjectInputStream(new FileInputStream(name+".ser"))) 
+	        	{
+	        		spiel = (Spielfeld) ois.readObject();
+	        		aktuellerSpieler = (SpielerInterface) ois.readObject();
+	        	} catch (final ClassNotFoundException e) {
+	        		IO.println("KLasse nicht gefunden!");
+	        		jaNein = 'N';
+	        	} catch (final FileNotFoundException e) {
+	        		IO.println("Datei nicht gefunden!");
+	        		jaNein = 'N';
+				} catch (final IOException e) {
+					IO.println("exception");
+					jaNein = 'N';
+	        	}
+	        }
 		}
-		
-		// Bentzereingabe: Spielvariante (Mission oder Welteroberung)
-        IO.println("Welche Spielvariante moechten Sie spielen?");
-        IO.println("Spielvariante 1: Mit Mission   --> Geben Sie ein: 1");
-        IO.println("Spielvariante 2: Welteroberung --> Geben Sie ein: 2");
-        spielVariante = IO.readInt();
- 
-		// erzeugt Spielfeld
-		
-
-        // Benutzereingabe: Namen jedes Spielers
-        for(int i = 0; i < anzahlSpieler; i++) 
-        {
-        	IO.println("Wie ist der Name des " + (i+1) + " Spielers?");
-        	Spieler spieler = new Spieler(i, IO.readString(), null, null);
-        	alleSpieler.add(spieler);
-        }
-        Spielfeld spiel = new Spielfeld(null, alleSpieler, spielVariante);
-        
-        // Missionen generieren, wenn Spielvariante 1 gewaehlt wurde
-        if(spielVariante == 1){
-        	new Mission().missionenErstellen(spiel);
-        }
-        
-        // Liste aller Laender ausgeben (mit oder ohne Besitzer)
-        
-        aktuellerSpielerId = (int) (Math.random()*anzahlSpieler);
-        aktuellerSpieler = spiel.getSpieler(aktuellerSpielerId);
-        
-        if(spielVariante == 1)
-        {
-        	for(int i = 0 ; i < anzahlSpieler ; i++)
-        	{
-        		IO.println(spiel.getSpieler(i).getName() + "   Mission:   " + spiel.getSpieler(i).getMission().getAufgabenText());
-        	}
-        }
-        	
+		if(jaNein == 'N')
+		{
+			// Spielvariblen, die nicht gespeichert werden muessen
+			
+	        // vTest
+	        // Benutzereingabe: Anzahl der Spieler
+			
+			IO.println("Anzahl der Spieler? (2-6 Spieler sind moeglich)");
+			
+			anzahlSpieler = IO.readInt();
+			while (anzahlSpieler < 2 || anzahlSpieler > 6)
+			{
+				IO.println("Anzahl der Spieler?");
+				anzahlSpieler = IO.readInt();
+			}
+			
+			// Bentzereingabe: Spielvariante (Mission oder Welteroberung)
+	        IO.println("Welche Spielvariante moechten Sie spielen?");
+	        IO.println("Spielvariante 1: Mit Mission   --> Geben Sie ein: 1");
+	        IO.println("Spielvariante 2: Welteroberung --> Geben Sie ein: 2");
+	        spielVariante = IO.readInt();
+	 
+			// erzeugt Spielfeld
+			
+	
+	        // Benutzereingabe: Namen jedes Spielers
+	        for(int i = 0; i < anzahlSpieler; i++) 
+	        {
+	        	IO.println("Wie ist der Name des " + (i+1) + " Spielers?");
+	        	Spieler spieler = new Spieler(i, IO.readString(), null, null);
+	        	alleSpieler.add(spieler);
+	        }
+	        spiel = new Spielfeld(null, alleSpieler, spielVariante);
+	        
+	        // Missionen generieren, wenn Spielvariante 1 gewaehlt wurde
+	        if(spielVariante == 1){
+	        	new Mission().missionenErstellen(spiel);
+	        }
+	        
+	        // Liste aller Laender ausgeben (mit oder ohne Besitzer)
+	        
+	        aktuellerSpielerId = (int) (Math.random()*anzahlSpieler);
+	        aktuellerSpieler = spiel.getSpieler(aktuellerSpielerId);
+	        
+	        if(spielVariante == 1)
+	        {
+	        	for(int i = 0 ; i < anzahlSpieler ; i++)
+	        	{
+	        		IO.println(spiel.getSpieler(i).getName() + "   Mission:   " + spiel.getSpieler(i).getMission().getAufgabenText());
+	        	}
+	        }
+		}	
         // Spielablauf
         while(true) // Spiel beenden einfuegen
         {
@@ -146,6 +185,7 @@ public class SuperRisikolandCui
         	spiel.setEroberteLaenderNull();
         	spiel.setBenutzteEinheitenNull();
         	
+        	
         	// Spielerwechsel (naechster Spieler)
         	if(aktuellerSpielerId == anzahlSpieler-1)
         	{
@@ -157,6 +197,19 @@ public class SuperRisikolandCui
         	}
         	aktuellerSpieler = spiel.getSpieler(aktuellerSpielerId);
         	// Spielerwechsel Ende
+        	//Spiel Speichern?
+        	IO.println("Moechten Sie das Spiel speichern?  J/N");
+        	if(IO.readChar() == 'J')
+        	{
+        		IO.println("Bitte geben Sie den gewuenschten Namen ein?");
+        		String name = IO.readString() + ".ser";
+        		try (final ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(name)))
+        		{
+        				oos.writeObject(spiel);
+        				oos.writeObject(aktuellerSpieler);
+        				
+        		} catch (final IOException e){}
+        	}
         }
 	}
 }

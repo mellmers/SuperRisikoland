@@ -1,6 +1,7 @@
 eclipse.preferences.version=1
 encoding//loc/client/SpielBeitreten.java=UTF-8
 encoding//net/server/Login.java=UTF-8
+encoding//net/server/Server.java=UTF-8
 encoding//src/cui/Spielfeld.java=UTF-8
 encoding//src/gui/NeuesSpiel.java=UTF-8
 encoding//src/gui/Spielstart.java=UTF-8

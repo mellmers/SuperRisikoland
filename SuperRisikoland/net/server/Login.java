@@ -10,7 +10,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.rmi.AlreadyBoundException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -22,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -30,8 +35,11 @@ import javax.swing.JRadioButton;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import cui.Spieler;
+import cui.Spielfeld;
 
 
 public class Login extends JFrame implements ActionListener{
@@ -121,6 +129,7 @@ public class Login extends JFrame implements ActionListener{
 		spielVariante.add(this.radioButtonMissionen);
 		this.buttonNeuesSpiel.addActionListener(this);
 		this.buttonNeuesSpiel.setEnabled(false);
+		this.buttonSpielLaden.addActionListener(this);
 		
 		panelButtons.add(buttonNeuesSpiel);
 		panelButtons.add(buttonSpielLaden);
@@ -260,6 +269,42 @@ public class Login extends JFrame implements ActionListener{
 				e1.printStackTrace();
 			}
 		}
+		if(e.getSource().equals(this.buttonSpielLaden))
+		{
+			try {
+				spielLaden();
+			} catch (RemoteException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
+	}
+	
+	private void spielLaden() throws RemoteException
+	{
+		// LadenDialog erstellen
+		// Erstellung eines FileFilters f�r Spielst�nde	
+        FileFilter filter = new FileNameExtensionFilter("Risiko-Spielst�nde", "ser");         
+        JFileChooser laden = new JFileChooser(new File(System.getProperty("user.home")));
+        // Filter wird dem JFileChooser hinzugef�gt
+        laden.addChoosableFileFilter(filter);
+        // Nur Dateien ausw�hlbar
+        laden.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        // Dialog zum Oeffnen von Dateien anzeigen
+        int rueckgabeWert = laden.showDialog(null, "Spielstand laden");
+        
+        // Abfrage, ob auf "�ffnen" geklickt wurde
+        if(rueckgabeWert == JFileChooser.APPROVE_OPTION)
+        {
+	    	File spielstand = laden.getSelectedFile();
+	    	String spielstandPfad = spielstand.getPath().endsWith(".ser") ? spielstand.getPath() : spielstand.getPath() + ".ser" ;
+	    	server.spielLaden(spielstandPfad);
+	    	for(int i = 0; i < server.getAlleClients(); i++)
+			{
+				server.getClient(i).neuesSpielStarten(this.getPassendenSpieler(i));
+				server.setLogText("Spieler " + server.getSpieler(i).getName() + " mit der Farbe " + server.getSpieler(i).getSpielerfarbe() +" und mit SpielerID " + server.getSpieler(i).getSpielerID() + " wurde erstellt.");
+			}
+        }
 	}
 
 	public static void main(String[] args) throws AlreadyBoundException, NotBoundException, IOException{

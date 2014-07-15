@@ -1,6 +1,10 @@
 package server;
 
 import java.awt.Color;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -103,6 +107,30 @@ public class Server extends UnicastRemoteObject implements ServerInterface, Seri
 		int rndZahl = (int) (Math.random()*this.spieler.size()); // Randomzahl zwischen 0 und der Spieleranzahl
 		this.setAktuellerSpieler(this.getSpieler(rndZahl));
 		spiel = new Spielfeld(this, this.spieler, spielVariante);
+	}
+	
+	public void spielLaden(String spielstandPfad) throws RemoteException
+	{
+		try(final ObjectInputStream ois = new ObjectInputStream(new FileInputStream(spielstandPfad)))
+    	{
+
+    		this.spiel = (Spielfeld) ois.readObject();
+
+    		this.aktuellerSpieler = (SpielerInterface) ois.readObject();
+
+    	} catch (FileNotFoundException e1)
+		{
+			//SuperRisikolandGui.logText += "\n" + e1.getMessage();
+		} catch (IOException e1)
+		{
+			//SuperRisikolandGui.logText += "\n" + e1.getMessage();
+		} catch (ClassNotFoundException e1)
+		{
+			//SuperRisikolandGui.logText += "\n" + e1.getMessage();
+		}
+    	// Logtext in TextArea schreiben
+        //SuperRisikolandGui.logTextArea.setText(SuperRisikolandGui.logText);
+		
 	}
 
 	public SpielfeldInterface getSpielfeldInterface() throws RemoteException
