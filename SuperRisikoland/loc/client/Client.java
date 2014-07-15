@@ -54,8 +54,6 @@ public class Client extends UnicastRemoteObject implements ClientInterface, Seri
 		this.server = server;
 	}
 
-
-
 	public String getSpielername() {
 		return spielername;
 	}
@@ -67,9 +65,8 @@ public class Client extends UnicastRemoteObject implements ClientInterface, Seri
              public void run()
              {
             	 try {
-					gui = new SuperRisikolandGui(server, server.getAktuellerSpieler(), spieler, false);
+					gui = new SuperRisikolandGui(server, spieler, false);
 				} catch (RemoteException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
              }

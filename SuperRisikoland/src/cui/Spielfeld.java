@@ -41,6 +41,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 	private int verteilteEinheitenGui = 0;
 	
 	private ServerInterface server;
+	private SpielerInterface aktuellerSpieler;
 	
 	public Spielfeld(ServerInterface server, Vector<SpielerInterface> alleSpieler, int spielVariante) throws RemoteException
 	{
@@ -49,8 +50,13 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 		this.anzahlSpieler = this.spieler.size();
 		this.setSpielvariante(spielVariante);
 		
-		// TODO server.setLogText("Spielfeld mit " + this.anzahlSpieler + " Spielern und Spielvariante " + spielVariante + " erstellt.");
+		//server.setLogText("Spielfeld mit " + this.anzahlSpieler + " Spielern und Spielvariante " + spielVariante + " erstellt.");
 		IO.println("Spielfeld mit " + anzahlSpieler + " Spielern und Spielvariante " + spielVariante + " erstellt.");
+		
+		// aktuellerSpieler wird Random festgelegt
+		int rndZahl = (int) (Math.random()*this.spieler.size()); // Randomzahl zwischen 0 und der Spieleranzahl
+		this.aktuellerSpieler = this.getSpieler(rndZahl);
+		//server.setLogText(this.aktuellerSpieler.getName() + " ist nun an der Reihe.");
 
 		this.kontinenteEinlesen();
 
@@ -107,6 +113,52 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 	
 	// Setter
 	
+	public int getSpielvariante()
+	{
+		return spielvariante;
+	}
+
+	public void setSpielvariante(int spielvariante)
+	{
+		this.spielvariante = spielvariante;
+	}
+
+	public int getAnzahlSpieler() throws RemoteException
+	{
+		return this.anzahlSpieler;
+	}
+	
+	public SpielerInterface getAktuellerSpieler() throws RemoteException
+	{
+		return this.aktuellerSpieler;
+	}
+
+	public void addClient(String name, int port) throws RemoteException, MaximaleSpielerZahlErreichtException, NotBoundException {
+		if(clients.size() < 6)
+		{
+			Registry registry = LocateRegistry.getRegistry("localhost",port);
+			// evtl Client individualisieren
+			SuperRisikoLandGuiInterface remote = (SuperRisikoLandGuiInterface) registry.lookup(name);
+			clients.add(remote);
+			System.out.println("Spieler: " + name + " erstellt");	
+		}
+		else
+		{
+			throw new MaximaleSpielerZahlErreichtException();
+		}
+		
+	}
+
+	public SuperRisikolandGui getClient(int spielerId)
+	{
+		return (SuperRisikolandGui) this.clients.elementAt(spielerId);
+	}
+
+	public ServerInterface getServer()
+	{
+		return this.server;
+	}
+
 	public void setEroberteLaenderNull() throws RemoteException
 	{
 		this.eroberteLaender.clear();
@@ -900,44 +952,6 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 			return true;
 		}
 		return false;
-	}
-
-	public int getSpielvariante()
-	{
-		return spielvariante;
-	}
-
-	public void setSpielvariante(int spielvariante)
-	{
-		this.spielvariante = spielvariante;
-	}
-	public int getAnzahlSpieler()
-	{
-		return this.anzahlSpieler;
-	}
-	public void addClient(String name, int port) throws RemoteException, MaximaleSpielerZahlErreichtException, NotBoundException {
-		if(clients.size() < 6)
-		{
-			Registry registry = LocateRegistry.getRegistry("localhost",port);
-			// evtl Client individualisieren
-			SuperRisikoLandGuiInterface remote = (SuperRisikoLandGuiInterface) registry.lookup(name);
-			clients.add(remote);
-			System.out.println("Spieler: " + name + " erstellt");	
-		}
-		else
-		{
-			throw new MaximaleSpielerZahlErreichtException();
-		}
-		
-	}
-	public SuperRisikolandGui getClient(int spielerId)
-	{
-		return (SuperRisikolandGui) this.clients.elementAt(spielerId);
-	}
-	
-	public ServerInterface getServer()
-	{
-		return this.server;
 	}
 
 }

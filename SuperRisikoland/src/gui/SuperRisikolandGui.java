@@ -120,9 +120,12 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 	{
 		super();
 		Vector<SpielerInterface> spieler = new Vector<SpielerInterface>();
-		spieler.add(new Spieler(0, "Hans", "Blau", new Color(0,0,250)));
-		spieler.add(new Spieler(1, "Peter", "Rot", new Color(250,0,0)));
-		spieler.add(new Spieler(2, "Franz", "Gruen", new Color(0,250,0)));
+		spieler.add(new Spieler(0, "Daisy", "Blau", new Color(250,111,43)));
+		spieler.add(new Spieler(1, "Luigi", "Rot", new Color(22,169,14)));
+		spieler.add(new Spieler(2, "Mario", "Gruen", new Color(249,15,46)));
+		spieler.add(new Spieler(3, "Peach", "Gruen", new Color(251,175,221)));
+		spieler.add(new Spieler(4, "Waluigi", "Gruen", new Color(203,113,255)));
+		spieler.add(new Spieler(5, "Wario", "Gruen", new Color(255,239,0)));
 		aktuellerSpieler = spieler.get(0);
 		eigenerSpieler = spieler.get(1);
 		spiel = new Spielfeld(null, spieler, 1);
@@ -132,13 +135,13 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		this.h = (int) screen.getHeight();
 		initialize();
 	}
-	public SuperRisikolandGui(ServerInterface server, SpielerInterface aktSpieler, SpielerInterface eigenerSpieler, boolean geladen)  throws RemoteException
+	public SuperRisikolandGui(ServerInterface server, SpielerInterface eigenerSpieler, boolean geladen)  throws RemoteException
 	{
 		super();
 		
 		this.server = server;
 		this.spiel = server.getSpielfeldInterface();
-		this.aktuellerSpieler = aktSpieler;
+		this.aktuellerSpieler = spiel.getAktuellerSpieler();
 		this.eigenerSpieler = eigenerSpieler;
 		
 		if(geladen)
@@ -394,69 +397,73 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 	
 	public void actionPerformed(ActionEvent e)
 	{
-		if (e.getSource().equals(this.buttonPhaseBeenden))
+		if(this.aktuellerSpieler.equals(eigenerSpieler))
 		{
-			switch(this.labelStatus.getText())
+			if (e.getSource().equals(this.buttonPhaseBeenden))
 			{
-			case "Serie eintauschen":
-				break;
-			case "Armeen verteilen":
-				break;
-			case "Befreiung":
-				break;
-			case "Einheiten nachziehen":
-				this.labelStatus.setText("Befreiung");
-				this.labelStatus.setText("Umverteilen");
-				break;
-			case "Umverteilen":
-				this.labelStatus.setText("Serie eintauschen");
-				break;
-			default:
-				break;
-			}
-		}
-		if (e.getSource().equals(this.buttonBestaetigung))
-		{
-			switch(this.labelStatus.getText())
-			{
-			case "Serie eintauschen":
-				break;
-			case "Armeen verteilen":
-				try
+				switch(this.labelStatus.getText())
 				{
-					System.out.println("1");
-					if(aktuellerSpieler.meinLand(aktuellesLand) && this.sliderMap.getValue() > 0 && this.sliderMap.getValue() <= spiel.getZuVerteilendeEinheitenGui((SpielerInterface) aktuellerSpieler))
+				case "Serie eintauschen":
+					break;
+				case "Armeen verteilen":
+					break;
+				case "Befreiung":
+					break;
+				case "Einheiten nachziehen":
+					this.labelStatus.setText("Befreiung");
+					this.labelStatus.setText("Umverteilen");
+					break;
+				case "Umverteilen":
+					this.labelStatus.setText("Serie eintauschen");
+					break;
+				default:
+					break;
+				}
+			}
+			if (e.getSource().equals(this.buttonBestaetigung))
+			{
+				switch(this.labelStatus.getText())
+				{
+				case "Serie eintauschen":
+					break;
+				case "Armeen verteilen":
+					try
 					{
-						System.out.println("2");
-						if(this.spiel.neueArmeen((SpielerInterface)aktuellerSpieler, true, aktuellesLandId , this.sliderMap.getValue()))
+						System.out.println("1");
+						if(aktuellerSpieler.meinLand(aktuellesLand) && this.sliderMap.getValue() > 0 && this.sliderMap.getValue() <= spiel.getZuVerteilendeEinheitenGui((SpielerInterface) aktuellerSpieler))
 						{
-							System.out.println("3");
-							this.labelStatus.setText("Befreiung" + aktuellesLand.getTruppenstaerke());
+							System.out.println("2");
+							if(this.spiel.neueArmeen((SpielerInterface)aktuellerSpieler, true, aktuellesLandId , this.sliderMap.getValue()))
+							{
+								System.out.println("3");
+								this.labelStatus.setText("Befreiung" + aktuellesLand.getTruppenstaerke());
+							}
 						}
+						
+					} catch (RemoteException e1)
+					{
+						e1.printStackTrace();
 					}
+					break;
+				case "Befreiung":
 					
-				} catch (RemoteException e1)
-				{
-					e1.printStackTrace();
+					if(true) // Wenn befreiung geklappt hat
+					{
+						this.labelStatus.setText("Einheiten nachziehen");
+					}
+					break;
+				case "Einheiten nachziehen":
+					
+					break;
+				case "Umverteilen":
+					
+					break;
+				default:
+					break;
 				}
-				break;
-			case "Befreiung":
-				
-				if(true) // Wenn befreiung geklappt hat
-				{
-					this.labelStatus.setText("Einheiten nachziehen");
-				}
-				break;
-			case "Einheiten nachziehen":
-				
-				break;
-			case "Umverteilen":
-				
-				break;
-			default:
-				break;
 			}
 		}
+		
 		if (e.getSource().equals(this.buttonSpeichern)) // Speichern
 		{
 			try

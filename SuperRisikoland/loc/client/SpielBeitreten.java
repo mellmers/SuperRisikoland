@@ -64,7 +64,7 @@ public class SpielBeitreten extends JFrame implements ActionListener, Serializab
 	Color colorLuigi = new Color(22,169,14);
 	Color colorMario = new Color(249,15,46);
 	Color colorPeach = new Color(251,175,221);
-	Color colorWaluigi = new Color(124,83,188);
+	Color colorWaluigi = new Color(203,113,255);
 	Color colorWario = new Color(255,239,0);
 	
 	private Color[] colorChars = {this.colorDaisy, this.colorLuigi, this.colorMario, this.colorPeach, this.colorWaluigi, this.colorWario};
