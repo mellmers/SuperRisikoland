@@ -63,17 +63,11 @@ public class Client extends UnicastRemoteObject implements ClientInterface, Seri
 	public void neuesSpielStarten(final SpielerInterface spieler) throws RemoteException
 	{
 		
-		 Thread t = new Thread(new Runnable() {
-             public void run()
-             {
             	 try {
 					gui = new SuperRisikolandGui(server, spieler, false);
 				} catch (RemoteException e) {
 					e.printStackTrace();
 				}
-             }
-         });
-         t.start();
 	}
 	public boolean istGuiGestartet()
 	{
@@ -92,4 +86,6 @@ public class Client extends UnicastRemoteObject implements ClientInterface, Seri
 	{
 		this.gui.besitzerAktualisieren();
 	}
+	
+	
 }

@@ -49,7 +49,7 @@ public class Spieler extends UnicastRemoteObject implements Serializable, Spiele
 		return this.laender.size();
 	}
 	
-	public int getAnzahlHandkarten()
+	public int getAnzahlHandkarten() throws RemoteException
 	{
 		return this.handkarten.size();
 	}
@@ -108,6 +108,11 @@ public class Spieler extends UnicastRemoteObject implements Serializable, Spiele
 			IO.println(i+1 + ". " + this.handkarten.elementAt(i).getName() + " " + this.handkarten.elementAt(i).getEinheit());
 		}
 	}
+	public LandInterface spielerHandkarte(int index) throws RemoteException
+	{
+		return this.handkarten.elementAt(index);
+	}
+	
 	
 	public boolean istSerie(int hkEins, int hkZwei, int hkDrei) throws RemoteException
 	{

@@ -320,6 +320,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 				{
 					aktualisieren();
 					aktualisierenPhase();
+					handKartenAktualisieren();
 				} catch (RemoteException e)
 				{
 					e.printStackTrace();
@@ -519,12 +520,18 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 					case "Umverteilen":
 						try {
 							if(aktuellesLand.getBesitzer().equals(aktuellerSpieler)){
-								try {
-									spiel.einheitenNachziehen(aktuellesLandId, aktuellesLandRKId);
-								} catch (RemoteException e1) {
-									// TODO Auto-generated catch block
-									e1.printStackTrace();
-								}
+								//if(aktuellesLand.getTruppenstaerke() <= this.sliderMap.getValue() || this.sliderMap.getValue() > (aktuellesLand.getTruppenstaerke() - aktuellesLand.getBenutzteEinheiten()))
+								
+									try {
+										if(spiel.einheitenNachziehen(aktuellesLandId, aktuellesLandRKId, this.sliderMap.getValue(), true))
+										{
+											setLogTextGui(this.sliderMap.getValue() + " Einheiten wurden von " + aktuellesLand.getName() + " nach " + aktuellesLandRK.getName() + " verschoben.");
+										}
+									} catch (RemoteException e1) {
+										// TODO Auto-generated catch block
+										e1.printStackTrace();
+									}
+								
 							}
 						} catch (RemoteException e1) {
 							// TODO Auto-generated catch block
@@ -677,7 +684,6 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 			// Handkarten hinzufuegen
 			for (int i = 0; i < this.labelHandkarten.length; i++)
 			{
-				this.labelHandkarten[i].setIcon(this.iihandkarten[i]);
 				this.panelHandkarten.add(this.labelHandkarten[i]);
 			}
 		}
@@ -1195,5 +1201,23 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 	public static void main(String[] args) throws RemoteException
 	{
 		new SuperRisikolandGui();
+	}
+	public void handKartenAktualisieren() throws RemoteException
+	{
+		for(int i = 0 ; i < iihandkarten.length ; i++)
+		{
+			for(int j = 0 ; j < eigenerSpieler.getAnzahlHandkarten() ; j++)
+			{
+				if(spiel.getLand(i).equals(eigenerSpieler.spielerHandkarte(j)))
+				{
+					labelHandkarten[j].setIcon(iihandkarten[i]);
+			
+				}
+				if(eigenerSpieler.spielerHandkarte(j) == null)
+				{
+					labelHandkarten[j].setIcon(null);
+				}
+			}
+		}
 	}
 }

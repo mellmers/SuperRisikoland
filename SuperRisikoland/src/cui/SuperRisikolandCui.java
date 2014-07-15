@@ -133,7 +133,7 @@ public class SuperRisikolandCui
 	        		
         		} while(!(spiel.sindNachbarn(start, ziel)) || spiel.getLand(start).getBesitzer() != aktuellerSpieler);
         		
-        		spiel.einheitenNachziehen(start, ziel);
+        		spiel.einheitenNachziehen(start, ziel, 0, false);
         		
         		spiel.abfrageSollGesamtLaenderListeAusgegebenWerden();
         		IO.println("Moechtest du Truppen nachziehen? (j/n)");

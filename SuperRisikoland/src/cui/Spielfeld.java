@@ -1,7 +1,6 @@
 package cui;
 
 
-import exc.MaximaleSpielerZahlErreichtException;
 import gui.SuperRisikolandGui;
 import inf.KontinentInterface;
 import inf.LandInterface;
@@ -536,26 +535,31 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 		return false;
 	}
 	
-	public void einheitenNachziehen(int start, int ziel) throws RemoteException
+	public boolean einheitenNachziehen(int start, int ziel, int anzahl, boolean gui) throws RemoteException
 	{
-		int menge;
-		if(this.laender[start].getBesitzer() == this.laender[ziel].getBesitzer())
+		int menge = anzahl;
+		
+		if(this.laender[start].getBesitzer().equals(this.laender[ziel].getBesitzer()))
 		{
-			do
+			if(!gui)
 			{
-				IO.println("Wieviele Einheiten moechtest du nachziehen?");
-				menge = IO.readInt();
-				if(laender[start].getTruppenstaerke() <= menge)
+				do
 				{
-					IO.println((laender[start].getTruppenstaerke() <= menge || menge > (laender[start].getTruppenstaerke() - laender[start].getBenutzteEinheiten())) ? "So viele Einheiten koennen nicht nachgezogen werden!" : menge + " Einheiten sind von " + this.laender[start].getName() + " nach " + this.laender[ziel].getName() + " gezogen.");
+					IO.println("Wieviele Einheiten moechtest du nachziehen?");
+					menge = IO.readInt();
+					if(laender[start].getTruppenstaerke() <= menge)
+					{
+						IO.println((laender[start].getTruppenstaerke() <= menge || menge > (laender[start].getTruppenstaerke() - laender[start].getBenutzteEinheiten())) ? "So viele Einheiten koennen nicht nachgezogen werden!" : menge + " Einheiten sind von " + this.laender[start].getName() + " nach " + this.laender[ziel].getName() + " gezogen.");
+					}
 				}
+				while(laender[start].getTruppenstaerke() <= menge || menge > (laender[start].getTruppenstaerke() - laender[start].getBenutzteEinheiten()));
 			}
-			while(laender[start].getTruppenstaerke() <= menge || menge > (laender[start].getTruppenstaerke() - laender[start].getBenutzteEinheiten()));
-				
 			this.laender[start].setTruppenstaerke(-1*menge);
 			this.laender[ziel].setTruppenstaerke(menge);
 			this.laender[ziel].erhoeheBenutzteEinheiten(menge);
+			return true;
 		}
+		return false;
 		
 	}
 	
@@ -716,7 +720,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 						//Ende Gewinnabfrage
 						if(gui)
 						{
-							//server.getSpieler(angId).
+							this.getKarte(aktuellerSpieler);
 						}
 						else
 						{
