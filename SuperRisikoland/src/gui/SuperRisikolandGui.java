@@ -431,13 +431,10 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 				case "Armeen verteilen":
 					try
 					{
-						System.out.println("1");
 						if(aktuellerSpieler.meinLand(aktuellesLand) && this.sliderMap.getValue() > 0 && this.sliderMap.getValue() <= spiel.getZuVerteilendeEinheitenGui((SpielerInterface) aktuellerSpieler))
 						{
-							System.out.println("2");
 							if(this.spiel.neueArmeen((SpielerInterface)aktuellerSpieler, true, aktuellesLandId , this.sliderMap.getValue()))
 							{
-								System.out.println("3");
 								this.labelStatus.setText("Befreiung" + aktuellesLand.getTruppenstaerke());
 							}
 						}
