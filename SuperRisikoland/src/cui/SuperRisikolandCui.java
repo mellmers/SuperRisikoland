@@ -100,7 +100,7 @@ public class SuperRisikolandCui
 	        	IO.println("Gib an mit wieviel Einheiten " + spiel.getLand(verId).getBesitzer().getName() +" verteidigen moechte:");
 	        	int verTruppen = IO.readInt();
 	        	
-	        	spiel.befreien(aktuellerSpieler, angTruppen, verTruppen, angId, verId);
+	        	spiel.befreien(aktuellerSpieler, angTruppen, verTruppen, angId, verId, false);
 	        	
 	        	
 	        	spiel.abfrageSollGesamtLaenderListeAusgegebenWerden();

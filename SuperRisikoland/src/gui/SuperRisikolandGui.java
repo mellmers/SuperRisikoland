@@ -60,7 +60,6 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import gui.Spielstart;
-import cui.Land;
 import cui.Spieler;
 import cui.Spielfeld;
 
@@ -106,6 +105,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 	private LandInterface aktuellesLand;
 	private LandInterface aktuellesLandRK;
 	private int aktuellesLandId;	
+	private int aktuellesLandRKId;
 	
 	
 	
@@ -435,7 +435,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 						{
 							if(this.spiel.neueArmeen((SpielerInterface)aktuellerSpieler, true, aktuellesLandId , this.sliderMap.getValue()))
 							{
-								this.labelStatus.setText("Befreiung" + aktuellesLand.getTruppenstaerke());
+								this.labelStatus.setText("Befreiung");
 							}
 						}
 						
@@ -446,9 +446,14 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 					break;
 				case "Befreiung":
 					
-					if(true) // Wenn befreiung geklappt hat
-					{
-						this.labelStatus.setText("Einheiten nachziehen");
+					try {
+						if(aktuellerSpieler.meinLand(aktuellesLand) && !aktuellerSpieler.meinLand(aktuellesLandRK)) // Wenn befreiung möglich ist
+						{
+							spiel.befreien(aktuellerSpieler, this.sliderMap.getValue(), getVerteigerTruppen(aktuellesLandRK.getBesitzer()), aktuellesLandId, aktuellesLandRKId, true);
+							//this.labelStatus.setText("Einheiten nachziehen");
+						}
+					} catch (RemoteException e1) {
+						e1.printStackTrace();
 					}
 					break;
 				case "Einheiten nachziehen":
@@ -638,6 +643,27 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 				server.setLogText(e1.getMessage());
 			}
         }
+	}
+	
+	public int verteidigen(LandInterface land) throws RemoteException
+	{
+		String[] option;
+		if(land.getTruppenstaerke() > 1)
+		{
+				option = new String[]{"1", "2"};
+		}
+		else
+		{
+			option = new String[]{"1"};
+		}
+		int selectedOption = JOptionPane.showOptionDialog(null, "Willst du das Spiel speichern?", "Beenden", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE, null, option, "1");
+		return selectedOption +1;
+	}
+	
+	public int getVerteigerTruppen(SpielerInterface gegenSpieler) throws RemoteException
+	{
+		int verTruppen = server.getClient(gegenSpieler.getSpielerID()).verteidigen(aktuellesLandRK);
+		return verTruppen;
 	}
 	
 	public class riskoMap extends JPanel
@@ -1045,10 +1071,11 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 	
 	private void setLandBeschreibung(int landId, MouseEvent e) throws RemoteException
 	{
-		aktuellesLandId = landId;
+
 		if(e.getButton() == 3)
 		{
 			aktuellesLandRK =   spiel.getLand(landId);
+			aktuellesLandRKId = landId;
 			landTruppenstaerke2.setForeground(aktuellesLandRK.getBesitzer().getColorSpieler());
 			landname2.setForeground(aktuellesLandRK.getBesitzer().getColorSpieler());
 			landBesitzer2.setForeground(aktuellesLandRK.getBesitzer().getColorSpieler());
@@ -1061,6 +1088,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		}
 		else
 		{
+			aktuellesLandId = landId;
 			aktuellesLand = spiel.getLand(landId);
 			landTruppenstaerke.setForeground(aktuellesLand.getBesitzer().getColorSpieler());
 			landname.setForeground(aktuellesLand.getBesitzer().getColorSpieler());

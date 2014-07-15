@@ -35,7 +35,6 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 	private Vector<LandInterface> eroberteLaender = new Vector<LandInterface>();
 	private int eingetauschteSerien = 0;
 	private int zusatzEinheitenSerie = 4;
-	private Vector<SuperRisikoLandGuiInterface> clients = new Vector<SuperRisikoLandGuiInterface>();
 	
 	private int zuVerteilendeEinheitenGui = 0;
 	private int verteilteEinheitenGui = 0;
@@ -133,28 +132,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 		return this.aktuellerSpieler;
 	}
 
-	public void addClient(String name, int port) throws RemoteException, MaximaleSpielerZahlErreichtException, NotBoundException {
-		if(clients.size() < 6)
-		{
-			Registry registry = LocateRegistry.getRegistry("localhost",port);
-			// evtl Client individualisieren
-			SuperRisikoLandGuiInterface remote = (SuperRisikoLandGuiInterface) registry.lookup(name);
-			clients.add(remote);
-			System.out.println("Spieler: " + name + " erstellt");	
-		}
-		else
-		{
-			throw new MaximaleSpielerZahlErreichtException();
-		}
-		
-	}
-
-	public SuperRisikolandGui getClient(int spielerId)
-	{
-		return (SuperRisikolandGui) this.clients.elementAt(spielerId);
-	}
-
-	public ServerInterface getServer()
+	public ServerInterface getServer() throws RemoteException
 	{
 		return this.server;
 	}
@@ -600,7 +578,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 		return anzLaender;
 	}
 
-	public void befreien(SpielerInterface aktuellerSpieler, int angTruppen, int verTruppen, int angId, int verId) throws RemoteException 
+	public void befreien(SpielerInterface aktuellerSpieler, int angTruppen, int verTruppen, int angId, int verId, boolean gui) throws RemoteException 
 	{
 			if (this.laender[angId].getTruppenstaerke() > 1 && this.laender[angId].istNachbar(this.laender[verId]) && angTruppen < this.laender[angId].getTruppenstaerke() && verTruppen <= this.laender[verId].getTruppenstaerke() && verTruppen > 0 && verTruppen < 3 && angTruppen > 0 && angTruppen < 4 && this.laender[verId].getBesitzer() != this.laender[angId].getBesitzer()) 
 			{
@@ -636,22 +614,23 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 				}
 				if(angTruppen<2 || verTruppen<2)
 				{
-					befreienAuswertung(aktuellerSpieler, angTruppen, angWuerfel, verWuerfel, 1, angId, verId);
+					befreienAuswertung(aktuellerSpieler, angTruppen, angWuerfel, verWuerfel, 1, angId, verId, gui);
 				}
 				else 
 				{
 					
-					befreienAuswertung(aktuellerSpieler, angTruppen, angWuerfel, verWuerfel, 1, angId, verId);
-					befreienAuswertung(aktuellerSpieler, angTruppen, angWuerfel, verWuerfel, 2, angId, verId);
+					befreienAuswertung(aktuellerSpieler, angTruppen, angWuerfel, verWuerfel, 1, angId, verId, gui);
+					befreienAuswertung(aktuellerSpieler, angTruppen, angWuerfel, verWuerfel, 2, angId, verId, gui);
 				}
 			}
 			else
 			{
+				server.setLogText("Angriff fehlgeschlagen!");
 				System.out.println("Angriff fehlgeschlagen!");
 			}
 		}
 		
-	public void befreienAuswertung(SpielerInterface aktuellerSpieler,int angTruppen, int[] angWuerfel, int[] verWuerfel, int anzRunden, int angId, int verId) throws RemoteException 
+	public void befreienAuswertung(SpielerInterface aktuellerSpieler,int angTruppen, int[] angWuerfel, int[] verWuerfel, int anzRunden, int angId, int verId, boolean gui) throws RemoteException 
 	{
 				int hoechsteZahlAng = 0;
 				int hoechsteZahlVer = 0;
@@ -718,14 +697,21 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 							// TODO Spielende, Siegfenster einblenden
 						}
 						//Ende Gewinnabfrage
-						IO.println("Moechtest du Einheiten nachziehen? (j/n)");
-				    	if (IO.readChar() == 'j')
-				    	{
-				    		this.einheitenNachKampfNachziehen(angId, verId);
-
-				    	}
+						if(gui)
+						{
+							//server.getSpieler(angId).
+						}
+						else
+						{
+							IO.println("Moechtest du Einheiten nachziehen? (j/n)");
+					    	if (IO.readChar() == 'j')
+					    	{
+					    		this.einheitenNachKampfNachziehen(angId, verId);
+	
+					    	}
+						}
 				    	
-				    	this.eroberteLaender.add(  this.laender[verId]);
+				    	this.eroberteLaender.add(this.laender[verId]);
 					}
 					// Ende Eroberung
 				}

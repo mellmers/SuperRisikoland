@@ -36,6 +36,7 @@ import cui.Spieler;
 import cui.Spielfeld;
 import gui.Spielstart;
 import gui.SuperRisikolandGui;
+import inf.LandInterface;
 import inf.ServerInterface;
 import inf.ClientInterface;
 import inf.SpielerInterface;
@@ -80,5 +81,10 @@ public class Client extends UnicastRemoteObject implements ClientInterface, Seri
 			return true;
 		}
 		return false;
+	}
+	
+	public int verteidigen(LandInterface land) throws RemoteException
+	{
+		return this.gui.verteidigen(land);
 	}
 }
