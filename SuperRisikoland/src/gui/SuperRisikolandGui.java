@@ -14,6 +14,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.HeadlessException;
 import java.awt.Image;
 import java.awt.RenderingHints;
 import java.awt.Toolkit;
@@ -74,7 +75,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 	private String logTextGui = "";
 	private JTextArea logTextArea = new JTextArea();
 	public static Color aktuellerFarbcode =  new Color(0,0,0);
-	private JLabel labelStatus = new JLabel("Armeen verteilen", SwingConstants.CENTER);
+	private JLabel labelStatus = new JLabel("Kein Status", SwingConstants.CENTER);
 	private JButton buttonSpeichern = new JButton("Speichern");
 	private JButton buttonLaden = new JButton("neues Spiel/Laden");
 	private JButton buttonMission = new JButton("Mission anzeigen");
@@ -88,8 +89,9 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 	
 	private transient BufferedImage map;
 	private JPanel panelMap;
-	Image mainMap;
+	private Image mainMap;
 	JLabel labelMap;
+	private String aktuellePhase;
 	
 	private ImageIcon[] iihandkarten = new ImageIcon[43];
 	private JLabel[] labelHandkarten = {new JLabel(""),new JLabel(""),new JLabel(""),new JLabel(""),new JLabel("")};
@@ -317,41 +319,35 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 				try
 				{
 					aktualisieren();
+					aktualisierenPhase();
 				} catch (RemoteException e)
 				{
 					e.printStackTrace();
 				}
 			}
 		},0,1,TimeUnit.SECONDS);
-		// Aktualisierung der Phase
-		final ScheduledExecutorService phase = Executors.newSingleThreadScheduledExecutor();
-		phase.scheduleWithFixedDelay(new Runnable()
-		{
-			public void run()
-			{
-				try {
-					aktualisierenPhase();
-				} catch (RemoteException e) {
-					e.printStackTrace();
-				}
-			}
-		},0,30,TimeUnit.SECONDS);
 	}
 	
 	protected void aktualisierenPhase() throws RemoteException 
 	{
-		switch(this.labelStatus.getText())
+		switch(spiel.getAktuellePhase())
 		{
 		case "Serie eintauschen":
+			this.aktuellerSpieler = spiel.getAktuellerSpieler();
+			this.labelCharAktuellerSpieler.setIcon(this.aktuellerSpieler.getSpielerIcon());
+			this.buttonPhaseBeenden.setEnabled(true);
 			break;
 		case "Armeen verteilen":
-			this.setLogTextGui(aktuellerSpieler.getName() + " muss nun " + spiel.getZuVerteilendeEinheitenGui(aktuellerSpieler) + " Einheiten verteilen.\n"+ "Waehle eines deiner Laender aus und bestaetige deine Eingabe.");
+			this.buttonPhaseBeenden.setEnabled(false);
 			break;
 		case "Befreiung":
+			this.buttonPhaseBeenden.setEnabled(true);
 			break;
 		case "Einheiten nachziehen":
+			this.buttonPhaseBeenden.setEnabled(false);
 			break;
 		case "Umverteilen":
+			this.buttonPhaseBeenden.setEnabled(true);
 			break;
 		default:
 			break;
@@ -360,6 +356,8 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 	
 	protected void aktualisieren() throws RemoteException
 	{
+		this.aktuellerSpieler = spiel.getAktuellerSpieler();
+		this.labelCharAktuellerSpieler.setIcon(this.aktuellerSpieler.getSpielerIcon());
 		this.logTextArea.setText(server.getLogText() + this.getLogTextGui());
 		
 		// Land 1 aktualisieren
@@ -403,75 +401,145 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		{
 			if (e.getSource().equals(this.buttonPhaseBeenden))
 			{
-				switch(this.labelStatus.getText())
-				{
-				case "Serie eintauschen":
-					break;
-				case "Armeen verteilen":
-					break;
-				case "Befreiung":
-					break;
-				case "Einheiten nachziehen":
-					this.labelStatus.setText("Befreiung");
-					this.labelStatus.setText("Umverteilen");
-					break;
-				case "Umverteilen":
-					this.labelStatus.setText("Serie eintauschen");
-					break;
-				default:
-					break;
+				try {
+					switch(spiel.getAktuellePhase())
+					{
+					case "Serie eintauschen":
+						spiel.setAktuellePhase("Armeen verteilen");
+						this.labelStatus.setText(spiel.getAktuellePhase());
+						break;
+					case "Armeen verteilen":
+						break;
+					case "Befreiung":
+						int selectedOption = JOptionPane.showOptionDialog(null,"Bist du sicher, dass du keine weitere Befreiung ausfuehren moechtest?", "Befreiung beenden", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, new String[]{"Ja","Nein"}, "Ja");
+						if(selectedOption == 0)
+						{
+							spiel.setAktuellePhase("Umverteilen");
+							this.labelStatus.setText(spiel.getAktuellePhase());
+						}
+						break;
+					case "Einheiten nachziehen":
+						spiel.setAktuellePhase("Umverteilen");
+						this.labelStatus.setText(spiel.getAktuellePhase());
+						break;
+					case "Umverteilen":
+						try 
+						{
+							if(spiel.naechsterSpieler())
+							{
+								spiel.setAktuellePhase("Serie eintauschen");
+								this.labelStatus.setText(spiel.getAktuellePhase());
+							}
+						} catch (RemoteException e1) 
+						{
+							e1.printStackTrace();
+						}
+						break;
+					default:
+						break;
+					}
+				} catch (HeadlessException e1) {
+					e1.printStackTrace();
+				} catch (RemoteException e1) {
+					e1.printStackTrace();
 				}
 			}
 			if (e.getSource().equals(this.buttonBestaetigung))
 			{
-				switch(this.labelStatus.getText())
-				{
-				case "Serie eintauschen":
-					break;
-				case "Armeen verteilen":
-					try
+				try {
+					switch(spiel.getAktuellePhase())
 					{
-						if(aktuellerSpieler.meinLand(aktuellesLand) && this.sliderMap.getValue() > 0 && this.sliderMap.getValue() <= spiel.getZuVerteilendeEinheitenGui((SpielerInterface) aktuellerSpieler))
+					case "Serie eintauschen":
+						break;
+					case "Armeen verteilen":
+						try
 						{
-							if(this.spiel.neueArmeen((SpielerInterface)aktuellerSpieler, true, aktuellesLandId , this.sliderMap.getValue()))
+							if(aktuellesLand != null)
 							{
-								this.labelStatus.setText("Befreiung");
-							}
-						}
-						
-					} catch (RemoteException e1)
-					{
-						e1.printStackTrace();
-					}
-					break;
-				case "Befreiung":
-					
-					try {
-						if(aktuellerSpieler.meinLand(aktuellesLand) && !aktuellerSpieler.meinLand(aktuellesLandRK)) // Wenn befreiung möglich ist
-						{
-							spiel.befreien(aktuellerSpieler, this.sliderMap.getValue(), getVerteigerTruppen(aktuellesLandRK.getBesitzer()), aktuellesLandId, aktuellesLandRKId, true);
-							if(aktuellesLandRK.getBesitzer().equals(aktuellerSpieler))
-							{
-								int selectedOption = JOptionPane.showOptionDialog(null,"Moechtest du Einheiten nachziehen?", "Einheiten Nachziehen", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE, null, new String[]{"Ja","Nein"}, "Ja");
-								if(selectedOption == 0)
+								if(aktuellerSpieler.meinLand(aktuellesLand) && this.sliderMap.getValue() > 0 && this.sliderMap.getValue() <= spiel.getZuVerteilendeEinheitenGui((SpielerInterface) aktuellerSpieler))
 								{
-									this.labelStatus.setText("Einheiten nachziehen");
+									if(this.spiel.neueArmeen((SpielerInterface)aktuellerSpieler, true, aktuellesLandId , this.sliderMap.getValue()))
+									{
+										spiel.setAktuellePhase("Befreiung");
+										this.labelStatus.setText(spiel.getAktuellePhase());
+									}
 								}
 							}
-							
+						} catch (RemoteException e1)
+						{
+							e1.printStackTrace();
 						}
-					} catch (RemoteException e1) {
-						e1.printStackTrace();
+						break;
+					case "Befreiung":
+						try {
+							if(aktuellesLand != null && aktuellesLandRK != null)
+							{
+								if(aktuellerSpieler.meinLand(aktuellesLand) && !aktuellerSpieler.meinLand(aktuellesLandRK)) // Wenn befreiung möglich ist
+								{
+									spiel.befreien(aktuellerSpieler, this.sliderMap.getValue(), getVerteigerTruppen(aktuellesLandRK.getBesitzer()), aktuellesLandId, aktuellesLandRKId, true);
+									if(aktuellesLandRK.getBesitzer().equals(aktuellerSpieler) && aktuellesLand.getTruppenstaerke() > 1)
+									{
+										int selectedOption = JOptionPane.showOptionDialog(null,"Moechtest du Einheiten nachziehen?", "Einheiten nachziehen", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, new String[]{"Ja","Nein"}, "Ja");
+										if(selectedOption == 0)
+										{
+											spiel.setAktuellePhase("Einheiten nachziehen");
+											this.labelStatus.setText(spiel.getAktuellePhase());
+										}
+									}	
+								}
+							}
+						} catch (RemoteException e1) {
+							e1.printStackTrace();
+						}
+						break;
+					case "Einheiten nachziehen":
+						try {
+							if(sliderMap.getValue() > 0 && sliderMap.getValue() < aktuellesLand.getTruppenstaerke())
+							{
+								try {
+									if(spiel.einheitenNachKampfNachziehen(aktuellesLandId, aktuellesLandRKId, this.sliderMap.getValue(), true))
+									{
+										spiel.setAktuellePhase("Befreiung");
+										this.labelStatus.setText(spiel.getAktuellePhase());
+										System.out.println("hat geklappt");
+									}
+								} catch (RemoteException e1) {
+									e1.printStackTrace();
+								}
+								
+							}
+							else
+							{
+								setLogTextGui("Soviel Einheiten koennen nicht verschoben werden");
+							}
+						} catch (RemoteException e1) {
+							e1.printStackTrace();
+						}
+						break;
+					case "Umverteilen":
+						try {
+							if(aktuellesLand.getBesitzer().equals(aktuellerSpieler)){
+								try {
+									spiel.einheitenNachziehen(aktuellesLandId, aktuellesLandRKId);
+								} catch (RemoteException e1) {
+									// TODO Auto-generated catch block
+									e1.printStackTrace();
+								}
+							}
+						} catch (RemoteException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+						break;
+					default:
+						break;
 					}
-					break;
-				case "Einheiten nachziehen":
-					
-					break;
-				case "Umverteilen":
-					
-					break;
-				default:
-					break;
+				} catch (HeadlessException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				} catch (RemoteException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
 				}
 			}
 		}
@@ -1079,34 +1147,36 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 	
 	private void setLandBeschreibung(int landId, MouseEvent e) throws RemoteException
 	{
-
-		if(e.getButton() == 3)
+		if(!spiel.getAktuellePhase().equals("Einheiten nachziehen"))
 		{
-			aktuellesLandRK =   spiel.getLand(landId);
-			aktuellesLandRKId = landId;
-			landTruppenstaerke2.setForeground(aktuellesLandRK.getBesitzer().getColorSpieler());
-			landname2.setForeground(aktuellesLandRK.getBesitzer().getColorSpieler());
-			landBesitzer2.setForeground(aktuellesLandRK.getBesitzer().getColorSpieler());
-			landTruppenstaerke2.setText(""+ aktuellesLandRK.getTruppenstaerke());
-			landname2.setText(aktuellesLandRK.getName());
-			if(aktuellesLandRK.getBesitzer() != null)
+			if(e.getButton() == 3)
 			{
-				landBesitzer2.setText(aktuellesLandRK.getBesitzer().getName());
-			} else { landBesitzer2.setText("kein Besitzer"); }
-		}
-		else
-		{
-			aktuellesLandId = landId;
-			aktuellesLand = spiel.getLand(landId);
-			landTruppenstaerke.setForeground(aktuellesLand.getBesitzer().getColorSpieler());
-			landname.setForeground(aktuellesLand.getBesitzer().getColorSpieler());
-			landBesitzer.setForeground(aktuellesLand.getBesitzer().getColorSpieler());
-			landTruppenstaerke.setText(""+ aktuellesLand.getTruppenstaerke());
-			landname.setText(aktuellesLand.getName());
-			if(aktuellesLand.getBesitzer() != null)
+				aktuellesLandRK =   spiel.getLand(landId);
+				aktuellesLandRKId = landId;
+				landTruppenstaerke2.setForeground(aktuellesLandRK.getBesitzer().getColorSpieler());
+				landname2.setForeground(aktuellesLandRK.getBesitzer().getColorSpieler());
+				landBesitzer2.setForeground(aktuellesLandRK.getBesitzer().getColorSpieler());
+				landTruppenstaerke2.setText(""+ aktuellesLandRK.getTruppenstaerke());
+				landname2.setText(aktuellesLandRK.getName());
+				if(aktuellesLandRK.getBesitzer() != null)
+				{
+					landBesitzer2.setText(aktuellesLandRK.getBesitzer().getName());
+				} else { landBesitzer2.setText("kein Besitzer"); }
+			}
+			else
 			{
-				landBesitzer.setText(aktuellesLand.getBesitzer().getName());
-			} else { landBesitzer.setText("kein Besitzer"); }
+				aktuellesLandId = landId;
+				aktuellesLand = spiel.getLand(landId);
+				landTruppenstaerke.setForeground(aktuellesLand.getBesitzer().getColorSpieler());
+				landname.setForeground(aktuellesLand.getBesitzer().getColorSpieler());
+				landBesitzer.setForeground(aktuellesLand.getBesitzer().getColorSpieler());
+				landTruppenstaerke.setText(""+ aktuellesLand.getTruppenstaerke());
+				landname.setText(aktuellesLand.getName());
+				if(aktuellesLand.getBesitzer() != null)
+				{
+					landBesitzer.setText(aktuellesLand.getBesitzer().getName());
+				} else { landBesitzer.setText("kein Besitzer"); }
+			}
 		}
 	}
 

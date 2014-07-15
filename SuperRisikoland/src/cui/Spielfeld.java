@@ -42,6 +42,8 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 	private ServerInterface server;
 	private SpielerInterface aktuellerSpieler;
 	
+	private String aktuellePhase = "Serie eintauschen";
+	
 	public Spielfeld(ServerInterface server, Vector<SpielerInterface> alleSpieler, int spielVariante) throws RemoteException
 	{
 		this.server = server;
@@ -247,13 +249,13 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 		laender[8].setNachbarLand(1, laender[6]);
 		laender[8].setNachbarLand(2, laender[9]);
 
-		laender[9].setNachbarLand(0, laender[8]);
+		laender[9].setNachbarLand(0, laender[12]);
 		laender[9].setNachbarLand(1, laender[10]);
 		laender[9].setNachbarLand(2, laender[11]);
 
 		laender[10].setNachbarLand(0, laender[9]);
 		laender[10].setNachbarLand(1, laender[11]);
-		laender[10].setNachbarLand(2, laender[12]);
+		laender[10].setNachbarLand(2, laender[8]);
 
 		laender[11].setNachbarLand(0, laender[9]);
 		laender[11].setNachbarLand(1, laender[10]);
@@ -496,22 +498,24 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 	}
 	
 	// Spiel-Funktionen
-	public void einheitenNachKampfNachziehen(int start, int ziel) throws RemoteException
+	public boolean einheitenNachKampfNachziehen(int start, int ziel, int anzahl, boolean gui) throws RemoteException
 	{
-		int menge;
-		if(this.laender[start].getBesitzer() == this.laender[ziel].getBesitzer())
+		int menge = anzahl;
+		if(this.laender[start].getBesitzer().equals(this.laender[ziel].getBesitzer()))
 		{
-			do
+			if(!gui)
 			{
-				IO.println("Wieviele Einheiten moechtest du nachziehen?");
-				menge = IO.readInt();
-				if(laender[start].getTruppenstaerke() <= menge)
+				do
 				{
-					IO.println((laender[start].getTruppenstaerke() <= menge || menge > (laender[start].getTruppenstaerke() - laender[start].getBenutzteEinheiten())) ? "So viele Einheiten koennen nicht nachgezogen werden!" : menge + " Einheiten sind von " + this.laender[start].getName() + " nach " + this.laender[ziel].getName() + " gezogen.");
+					IO.println("Wieviele Einheiten moechtest du nachziehen?");
+					menge = IO.readInt();
+					if(laender[start].getTruppenstaerke() <= menge)
+					{
+						IO.println((laender[start].getTruppenstaerke() <= menge || menge > (laender[start].getTruppenstaerke() - laender[start].getBenutzteEinheiten())) ? "So viele Einheiten koennen nicht nachgezogen werden!" : menge + " Einheiten sind von " + this.laender[start].getName() + " nach " + this.laender[ziel].getName() + " gezogen.");
+					}
 				}
+				while(laender[start].getTruppenstaerke() <= menge);
 			}
-			while(laender[start].getTruppenstaerke() <= menge);
-				
 			this.laender[start].setTruppenstaerke(-1*menge);
 			this.laender[ziel].setTruppenstaerke(menge);
 			this.laender[ziel].erhoeheBenutzteEinheiten(menge);
@@ -527,7 +531,9 @@ public class Spielfeld implements SpielfeldInterface, Serializable
     				this.laender[start].setBenutzteEinheiten(0);
     			}
     		}
+    		return true;
 		}
+		return false;
 	}
 	
 	public void einheitenNachziehen(int start, int ziel) throws RemoteException
@@ -550,6 +556,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 			this.laender[ziel].setTruppenstaerke(menge);
 			this.laender[ziel].erhoeheBenutzteEinheiten(menge);
 		}
+		
 	}
 	
 	public void setBenutzteEinheitenNull() throws RemoteException
@@ -625,7 +632,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 			}
 			else
 			{
-				server.setLogText("Angriff fehlgeschlagen!");
+				server.setLogText("Angriff von " + this.aktuellerSpieler.getName() + " ist fehlgeschlagen!");
 				System.out.println("Angriff fehlgeschlagen!");
 			}
 		}
@@ -639,6 +646,8 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 				System.out.println(angWuerfel[2]);
 				System.out.println(verWuerfel[0]);
 				System.out.println(verWuerfel[1]);
+				server.setLogText(aktuellerSpieler.getName() + "'s Wurf:\n" +angWuerfel[0] + "  " + angWuerfel[1] + "  " +angWuerfel[2]);
+				server.setLogText(laender[verId].getBesitzer().getName() + "'s Wurf:\n" +verWuerfel[0] + "  " + verWuerfel[1]);
 				if(angWuerfel[0]>=angWuerfel[1] && angWuerfel[0]>=angWuerfel[2]){
 					hoechsteZahlAng = angWuerfel[0];
 					angWuerfel[0] = 0;
@@ -662,7 +671,8 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 				System.out.println(hoechsteZahlAng);
 				System.out.println(hoechsteZahlVer);
 				if(hoechsteZahlAng > hoechsteZahlVer) {
-					System.out.println("Runde "+ anzRunden +": Angreifer gewinnt.");
+					System.out.println("Runde "+ anzRunden + ": Angreifer gewinnt.");
+					server.setLogText("Runde " + anzRunden + ": " + this.aktuellerSpieler.getName() + " gewinnt.");
 					this.laender[verId].setTruppenstaerke(-1);
 					// Eroberung
 					if (this.laender[verId].getTruppenstaerke() == 0) 
@@ -713,7 +723,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 							IO.println("Moechtest du Einheiten nachziehen? (j/n)");
 					    	if (IO.readChar() == 'j')
 					    	{
-					    		this.einheitenNachKampfNachziehen(angId, verId);
+					    		this.einheitenNachKampfNachziehen(angId, verId, 0, false);
 	
 					    	}
 						}
@@ -723,7 +733,8 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 					// Ende Eroberung
 				}
 				else {
-					System.out.println("Runde "+ anzRunden +": Verteidiger gewinnt.");
+					System.out.println("Runde "+ anzRunden + ": Verteidiger gewinnt.");
+					server.setLogText("Runde " + anzRunden + ": " + laender[verId].getBesitzer().getName() + " gewinnt.");
 					this.laender[angId].setTruppenstaerke(-1);
 					if(this.laender[angId].getBenutzteEinheiten() > 0)
 					{
@@ -945,6 +956,36 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 			return true;
 		}
 		return false;
+	}
+	public boolean naechsterSpieler() throws RemoteException
+	{
+		for(int i = 0; i < this.spieler.size(); i++)
+		{
+			if(this.aktuellerSpieler.equals(this.spieler.elementAt(i)))
+			{
+				if(i == this.spieler.size()-1)
+				{
+					this.aktuellerSpieler = this.spieler.elementAt(0);
+					return true;
+				}
+				else
+				{
+				this.aktuellerSpieler = this.spieler.elementAt(i+1);
+				return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	public String getAktuellePhase()  throws RemoteException
+	{
+		return aktuellePhase;
+	}
+
+	public void setAktuellePhase(String aktuellePhase) throws RemoteException
+	{
+		this.aktuellePhase = aktuellePhase;
 	}
 
 }
