@@ -262,7 +262,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 		laender[11].setNachbarLand(3, laender[20]);
 
 		laender[12].setNachbarLand(0, laender[11]);
-		laender[12].setNachbarLand(1, laender[10]);
+		laender[12].setNachbarLand(1, laender[9]);
 
 		laender[13].setNachbarLand(0, laender[2]);
 		laender[13].setNachbarLand(1, laender[15]);
@@ -728,11 +728,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 							// TODO Spielende, Siegfenster einblenden
 						}
 						//Ende Gewinnabfrage
-						if(gui)
-						{
-							this.getKarte(aktuellerSpieler);
-						}
-						else
+						if(!gui)
 						{
 							IO.println("Moechtest du Einheiten nachziehen? (j/n)");
 					    	if (IO.readChar() == 'j')
@@ -743,6 +739,10 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 						}
 				    	
 				    	this.eroberteLaender.add(this.laender[verId]);
+				    	if(gui && this.eroberteLaender.size() == 1)
+						{
+							this.getKarte(aktuellerSpieler);
+						}
 					}
 					// Ende Eroberung
 				}
