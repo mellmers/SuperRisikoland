@@ -23,7 +23,7 @@ public class Kontinent extends UnicastRemoteObject  implements Serializable, Kon
 		return this.name;
 	}
 	
-	public int getZusatzTruppen()
+	public int getZusatzTruppen() throws RemoteException
 	{
 		return this.zusatzTruppen;
 	}

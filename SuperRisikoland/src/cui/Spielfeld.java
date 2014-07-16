@@ -102,7 +102,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 	
 	public int getZuVerteilendeEinheitenGui(SpielerInterface aktuellerSpieler) throws RemoteException
 	{
-		zuVerteilendeEinheitenGui = this.laenderZaehlen(  aktuellerSpieler) + this.zusatzEinheitenKontinente(aktuellerSpieler) + this.getZusatzEinheitenSerieGui() - this.verteilteEinheitenGui;
+		zuVerteilendeEinheitenGui = this.laenderZaehlen(aktuellerSpieler) + this.zusatzEinheitenKontinente(aktuellerSpieler) + this.getZusatzEinheitenSerieGui() - this.verteilteEinheitenGui;
 		return zuVerteilendeEinheitenGui;
 	}
 	
@@ -573,9 +573,9 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 	public int laenderZaehlen(SpielerInterface aktuellerSpieler) throws RemoteException
 	{
 		int anzLaender = 0;
-		for(int i = 0; i < 43; i++)
+		for(int i = 0; i < 42; i++)
 		{
-			if(this.laender[i].getBesitzer() == aktuellerSpieler)
+			if(this.laender[i].getBesitzer().getName().equals(aktuellerSpieler.getName()))
 			{
 				anzLaender++;
 			}
@@ -949,7 +949,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 		{
 			int laenderImBesitz = 0;
 			for(int j = 0 ; j < aktuellerSpieler.getLaenderAnzahl() ; j++){
-				if(aktuellerSpieler.getBesitzLandKontinent(j) == kontinente[i])
+				if(aktuellerSpieler.getBesitzLandKontinent(j).getName().equals(kontinente[i].getName()))
 				{
 					laenderImBesitz++;	
 				}
