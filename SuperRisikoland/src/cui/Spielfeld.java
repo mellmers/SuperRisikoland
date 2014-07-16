@@ -974,4 +974,8 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 		}
 		return false;
 	}
+	public void setServer(ServerInterface server) throws RemoteException
+	{
+		this.server = server;
+	}
 }

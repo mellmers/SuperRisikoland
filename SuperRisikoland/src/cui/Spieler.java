@@ -152,9 +152,13 @@ public class Spieler extends UnicastRemoteObject implements Serializable, Spiele
 		this.spielerIcon = spielerIcon;
 	}
 
-	public int getSpielerID()
+	public int getSpielerID() throws RemoteException
 	{
 		return spielerID;
+	}
+	public void setSpielerID(int id) throws RemoteException
+	{
+		this.spielerID = id;
 	}
 
 	public Color getColorSpieler()

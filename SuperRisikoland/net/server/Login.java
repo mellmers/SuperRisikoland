@@ -50,8 +50,10 @@ public class Login extends JFrame implements ActionListener{
 	
 	//zweites Fenster
 	JPanel panelSpielernamen = new JPanel(new GridLayout(7,1));
-	private JButton buttonNeuesSpiel = new JButton("Neues Spiel");
+	private JButton buttonSpielStarten = new JButton("Spiel starten");
+	private JButton buttonNeuesSpiel = new JButton("neues Spiel");
 	private JButton buttonSpielLaden = new JButton("Spiel laden");
+	private JButton buttonGeladenesSpielStarten = new JButton("Spiel laden");
 	private JRadioButton radioButtonWelteroberung = new JRadioButton("Welteroberung"), radioButtonMissionen = new JRadioButton("Missionen");
 	ServerInterface server;
 	private JLabel[] labelMitspieler = {new JLabel(),new JLabel(),new JLabel(),new JLabel(),new JLabel(),new JLabel()};
@@ -101,8 +103,26 @@ public class Login extends JFrame implements ActionListener{
 		this.add(buttonPanel, BorderLayout.SOUTH);
 		this.setVisible(true);	
 	}
+	public void initializeNeuOderLaden()
+	{
+		JFrame neuLaden = new JFrame();
+		neuLaden.setTitle(textfieldServername.getText().trim());
+		neuLaden.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		neuLaden.setSize(120,90);
+		neuLaden.setResizable(false);
+		neuLaden.setLocationRelativeTo(null);
+		neuLaden.setLayout(new FlowLayout());
+		JPanel panelButtons = new JPanel(new GridLayout(2,1));
+		this.buttonNeuesSpiel.addActionListener(this);
+		this.buttonSpielLaden.addActionListener(this);
+		
+		panelButtons.add(this.buttonNeuesSpiel);
+		panelButtons.add(this.buttonSpielLaden);
+		neuLaden.add(panelButtons);
+		neuLaden.setVisible(true);
+	}
 	
-	public void initializeLogin()
+	public void initializeLogin() throws RemoteException
 	{
 		JFrame login = new JFrame();
 		login.setTitle(textfieldServername.getText().trim());
@@ -117,7 +137,7 @@ public class Login extends JFrame implements ActionListener{
 			this.panelSpielernamen.add(this.labelMitspieler[i]);
 		}
 		
-		JPanel panelButtons = new JPanel(new GridLayout(2,1));
+		JPanel panelButtons = new JPanel(new GridLayout(1,1));
 		
 		// Spielvariante
 		this.radioButtonMissionen.setSelected(true);
@@ -127,12 +147,18 @@ public class Login extends JFrame implements ActionListener{
 		final JPanel spielVariante = new JPanel(new GridLayout(1, 2));
 		spielVariante.add(this.radioButtonWelteroberung);
 		spielVariante.add(this.radioButtonMissionen);
-		this.buttonNeuesSpiel.addActionListener(this);
-		this.buttonNeuesSpiel.setEnabled(false);
-		this.buttonSpielLaden.addActionListener(this);
-		
-		panelButtons.add(buttonNeuesSpiel);
-		panelButtons.add(buttonSpielLaden);
+		if(server.getLaden())
+		{
+			this.buttonGeladenesSpielStarten.addActionListener(this);
+			this.buttonGeladenesSpielStarten.setEnabled(false);
+			panelButtons.add(buttonGeladenesSpielStarten);
+		}
+		else
+		{
+			this.buttonSpielStarten.addActionListener(this);
+			this.buttonSpielStarten.setEnabled(false);
+			panelButtons.add(buttonSpielStarten);
+		}
 		
 		login.add(spielVariante,BorderLayout.CENTER);
 		login.add(panelButtons,BorderLayout.SOUTH);
@@ -171,7 +197,7 @@ public class Login extends JFrame implements ActionListener{
 			}
 			if(server.getAlleSpielerAnzahl() >= 2)
 			{
-				this.buttonNeuesSpiel.setEnabled(true);
+				this.buttonSpielStarten.setEnabled(true);
 			}
 		}
 
@@ -248,7 +274,7 @@ public class Login extends JFrame implements ActionListener{
 			try {
 				serverErstellen();
 				this.dispose();
-				initializeLogin();
+				initializeNeuOderLaden();
 			} catch (RemoteException e1) {
 				e1.printStackTrace();
 				System.out.println("Fehler");
@@ -261,7 +287,7 @@ public class Login extends JFrame implements ActionListener{
 		{
 			actionServerErstellen();		
 		}
-		if(e.getSource().equals(this.buttonNeuesSpiel))
+		if(e.getSource().equals(this.buttonSpielStarten))
 		{
 			try {
 				this.spielstart();
@@ -272,9 +298,19 @@ public class Login extends JFrame implements ActionListener{
 		if(e.getSource().equals(this.buttonSpielLaden))
 		{
 			try {
+				server.setLaden(true);
 				spielLaden();
+				initializeLogin();
 			} catch (RemoteException e1) {
-				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
+		if(e.getSource().equals(this.buttonNeuesSpiel))
+		{
+			try {
+				server.setLaden(false);
+				initializeLogin();
+			} catch (RemoteException e1) {
 				e1.printStackTrace();
 			}
 		}
@@ -299,12 +335,18 @@ public class Login extends JFrame implements ActionListener{
 	    	File spielstand = laden.getSelectedFile();
 	    	String spielstandPfad = spielstand.getPath().endsWith(".ser") ? spielstand.getPath() : spielstand.getPath() + ".ser" ;
 	    	server.spielLaden(spielstandPfad);
-	    	for(int i = 0; i < server.getAlleClients(); i++)
+	    	
+	    	/*for(int i = 0; i < server.getAlleClients(); i++)
 			{
 				server.getClient(i).neuesSpielStarten(this.getPassendenSpieler(i));
-				server.setLogText("Spieler " + server.getSpieler(i).getName() + " mit der Farbe " + server.getSpieler(i).getSpielerfarbe() +" und mit SpielerID " + server.getSpieler(i).getSpielerID() + " wurde erstellt.");
-			}
+			}*/
         }
+	}
+	
+	public void spielerLaden()
+	{
+		//Vector<SpielerInterface> spieler = server.getAlleSpieler();
+		
 	}
 
 	public static void main(String[] args) throws AlreadyBoundException, NotBoundException, IOException{

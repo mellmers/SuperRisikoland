@@ -267,6 +267,17 @@ public class SpielBeitreten extends JFrame implements ActionListener, Serializab
 				spielBeitreten.dispose();
 			}
 		}
+		if(server.getLaden())
+		{
+			for(int i = 0 ; i < 6 ; i++)
+			{
+				if(!server.gibtEsDiesenSpieler(i))
+				{
+					labelCharakter[i].setEnabled(false);
+				}
+			}
+		}
+
 	}
 
 	private void bilderEinlesen()
@@ -389,9 +400,12 @@ public class SpielBeitreten extends JFrame implements ActionListener, Serializab
 		this.dispose();
 		initializeSpielBeitreten();	
 	}
-	
+
+
 	public static void main(String[] args) throws AlreadyBoundException, NotBoundException, IOException, MaximaleSpielerZahlErreichtException{
 		//Client wird gestartet
 		new SpielBeitreten();
 	}
+	
+
 }

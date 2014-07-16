@@ -17,7 +17,6 @@ import javax.swing.JOptionPane;
 
 import cui.Spieler;
 import cui.Spielfeld;
-import gui.SuperRisikolandGui;
 import inf.ServerInterface;
 import inf.ClientInterface;
 import inf.SpielerInterface;
@@ -33,9 +32,8 @@ public class Server extends UnicastRemoteObject implements ServerInterface, Seri
 	private Vector<ClientInterface> clients = new Vector<ClientInterface>();
 	private Vector<SpielerInterface> spieler = new Vector<SpielerInterface>();
 	
-	private String servername;
 	SpielfeldInterface spiel;
-	private int spielVariante;
+	public boolean laden;
 	// Ausgelagerte Variablen
 	private String logText = "Server gestartet.";
 	private String aktuellePhase = "Serie eintauschen";
@@ -108,13 +106,28 @@ public class Server extends UnicastRemoteObject implements ServerInterface, Seri
 		this.setAktuellerSpieler(this.getSpieler(rndZahl));
 		spiel = new Spielfeld(this, this.spieler, spielVariante);
 	}
+	//Zum Testen ob ein abgespeichertes SpierinterfaceArray mehr Informationen gibt als ein Vecotr da die SPielerIDs nciht geladen werden konnten
+	public void spielerLaden(SpielerInterface[] spielerArray)
+	{
+		for(int i = 0 ; i < spielerArray.length ; i++)
+		{
+			this.spieler.add(spielerArray[i]);
+		}		
+	}
 	
 	public void spielLaden(String spielstandPfad) throws RemoteException
 	{
+		int[] ids = new int[this.spieler.size()];
 		try(final ObjectInputStream ois = new ObjectInputStream(new FileInputStream(spielstandPfad)))
     	{
-
+			
+			this.spieler = (Vector<SpielerInterface>) ois.readObject();
+    		for(int i = 0 ; i < this.spieler.size() ; i++)
+    		{
+    			this.spieler.elementAt(i).setSpielerID((int) ois.readInt());
+    		}
     		this.spiel = (Spielfeld) ois.readObject();
+    		this.spiel.setServer(this);
 
     		this.aktuellerSpieler = (SpielerInterface) ois.readObject();
 
@@ -128,8 +141,6 @@ public class Server extends UnicastRemoteObject implements ServerInterface, Seri
 		{
 			//SuperRisikolandGui.logText += "\n" + e1.getMessage();
 		}
-    	// Logtext in TextArea schreiben
-        //SuperRisikolandGui.logTextArea.setText(SuperRisikolandGui.logText);
 		
 	}
 
@@ -177,5 +188,28 @@ public class Server extends UnicastRemoteObject implements ServerInterface, Seri
 	public void setAktuellerSpieler(SpielerInterface aktuellerSpieler) throws RemoteException
 	{
 		this.aktuellerSpieler = aktuellerSpieler;
+	}
+	public Vector<SpielerInterface> getAlleSpieler() throws RemoteException
+	{
+		return this.spieler;
+	}
+	public void setLaden(boolean b) throws RemoteException
+	{
+		this.laden = b;
+	}
+	public boolean getLaden() throws RemoteException
+	{
+		return this.laden;
+	}
+	public boolean gibtEsDiesenSpieler(int iD) throws RemoteException
+	{
+		for(int i = 0 ; i < this.spieler.size() ; i++)
+		{
+			if(this.spieler.elementAt(i).getSpielerID() == iD)
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 }

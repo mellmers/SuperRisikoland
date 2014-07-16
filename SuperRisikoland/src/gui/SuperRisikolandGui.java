@@ -333,12 +333,12 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 	
 	protected void aktualisierenPhase() throws RemoteException 
 	{
+		this.aktuellerSpieler = server.getAktuellerSpieler();
 		if(this.aktuellerSpieler.equals(eigenerSpieler))
 		{
 			switch(server.getAktuellePhase())
 			{
 			case "Serie eintauschen":
-				this.aktuellerSpieler = server.getAktuellerSpieler();
 				this.labelCharAktuellerSpieler.setIcon(this.aktuellerSpieler.getSpielerIcon());
 				this.buttonPhaseBeenden.setEnabled(true);
 				break;
@@ -719,6 +719,11 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
         	File spielstand = speichern.getSelectedFile();
         	try(final ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(spielstand.getPath().endsWith(".ser") ? spielstand.getPath() : spielstand + ".ser")))
         	{
+        		oos.writeObject(server.getAlleSpieler());
+        		for(int i = 0 ; i < server.getAlleSpielerAnzahl() ; i++)
+        		{
+        			oos.writeInt(server.getSpieler(i).getSpielerID());
+        		}
         		oos.writeObject(this.spiel);
         		oos.writeObject(this.aktuellerSpieler);
         		// Ausgabe der gespeicherten Datei
@@ -1265,25 +1270,14 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		return karten;
 	}
 	
-	/* TODO public void serieEinsetzen() throws RemoteException
+	public SpielerInterface[] spielerLaden() throws RemoteException
 	{
-			JFrame kartenZeigen = new JFrame();
-			kartenZeigen.setSize(600, 300);
-			kartenZeigen.setResizable(false);
-			kartenZeigen.setLocationRelativeTo(null);
-			kartenZeigen.setTitle("Karten einloesen");
-			
-			kartenZeigen.setDefaultCloseOperation(EXIT_ON_CLOSE);
-			
-			kartenZeigen.setLayout(new BorderLayout());
-			
-			JPanel liste = new JPanel(new GridLayout(eigenerSpieler.getAnzahlHandkarten(), 1));
-			//JPanel[] handKartenListe = new JPanel[eigenerSpieler.getAnzahlHandkarten()];
-			for(int i = 0 ; i < eigenerSpieler.getAnzahlHandkarten() ; i++)
-			{
-				liste.add(labelHandkarten[i].getIcon());
-				//andKartenListe[i] = new JPanel(new GridLayout());
-			}
-	}*/
+		SpielerInterface[] spielerArray = new SpielerInterface[server.getAlleSpielerAnzahl()];
+		for(int i = 0 ; i < server.getAlleSpielerAnzahl() ; i++)
+		{
+			spielerArray[i] = server.getSpieler(i);
+		}
+		return spielerArray;
+	}
 	
 }
