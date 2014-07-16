@@ -118,7 +118,7 @@ public class SuperRisikolandCui
         	}
         	// Schritt 1: Einheiten verteilen/Neue Armeen
         	
-        	spiel.neueArmeen(aktuellerSpieler, false, 0, 0);
+        	while(!spiel.neueArmeen(aktuellerSpieler, false, 0, 0));
         	
         	// Ende Schritt 1
         	

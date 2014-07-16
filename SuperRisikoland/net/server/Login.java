@@ -47,6 +47,7 @@ public class Login extends JFrame implements ActionListener{
 	final JSpinner spinnerPort = new JSpinner(new SpinnerNumberModel(9999, 1000, 9999, 1));
 	final JTextField textfieldServername = new JTextField();
 	private JButton buttonServerErstellen = new JButton("Erstellen");
+	private JFrame neuLaden;
 	
 	//zweites Fenster
 	JPanel panelSpielernamen = new JPanel(new GridLayout(7,1));
@@ -105,7 +106,7 @@ public class Login extends JFrame implements ActionListener{
 	}
 	public void initializeNeuOderLaden()
 	{
-		JFrame neuLaden = new JFrame();
+		neuLaden = new JFrame();
 		neuLaden.setTitle(textfieldServername.getText().trim());
 		neuLaden.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		neuLaden.setSize(120,90);
@@ -301,6 +302,7 @@ public class Login extends JFrame implements ActionListener{
 				server.setLaden(true);
 				spielLaden();
 				initializeLogin();
+				neuLaden.dispose();
 			} catch (RemoteException e1) {
 				e1.printStackTrace();
 			}
@@ -310,6 +312,7 @@ public class Login extends JFrame implements ActionListener{
 			try {
 				server.setLaden(false);
 				initializeLogin();
+				neuLaden.dispose();
 			} catch (RemoteException e1) {
 				e1.printStackTrace();
 			}

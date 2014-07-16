@@ -637,7 +637,10 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 			}
 			else
 			{
-				server.setLogText("Angriff von " + aktuellerSpieler.getName() + " ist fehlgeschlagen!");
+				if(gui)
+				{
+					server.setLogText("Angriff von " + aktuellerSpieler.getName() + " ist fehlgeschlagen!");
+				}
 				System.out.println("Angriff fehlgeschlagen!");
 			}
 		}
@@ -651,8 +654,11 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 				System.out.println(angWuerfel[2]);
 				System.out.println(verWuerfel[0]);
 				System.out.println(verWuerfel[1]);
-				server.setLogText(aktuellerSpieler.getName() + "'s Wurf:\n" +angWuerfel[0] + "  " + angWuerfel[1] + "  " +angWuerfel[2]);
-				server.setLogText(laender[verId].getBesitzer().getName() + "'s Wurf:\n" +verWuerfel[0] + "  " + verWuerfel[1]);
+				if(gui)
+				{
+					server.setLogText(aktuellerSpieler.getName() + "'s Wurf:\n" +angWuerfel[0] + "  " + angWuerfel[1] + "  " +angWuerfel[2]);
+					server.setLogText(laender[verId].getBesitzer().getName() + "'s Wurf:\n" +verWuerfel[0] + "  " + verWuerfel[1]);
+				}
 				if(angWuerfel[0]>=angWuerfel[1] && angWuerfel[0]>=angWuerfel[2]){
 					hoechsteZahlAng = angWuerfel[0];
 					angWuerfel[0] = 0;
@@ -677,7 +683,10 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 				System.out.println(hoechsteZahlVer);
 				if(hoechsteZahlAng > hoechsteZahlVer) {
 					System.out.println("Runde "+ anzRunden + ": Angreifer gewinnt.");
-					server.setLogText("Runde " + anzRunden + ": " + aktuellerSpieler.getName() + " gewinnt.");
+					if(gui)
+					{
+						server.setLogText("Runde " + anzRunden + ": " + aktuellerSpieler.getName() + " gewinnt.");
+					}
 					this.laender[verId].setTruppenstaerke(-1);
 					// Eroberung
 					if (this.laender[verId].getTruppenstaerke() == 0) 
@@ -739,7 +748,10 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 				}
 				else {
 					System.out.println("Runde "+ anzRunden + ": Verteidiger gewinnt.");
-					server.setLogText("Runde " + anzRunden + ": " + laender[verId].getBesitzer().getName() + " gewinnt.");
+					if(gui)
+					{
+						server.setLogText("Runde " + anzRunden + ": " + laender[verId].getBesitzer().getName() + " gewinnt.");
+					}
 					this.laender[angId].setTruppenstaerke(-1);
 					if(this.laender[angId].getBenutzteEinheiten() > 0)
 					{
@@ -869,10 +881,13 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 			}
 			else
 			{
-				IO.println("Moechtest du eine Serie einloesen? (j/n)");
-				if(IO.readChar() == 'j')
+				if(aktuellerSpieler.getAnzahlHandkarten() > 2)
 				{
-					zwischenSpeicherZusatzTruppenSerie = this.serieEinsetzen(aktuellerSpieler,null, gui);
+					IO.println("Moechtest du eine Serie einloesen? (j/n)");
+					if(IO.readChar() == 'j')
+					{
+						zwischenSpeicherZusatzTruppenSerie = this.serieEinsetzen(aktuellerSpieler,null, gui);
+					}
 				}
 			}
 		}
