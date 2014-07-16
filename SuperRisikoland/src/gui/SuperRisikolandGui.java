@@ -346,15 +346,11 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 			switch(server.getAktuellePhase())
 			{
 			case "Serie eintauschen":
-<<<<<<< Upstream, based on branch 'master' of https://github.com/mellmers/SuperRisikoland.git
-				this.labelCharAktuellerSpieler.setIcon(this.aktuellerSpieler.getSpielerIcon());
-=======
 				if(aktuellerSpieler.getAnzahlHandkarten()<3)
 				{
 					server.setAktuellePhase("Armeen verteilen");
 					this.labelStatus.setText(server.getAktuellePhase());
 				}
->>>>>>> 3ea4ce5 last
 				this.buttonPhaseBeenden.setEnabled(true);
 				this.buttonBestaetigung.setEnabled(true);
 				this.setSliderMap(0,0);
