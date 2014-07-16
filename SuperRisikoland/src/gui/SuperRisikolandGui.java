@@ -245,6 +245,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		this.labelVerbleibendeZeit.setPreferredSize(new Dimension(this.b/100*15, this.h/100*4));
 		this.buttonBestaetigung.setPreferredSize(new Dimension(this.b/100*15, this.h/100*4));
 		this.buttonBestaetigung.addActionListener(this);
+		this.buttonBestaetigung.setEnabled(false);
 		panelPhase.add(labelStatus);
 		panelPhase.add(this.buttonPhaseBeenden);
 		panelZeitBestaetigung.add(this.labelVerbleibendeZeit);
@@ -316,6 +317,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		this.buttonLaden.setEnabled(false);
 		this.buttonSpeichern.setEnabled(false);
 		this.buttonMission.setEnabled(false);
+
 		
 		// Aktualisierung erstellen
 		final ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
@@ -344,20 +346,53 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 			switch(server.getAktuellePhase())
 			{
 			case "Serie eintauschen":
+<<<<<<< Upstream, based on branch 'master' of https://github.com/mellmers/SuperRisikoland.git
 				this.labelCharAktuellerSpieler.setIcon(this.aktuellerSpieler.getSpielerIcon());
+=======
+				if(aktuellerSpieler.getAnzahlHandkarten()<3)
+				{
+					server.setAktuellePhase("Armeen verteilen");
+					this.labelStatus.setText(server.getAktuellePhase());
+				}
+>>>>>>> 3ea4ce5 last
 				this.buttonPhaseBeenden.setEnabled(true);
+				this.buttonBestaetigung.setEnabled(true);
+				this.setSliderMap(0,0);
 				break;
 			case "Armeen verteilen":
+				this.buttonBestaetigung.setEnabled(true);
 				this.buttonPhaseBeenden.setEnabled(false);
+				this.setSliderMap(1, spiel.getZuVerteilendeEinheitenGui(this.aktuellerSpieler));
 				break;
 			case "Befreiung":
 				this.buttonPhaseBeenden.setEnabled(true);
+				int maxAngreifer=0;
+				int minAngreifer=0;
+				if(aktuellesLand.getTruppenstaerke()==2)
+				{
+					minAngreifer = 1;
+					maxAngreifer = 1;
+				}
+				else if(aktuellesLand.getTruppenstaerke()==3)
+				{
+					minAngreifer = 1;
+					maxAngreifer = 2;
+				}
+				else if(aktuellesLand.getTruppenstaerke()>3)
+				{
+					minAngreifer = 1;
+					maxAngreifer = 3;
+				}
+				this.setSliderMap(minAngreifer, maxAngreifer);
 				break;
 			case "Einheiten nachziehen":
-				this.buttonPhaseBeenden.setEnabled(false);
+				this.buttonPhaseBeenden.setEnabled(true);
+				this.setSliderMap(1, aktuellesLand.getTruppenstaerke()-1);
 				break;
 			case "Umverteilen":
 				this.buttonPhaseBeenden.setEnabled(true);
+				int stehendeTruppen = aktuellesLand.getBenutzteEinheiten()>0 ? 0 : 1;
+				this.setSliderMap(0, aktuellesLand.getTruppenstaerke()-stehendeTruppen-aktuellesLand.getBenutzteEinheiten());
 				break;
 			default:
 				break;
@@ -367,6 +402,8 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 	
 	protected void aktualisieren() throws RemoteException
 	{
+		this.aktuellerSpieler = this.server.getAktuellerSpieler();
+		this.labelCharAktuellerSpieler.setIcon(this.server.getAktuellerSpieler().getSpielerIcon());
 		this.labelStatus.setText(server.getAktuellePhase());
 		this.logTextArea.setText(server.getLogText() + this.getLogTextGui());
 		
@@ -383,6 +420,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 				landBesitzer.setText(aktuellesLand.getBesitzer().getName());
 			} else { landBesitzer.setText("kein Besitzer"); }
 		}
+		// Land 2 (rechtsklick) aktualisieren
 		if(aktuellesLandRK != null)
 		{
 			landTruppenstaerke2.setForeground(aktuellesLandRK.getBesitzer().getColorSpieler());
@@ -417,6 +455,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 					case "Serie eintauschen":
 						server.setAktuellePhase("Armeen verteilen");
 						this.labelStatus.setText(server.getAktuellePhase());
+						this.setLogTextGui("Verteile nun deine neuen Armeen("+spiel.getZuVerteilendeEinheitenGui(aktuellerSpieler) +") auf deine Laender.");
 						break;
 					case "Armeen verteilen":
 						break;
@@ -439,6 +478,8 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 							{
 								server.setAktuellePhase("Serie eintauschen");
 								this.labelStatus.setText(server.getAktuellePhase());
+								this.buttonPhaseBeenden.setEnabled(false);
+								this.buttonBestaetigung.setEnabled(false);
 							}
 						} catch (RemoteException e1) 
 						{
@@ -461,6 +502,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 					{
 					case "Serie eintauschen":
 						zusatzEinheiten = spiel.serieEinsetzen(aktuellerSpieler, serieEinsetzen(), true);
+						spiel.setZusatzEinheitenSerieGui(zusatzEinheiten);
 						server.setLogText(aktuellerSpieler + " hat eine Serie eingetauscht und " + zusatzEinheiten + " zusaetzliche Einheiten bekommen.");
 						break;
 					case "Armeen verteilen":
@@ -468,12 +510,13 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 						{
 							if(aktuellesLand != null)
 							{
-								if(aktuellerSpieler.meinLand(aktuellesLand) && this.sliderMap.getValue() > 0 && this.sliderMap.getValue() <= spiel.getZuVerteilendeEinheitenGui((SpielerInterface) aktuellerSpieler))
+								if(aktuellerSpieler.meinLand(aktuellesLand))
 								{
-									if(this.spiel.neueArmeen((SpielerInterface)aktuellerSpieler, true, aktuellesLandId , this.sliderMap.getValue()))
+									if(this.spiel.neueArmeen(aktuellerSpieler, true, aktuellesLandId , this.sliderMap.getValue()))
 									{
 										server.setAktuellePhase("Befreiung");
 										this.labelStatus.setText(server.getAktuellePhase());
+										spiel.setZusatzEinheitenSerieGui(0); // muss nach verteilen der Serie zurückgesetzt werden
 									}
 								}
 							}
@@ -522,7 +565,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 							}
 							else
 							{
-								setLogTextGui("Soviel Einheiten koennen nicht verschoben werden");
+								setLogTextGui("Soviel Einheiten koennen nicht verschoben werden.");
 							}
 						} catch (RemoteException e1) {
 							e1.printStackTrace();
@@ -530,22 +573,21 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 						break;
 					case "Umverteilen":
 						try {
-							if(aktuellesLand.getBesitzer().equals(aktuellerSpieler)){
-								//if(aktuellesLand.getTruppenstaerke() <= this.sliderMap.getValue() || this.sliderMap.getValue() > (aktuellesLand.getTruppenstaerke() - aktuellesLand.getBenutzteEinheiten()))
-								
-									try {
-										if(spiel.einheitenNachziehen(aktuellesLandId, aktuellesLandRKId, this.sliderMap.getValue(), true))
-										{
-											setLogTextGui(this.sliderMap.getValue() + " Einheiten wurden von " + aktuellesLand.getName() + " nach " + aktuellesLandRK.getName() + " verschoben.");
-										}
-									} catch (RemoteException e1) {
-										// TODO Auto-generated catch block
-										e1.printStackTrace();
+							
+							if(aktuellesLand.getBesitzer().equals(aktuellerSpieler) && aktuellesLand.getTruppenstaerke()>1){
+								try 
+								{
+									if(spiel.einheitenNachziehen(aktuellesLandId, aktuellesLandRKId, this.sliderMap.getValue(), true))
+									{
+										setLogTextGui(this.sliderMap.getValue() + " Einheiten wurden von " + aktuellesLand.getName() + " nach " + aktuellesLandRK.getName() + " verschoben.");
 									}
+								} catch (RemoteException e1) 
+								{
+									e1.printStackTrace();
+								}
 								
 							}
 						} catch (RemoteException e1) {
-							// TODO Auto-generated catch block
 							e1.printStackTrace();
 						}
 						break;
@@ -553,10 +595,8 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 						break;
 					}
 				} catch (HeadlessException e1) {
-					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				} catch (RemoteException e1) {
-					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
 			}
@@ -588,6 +628,11 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		}
 	}
 	
+	private void setSliderMap(int min, int max)
+	{
+		sliderMap.setMinimum(min);
+		sliderMap.setMaximum(max);
+	}
 	private void bilderEinlesen() throws RemoteException
 	{
 		try
@@ -771,10 +816,10 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 
 		{
 			// Slider fuer Truppenauswahl, etc erstellen
-			sliderMap = new JSlider(SwingConstants.HORIZONTAL, 0, 50, 0);
-			sliderMap.setBounds(b/100*2, h/100*65, b/100*28, h/100*20);
+			sliderMap = new JSlider(SwingConstants.VERTICAL, 1, 31, 1);
+			sliderMap.setBounds(b-b/100*10, h/100*25, b/100*10, h/100*52);
 			// Die Abstände zwischen den Teilmarkierungen werden festgelegt
-			sliderMap.setMajorTickSpacing(5);
+			sliderMap.setMajorTickSpacing(1);
 			sliderMap.setMinorTickSpacing(1);
 			// Standardmarkierungen werden erzeugt 
 			sliderMap.createStandardLabels(1);
@@ -784,6 +829,8 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 			sliderMap.setPaintLabels(true);
 			// slidermap background durchsichtig
 			sliderMap.setOpaque(false);
+			// slidermap rastet beim nächsten tick ein
+			sliderMap.setSnapToTicks(true);
 			getContentPane().add(sliderMap);
 			// Label fuer Truppenstaerke, Besitzer und Name erstellen
 			JPanel panelLabelFuerLand = new JPanel(new GridLayout(3, 3));
@@ -1260,6 +1307,7 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 
 									if(spiel.getLand(o).equals(eigenerSpieler.spielerHandkarte(j)))
 									{
+										labelHandkarten[o].setEnabled(false);
 										karten[j] = o;
 									}
 								} catch (RemoteException e1) {

@@ -37,6 +37,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 	
 	private int zuVerteilendeEinheitenGui = 0;
 	private int verteilteEinheitenGui = 0;
+	private int zusatzEinheitenSerieGui = 0;
 	
 	private ServerInterface server;
 	
@@ -101,7 +102,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 	
 	public int getZuVerteilendeEinheitenGui(SpielerInterface aktuellerSpieler) throws RemoteException
 	{
-		zuVerteilendeEinheitenGui = this.laenderZaehlen(  aktuellerSpieler) + this.zusatzEinheitenKontinente(aktuellerSpieler) + this.checkSerie(   aktuellerSpieler) - this.verteilteEinheitenGui;
+		zuVerteilendeEinheitenGui = this.laenderZaehlen(  aktuellerSpieler) + this.zusatzEinheitenKontinente(aktuellerSpieler) + this.getZusatzEinheitenSerieGui() - this.verteilteEinheitenGui;
 		return zuVerteilendeEinheitenGui;
 	}
 	
@@ -125,6 +126,16 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 	public ServerInterface getServer() throws RemoteException
 	{
 		return this.server;
+	}
+
+	public int getZusatzEinheitenSerieGui()
+	{
+		return zusatzEinheitenSerieGui;
+	}
+
+	public void setZusatzEinheitenSerieGui(int zusatzEinheitenSerieGui) throws RemoteException
+	{
+		this.zusatzEinheitenSerieGui = zusatzEinheitenSerieGui;
 	}
 
 	public void setEroberteLaenderNull() throws RemoteException
@@ -580,6 +591,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 
 	public void befreien(SpielerInterface aktuellerSpieler, int angTruppen, int verTruppen, int angId, int verId, boolean gui) throws RemoteException 
 	{
+		this.verteilteEinheitenGui = 0; // Sonst wird dieser Wert nächste Runde wieder verwendet und man kann immer weniger einheiten einsetzen
 			if (this.laender[angId].getTruppenstaerke() > 1 && this.laender[angId].istNachbar(this.laender[verId]) && angTruppen < this.laender[angId].getTruppenstaerke() && verTruppen <= this.laender[verId].getTruppenstaerke() && verTruppen > 0 && verTruppen < 3 && angTruppen > 0 && angTruppen < 4 && this.laender[verId].getBesitzer() != this.laender[angId].getBesitzer()) 
 			{
 				int[] angWuerfel = new int[3];
