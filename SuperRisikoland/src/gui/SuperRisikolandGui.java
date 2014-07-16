@@ -380,6 +380,12 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 					maxAngreifer = 3;
 				}
 				this.setSliderMap(minAngreifer, maxAngreifer);
+				int kontiId = spiel.hatSpielerKontinent(aktuellerSpieler);
+				if(kontiId != 10)
+				{
+					this.labelArrayKontinenteBesitzer[kontiId].setText(aktuellerSpieler.getName());
+					this.labelArrayKontinenteBesitzer[kontiId].setForeground(aktuellerSpieler.getColorSpieler());
+				}
 				break;
 			case "Einheiten nachziehen":
 				this.buttonPhaseBeenden.setEnabled(true);

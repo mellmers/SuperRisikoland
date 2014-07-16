@@ -962,6 +962,26 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 		}
 		return zusatzEinheiten;
 	}
+	
+	public int hatSpielerKontinent(SpielerInterface aktuellerSpieler) throws RemoteException
+	{
+		int kontiId = 10;
+		for(int i = 0 ; i < 6 ; i++)
+		{
+			int laenderImBesitz = 0;
+			for(int j = 0 ; j < aktuellerSpieler.getLaenderAnzahl() ; j++){
+				if(aktuellerSpieler.getBesitzLandKontinent(j).getName().equals(kontinente[i].getName()))
+				{
+					laenderImBesitz++;	
+				}
+			}
+			if(laenderImBesitz == kontinente[i].getAnzahlLaender())
+			{
+				kontiId = i;
+			}
+		}
+		return kontiId;
+	}
 
 	public boolean landWurdeVerwendet(int land) throws RemoteException
 	{
