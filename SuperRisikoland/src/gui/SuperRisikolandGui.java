@@ -312,6 +312,11 @@ public class SuperRisikolandGui extends JFrame implements ActionListener, Serial
 		this.setVisible(true);
 		this.setResizable(false);
 		
+		// Buttons deaktivieren, da noch nicht nutzbar
+		this.buttonLaden.setEnabled(false);
+		this.buttonSpeichern.setEnabled(false);
+		this.buttonMission.setEnabled(false);
+		
 		// Aktualisierung erstellen
 		final ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
 		service.scheduleWithFixedDelay(new Runnable()

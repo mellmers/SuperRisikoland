@@ -101,7 +101,7 @@ public class Spielfeld implements SpielfeldInterface, Serializable
 	
 	public int getZuVerteilendeEinheitenGui(SpielerInterface aktuellerSpieler) throws RemoteException
 	{
-		zuVerteilendeEinheitenGui = this.laenderZaehlen(  aktuellerSpieler) + this.zusatzEinheitenKontinente(   aktuellerSpieler) + this.checkSerie(   aktuellerSpieler) - this.verteilteEinheitenGui;
+		zuVerteilendeEinheitenGui = this.laenderZaehlen(  aktuellerSpieler) + this.zusatzEinheitenKontinente(aktuellerSpieler) + this.checkSerie(   aktuellerSpieler) - this.verteilteEinheitenGui;
 		return zuVerteilendeEinheitenGui;
 	}
 	
